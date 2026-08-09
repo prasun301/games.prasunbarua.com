@@ -2,723 +2,404 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Play Chess online free against AI, local friends, or multiplayer opponents on Prasun Games. Feature-rich, real-time online chess.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Prasun Barua">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Play Chess Online Free | Prasun Games">
+    <meta property="og:description" content="Challenge Stockfish AI, play local 2-player matches, or create online rooms to challenge friends in real-time.">
+    <meta property="og:type" content="website">
 
-    <meta
-        name="description"
-        content="Play Chess online for free at Prasun Games. Play against the computer, play with a friend, or play online.">
+    <title>Play Chess Online Free | Prasun Games</title>
 
-    <meta
-        name="robots"
-        content="index, follow">
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <meta
-        name="author"
-        content="Prasun Barua">
-
-    <meta
-        property="og:title"
-        content="Play Chess Online Free | Prasun Games">
-
-    <meta
-        property="og:description"
-        content="Play Chess online for free. Challenge the computer, play with a friend, or play online.">
-
-    <meta
-        property="og:type"
-        content="website">
-
-    <title>
-        Play Chess Online Free | Prasun Games
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="style.css">
-
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
+<body class="theme-dark">
 
-<body>
+    <!-- =========================================
+         HEADER / NAVBAR
+    ========================================== -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="brand">
+                <span class="brand-icon">♟️</span>
+                <span class="brand-name">Prasun <strong>Games</strong></span>
+            </a>
 
+            <div class="header-actions">
+                <button id="btn-toggle-sound" class="icon-button" type="button" title="Toggle Sound" aria-label="Toggle Sound">
+                    🔊
+                </button>
+                <button id="btn-toggle-theme" class="icon-button" type="button" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+                    🌙
+                </button>
+                <a href="/" class="home-link">← All Games</a>
+            </div>
+        </div>
+    </header>
 
-<header class="site-header">
+    <main class="chess-app">
 
-    <div class="header-container">
+        <!-- =========================================
+             GAME HERO & MODE SELECTION
+        ========================================== -->
+        <section class="game-intro">
+            <div class="intro-badge">
+                <span class="pulse-dot"></span> ONLINE MULTIPLAYER & AI
+            </div>
+            <h1>Play Chess Online</h1>
+            <p>Challenge the computer, play locally with a friend, or create a private room for online matches.</p>
+        </section>
 
-        <a
-            href="/"
-            class="brand">
+        <section class="mode-selector" role="radiogroup" aria-label="Game Mode Selection">
+            <button class="mode-card active" id="mode-computer" type="button" role="radio" aria-checked="true">
+                <span class="mode-icon">🤖</span>
+                <div class="mode-details">
+                    <span class="mode-title">Play vs AI</span>
+                    <span class="mode-description">Practice against Stockfish</span>
+                </div>
+            </button>
 
-            ♟️ Prasun Games
+            <button class="mode-card" id="mode-local" type="button" role="radio" aria-checked="false">
+                <span class="mode-icon">👥</span>
+                <div class="mode-details">
+                    <span class="mode-title">Pass & Play</span>
+                    <span class="mode-description">2 Players on 1 device</span>
+                </div>
+            </button>
 
-        </a>
+            <button class="mode-card" id="mode-online" type="button" role="radio" aria-checked="false">
+                <span class="mode-icon">🌐</span>
+                <div class="mode-details">
+                    <span class="mode-title">Play Online</span>
+                    <span class="mode-description">Play with a friend remotely</span>
+                </div>
+            </button>
+        </section>
 
+        <!-- =========================================
+             MATCH CONFIGURATION PANEL
+        ========================================== -->
+        <section class="game-options" id="game-options">
+            <div class="option-group">
+                <label for="player-side">Your Side</label>
+                <select id="player-side">
+                    <option value="white">⚪ White (First Move)</option>
+                    <option value="black">⚫ Black</option>
+                    <option value="random">🔀 Random Choice</option>
+                </select>
+            </div>
 
-        <a
-            href="/"
-            class="home-link">
+            <div class="option-group" id="difficulty-group">
+                <label for="difficulty">AI Difficulty</label>
+                <select id="difficulty">
+                    <option value="1">Beginner (Level 1)</option>
+                    <option value="3">Easy (Level 3)</option>
+                    <option value="5" selected>Medium (Level 5)</option>
+                    <option value="8">Hard (Level 8)</option>
+                    <option value="10">Expert (Level 10)</option>
+                </select>
+            </div>
 
-            ← All Games
+            <div class="option-group">
+                <label for="time-control">Time Control</label>
+                <select id="time-control">
+                    <option value="unlimited">Unlimited (Casual)</option>
+                    <option value="1+0">1 min (Bullet)</option>
+                    <option value="3+0">3 min (Blitz)</option>
+                    <option value="5+3">5 + 3 (Blitz)</option>
+                    <option value="10+0" selected>10 min (Rapid)</option>
+                    <option value="15+10">15 + 10 (Rapid)</option>
+                </select>
+            </div>
+        </section>
 
-        </a>
+        <!-- =========================================
+             ONLINE MULTIPLAYER ROOM PANEL
+        ========================================== -->
+        <section class="online-panel" id="online-panel" hidden>
+            <div class="online-panel-header">
+                <h2>🌐 Online Room</h2>
+                <p>Create a room and send the invite code/link to your opponent.</p>
+            </div>
 
+            <div class="online-actions">
+                <button id="create-room" class="primary-button" type="button">
+                    ➕ Create New Game
+                </button>
+
+                <div class="join-room">
+                    <input id="room-code" type="text" maxlength="8" placeholder="Enter Room Code" autocomplete="off" aria-label="Room Code">
+                    <button id="join-room" class="secondary-button" type="button">
+                        Join Game
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-info" id="room-info" hidden>
+                <span>Room Code:</span>
+                <strong id="room-code-display">------</strong>
+                <button id="copy-room" class="icon-button-text" type="button">📋 Copy Code</button>
+                <button id="copy-link" class="icon-button-text" type="button">🔗 Copy Link</button>
+            </div>
+        </section>
+
+        <!-- =========================================
+             MAIN CHESS WORKSPACE
+        ========================================== -->
+        <section class="chess-layout">
+
+            <!-- LEFT: GAME BOARD AREA -->
+            <div class="board-section">
+
+                <!-- TOP PLAYER (BLACK BY DEFAULT) -->
+                <div class="player-bar black-player" id="black-player-bar">
+                    <div class="player-info">
+                        <div class="player-avatar" id="black-avatar">♚</div>
+                        <div class="player-details">
+                            <strong id="black-player-name">Black Opponent</strong>
+                            <span class="player-status" id="black-player-status">Waiting</span>
+                        </div>
+                    </div>
+
+                    <div class="captured-pieces" id="black-captured" aria-label="Captured White Pieces">
+                        <!-- Captured pieces injected via JS -->
+                    </div>
+
+                    <div class="material-advantage" id="black-advantage"></div>
+
+                    <div class="clock" id="black-clock">
+                        <span id="black-time">10:00</span>
+                    </div>
+                </div>
+
+                <!-- BOARD WRAPPER WITH EVAL BAR -->
+                <div class="board-container">
+                    <!-- Vertical Evaluation Bar -->
+                    <div class="eval-bar-wrapper" id="eval-bar-wrapper" title="Engine Evaluation">
+                        <div class="eval-bar-fill" id="eval-bar-fill" style="height: 50%;"></div>
+                        <span class="eval-score" id="eval-score">0.0</span>
+                    </div>
+
+                    <!-- Interactive Chess Board -->
+                    <div class="board-wrapper">
+                        <div id="chess-board" class="chess-board" aria-label="Interactive Chess Board" role="grid">
+                            <!-- Board squares and pieces rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM PLAYER (WHITE BY DEFAULT) -->
+                <div class="player-bar white-player" id="white-player-bar">
+                    <div class="player-info">
+                        <div class="player-avatar" id="white-avatar">♔</div>
+                        <div class="player-details">
+                            <strong id="white-player-name">You (White)</strong>
+                            <span class="player-status" id="white-player-status">Your Turn</span>
+                        </div>
+                    </div>
+
+                    <div class="captured-pieces" id="white-captured" aria-label="Captured Black Pieces">
+                        <!-- Captured pieces injected via JS -->
+                    </div>
+
+                    <div class="material-advantage" id="white-advantage"></div>
+
+                    <div class="clock active" id="white-clock">
+                        <span id="white-time">10:00</span>
+                    </div>
+                </div>
+
+                <!-- GAME STATUS BAR -->
+                <div class="game-status" id="game-status">
+                    <span id="turn-indicator">⚪ White to move</span>
+                </div>
+
+                <!-- IN-GAME NAVIGATION CONTROLS -->
+                <div class="game-controls">
+                    <div class="navigation-buttons">
+                        <button id="btn-first" class="control-button" type="button" title="First Move">⏮️</button>
+                        <button id="btn-prev" class="control-button" type="button" title="Previous Move">◀️</button>
+                        <button id="btn-next" class="control-button" type="button" title="Next Move">▶️</button>
+                        <button id="btn-last" class="control-button" type="button" title="Latest Move">⏭️</button>
+                        <button id="btn-flip" class="control-button" type="button" title="Flip Board">🔄</button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="btn-undo" class="control-button" type="button">↩️ Undo</button>
+                        <button id="btn-hint" class="control-button" type="button">💡 Hint</button>
+                        <button id="btn-draw" class="control-button" type="button">🤝 Draw</button>
+                        <button id="btn-resign" class="control-button danger-button" type="button">🏳️ Resign</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: TABBED SIDEBAR -->
+            <aside class="game-sidebar">
+                <div class="sidebar-tabs" role="tablist">
+                    <button class="tab-button active" id="tab-moves-btn" role="tab" aria-selected="true" aria-controls="tab-moves">Moves</button>
+                    <button class="tab-button" id="tab-chat-btn" role="tab" aria-selected="false" aria-controls="tab-chat">Chat</button>
+                    <button class="tab-button" id="tab-analysis-btn" role="tab" aria-selected="false" aria-controls="tab-analysis">Analysis</button>
+                    <button class="tab-button" id="tab-settings-btn" role="tab" aria-selected="false" aria-controls="tab-settings">Settings</button>
+                </div>
+
+                <!-- TAB 1: MOVES / NOTATION -->
+                <div class="tab-content active" id="tab-moves" role="tabpanel">
+                    <div class="sidebar-card">
+                        <div class="sidebar-title">
+                            <h3>Move History</h3>
+                            <span id="move-count" class="badge">0 moves</span>
+                        </div>
+
+                        <div id="move-history" class="move-history">
+                            <p class="empty-history">Game started. Make your first move!</p>
+                        </div>
+
+                        <div class="pgn-tools">
+                            <button id="btn-copy-pgn" class="secondary-button compact" type="button">Copy PGN</button>
+                            <button id="btn-copy-fen" class="secondary-button compact" type="button">Copy FEN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: LIVE CHAT (ONLINE) -->
+                <div class="tab-content" id="tab-chat" role="tabpanel" hidden>
+                    <div class="sidebar-card chat-card">
+                        <h3>Game Chat</h3>
+                        <div id="chat-messages" class="chat-messages">
+                            <p class="system-message">Chat will connect when an online room is joined.</p>
+                        </div>
+                        <form id="chat-form" class="chat-form">
+                            <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                            <button type="submit" class="primary-button compact">Send</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB 3: ENGINE ANALYSIS -->
+                <div class="tab-content" id="tab-analysis" role="tabpanel" hidden>
+                    <div class="sidebar-card">
+                        <h3>Engine Depth & Lines</h3>
+                        <div class="analysis-stats">
+                            <div class="info-row">
+                                <span>Engine Depth:</span>
+                                <strong id="engine-depth">18 / 24</strong>
+                            </div>
+                            <div class="info-row">
+                                <span>Best Move:</span>
+                                <strong id="engine-best-move">Nf3</strong>
+                            </div>
+                        </div>
+                        <div class="engine-lines" id="engine-lines">
+                            <p class="empty-history">Analysis active. Waiting for evaluation...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: APPEARANCE & GAME SETTINGS -->
+                <div class="tab-content" id="tab-settings" role="tabpanel" hidden>
+                    <div class="sidebar-card">
+                        <h3>Preferences</h3>
+                        <div class="setting-item">
+                            <label for="board-theme">Board Theme</label>
+                            <select id="board-theme">
+                                <option value="wood">Classic Wood</option>
+                                <option value="emerald" selected>Emerald Green</option>
+                                <option value="slate">Slate Gray</option>
+                                <option value="glass">Cyberpunk Glass</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-item">
+                            <label for="piece-style">Piece Set</label>
+                            <select id="piece-style">
+                                <option value="staunton" selected>Standard Staunton</option>
+                                <option value="neo">Modern Neo</option>
+                                <option value="flat">Minimalist Flat</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-toggle">
+                            <label for="toggle-hints">Highlight Legal Moves</label>
+                            <input type="checkbox" id="toggle-hints" checked>
+                        </div>
+
+                        <div class="setting-toggle">
+                            <label for="toggle-auto-queen">Auto-Promote to Queen</label>
+                            <input type="checkbox" id="toggle-auto-queen">
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+        </section>
+
+        <!-- =========================================
+             SEO / GAME INFORMATION SECTION
+        ========================================== -->
+        <section class="game-info-content">
+            <h2>Free Online Chess Engine & Multiplayer</h2>
+            <p>Experience smooth desktop and mobile chess featuring Stockfish engine support, multiple time controls, real-time notation logging, and multiplayer features built directly into Prasun Games.</p>
+
+            <h3>How to Improve Your Play</h3>
+            <ul>
+                <li><strong>Control the Center:</strong> Pawn moves like e4 or d4 open lines for your bishops and queen.</li>
+                <li><strong>Develop Your Minor Pieces:</strong> Bring Knights and Bishops into play before attempting aggressive attacks.</li>
+                <li><strong>Protect the King:</strong> Castle early to tuck your king into safety and connect your rooks.</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- =========================================
+         PAWN PROMOTION MODAL
+    ========================================== -->
+    <div class="modal-overlay" id="promotion-modal" hidden aria-hidden="true">
+        <div class="modal-card promotion-card" role="dialog" aria-modal="true" aria-labelledby="promo-title">
+            <h3 id="promo-title">Choose Promotion Piece</h3>
+            <div class="promotion-options">
+                <button class="promo-btn" data-piece="q" title="Queen">♛ Queen</button>
+                <button class="promo-btn" data-piece="r" title="Rook">♜ Rook</button>
+                <button class="promo-btn" data-piece="b" title="Bishop">♝ Bishop</button>
+                <button class="promo-btn" data-piece="n" title="Knight">♞ Knight</button>
+            </div>
+        </div>
     </div>
 
-</header>
-
-
-
-<main class="chess-app">
-
-
     <!-- =========================================
-         GAME INTRO
+         GAME OVER / RESULT MODAL
     ========================================== -->
+    <div class="modal-overlay" id="game-over-modal" hidden aria-hidden="true">
+        <div class="modal-card result-card" role="dialog" aria-modal="true" aria-labelledby="result-title">
+            <div class="result-icon" id="result-icon">🏆</div>
+            <h2 id="result-title">Checkmate!</h2>
+            <p id="result-description">White wins by checkmate.</p>
 
-    <section class="game-intro">
-
-        <div class="intro-badge">
-            ♟️ ONLINE CHESS
+            <div class="result-actions">
+                <button id="btn-rematch" class="primary-button" type="button">🔄 New Match</button>
+                <button id="btn-close-modal" class="secondary-button" type="button">Close Panel</button>
+            </div>
         </div>
-
-        <h1>
-            Play Chess Online
-        </h1>
-
-        <p>
-            Play against the computer, challenge a friend,
-            or play chess online with another player.
-        </p>
-
-    </section>
-
-
-
-    <!-- =========================================
-         GAME MODE
-    ========================================== -->
-
-    <section class="mode-selector">
-
-        <button
-            class="mode-card active"
-            id="mode-computer"
-            type="button">
-
-            <span class="mode-icon">
-                🤖
-            </span>
-
-            <span class="mode-title">
-                Computer
-            </span>
-
-            <span class="mode-description">
-                Play against AI
-            </span>
-
-        </button>
-
-
-        <button
-            class="mode-card"
-            id="mode-local"
-            type="button">
-
-            <span class="mode-icon">
-                👥
-            </span>
-
-            <span class="mode-title">
-                2 Players
-            </span>
-
-            <span class="mode-description">
-                Play on this device
-            </span>
-
-        </button>
-
-
-        <button
-            class="mode-card"
-            id="mode-online"
-            type="button">
-
-            <span class="mode-icon">
-                🌐
-            </span>
-
-            <span class="mode-title">
-                Online
-            </span>
-
-            <span class="mode-description">
-                Play with a friend
-            </span>
-
-        </button>
-
-    </section>
-
-
-
-    <!-- =========================================
-         GAME OPTIONS
-    ========================================== -->
-
-    <section
-        class="game-options"
-        id="game-options">
-
-
-        <div class="option-group">
-
-            <label for="player-side">
-                Your Side
-            </label>
-
-            <select id="player-side">
-
-                <option value="white">
-                    White
-                </option>
-
-                <option value="black">
-                    Black
-                </option>
-
-                <option value="random">
-                    Random
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <div
-            class="option-group"
-            id="difficulty-group">
-
-            <label for="difficulty">
-                Difficulty
-            </label>
-
-            <select id="difficulty">
-
-                <option value="easy">
-                    Easy
-                </option>
-
-                <option value="medium" selected>
-                    Medium
-                </option>
-
-                <option value="hard">
-                    Hard
-                </option>
-
-                <option value="expert">
-                    Expert
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <div class="option-group">
-
-            <label for="time-control">
-                Time Control
-            </label>
-
-            <select id="time-control">
-
-                <option value="unlimited">
-                    Unlimited
-                </option>
-
-                <option value="1+0">
-                    1 + 0 Bullet
-                </option>
-
-                <option value="3+0">
-                    3 + 0 Blitz
-                </option>
-
-                <option value="5+0">
-                    5 + 0 Blitz
-                </option>
-
-                <option value="10+0">
-                    10 + 0 Rapid
-                </option>
-
-                <option value="15+10">
-                    15 + 10 Rapid
-                </option>
-
-            </select>
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- =========================================
-         ONLINE ROOM
-    ========================================== -->
-
-    <section
-        class="online-panel"
-        id="online-panel"
-        hidden>
-
-        <div class="online-panel-header">
-
-            <div>
-
-                <h2>
-                    🌐 Online Game
-                </h2>
-
-                <p>
-                    Create a room or join a friend's game.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="online-actions">
-
-            <button
-                id="create-room"
-                class="primary-button"
-                type="button">
-
-                Create Game
-
-            </button>
-
-
-            <div class="join-room">
-
-                <input
-                    id="room-code"
-                    type="text"
-                    maxlength="8"
-                    placeholder="Enter room code"
-                    autocomplete="off">
-
-                <button
-                    id="join-room"
-                    class="secondary-button"
-                    type="button">
-
-                    Join Game
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div
-            class="room-info"
-            id="room-info"
-            hidden>
-
-            <span>
-                Room Code
-            </span>
-
-            <strong id="room-code-display">
-                ------
-            </strong>
-
-            <button
-                id="copy-room"
-                type="button">
-
-                Copy
-
-            </button>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =========================================
-         CHESS GAME
-    ========================================== -->
-
-    <section class="chess-layout">
-
-
-        <!-- GAME BOARD AREA -->
-
-        <div class="board-section">
-
-
-            <!-- BLACK PLAYER -->
-
-            <div class="player-bar black-player">
-
-                <div class="player-info">
-
-                    <div class="player-avatar">
-                        ♚
-                    </div>
-
-                    <div>
-
-                        <strong id="black-player-name">
-                            Black
-                        </strong>
-
-                        <small id="black-player-status">
-                            Waiting
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="captured-pieces"
-                    id="black-captured">
-                </div>
-
-
-                <div
-                    class="clock"
-                    id="black-clock">
-
-                    <span>
-                        10:00
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- CHESS BOARD -->
-
-            <div
-                class="board-wrapper">
-
-                <div
-                    id="chess-board"
-                    class="chess-board"
-                    aria-label="Chess board">
-                </div>
-
-            </div>
-
-
-
-            <!-- WHITE PLAYER -->
-
-            <div class="player-bar white-player">
-
-                <div class="player-info">
-
-                    <div class="player-avatar">
-                        ♔
-                    </div>
-
-                    <div>
-
-                        <strong id="white-player-name">
-                            White
-                        </strong>
-
-                        <small id="white-player-status">
-                            Your Turn
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="captured-pieces"
-                    id="white-captured">
-                </div>
-
-
-                <div
-                    class="clock active"
-                    id="white-clock">
-
-                    <span>
-                        10:00
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- GAME STATUS -->
-
-            <div
-                class="game-status"
-                id="game-status">
-
-                <span id="turn-indicator">
-                    White's Turn
-                </span>
-
-            </div>
-
-
-
-            <!-- CONTROLS -->
-
-            <div class="game-controls">
-
-                <button
-                    id="new-game"
-                    class="control-button primary-button"
-                    type="button">
-
-                    🔄 New Game
-
-                </button>
-
-
-                <button
-                    id="draw-game"
-                    class="control-button"
-                    type="button">
-
-                    🤝 Draw
-
-                </button>
-
-
-                <button
-                    id="resign-game"
-                    class="control-button danger-button"
-                    type="button">
-
-                    🏳️ Resign
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- =====================================
-             SIDEBAR
-        ====================================== -->
-
-        <aside class="game-sidebar">
-
-
-            <div class="sidebar-card">
-
-                <div class="sidebar-title">
-
-                    <h2>
-                        Move History
-                    </h2>
-
-                    <span id="move-count">
-                        0 moves
-                    </span>
-
-                </div>
-
-
-                <div
-                    id="move-history"
-                    class="move-history">
-
-                    <p class="empty-history">
-                        No moves yet
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="sidebar-card">
-
-                <h2>
-                    Game Information
-                </h2>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Mode
-                    </span>
-
-                    <strong id="current-mode">
-                        Computer
-                    </strong>
-
-                </div>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Difficulty
-                    </span>
-
-                    <strong id="current-difficulty">
-                        Medium
-                    </strong>
-
-                </div>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Status
-                    </span>
-
-                    <strong id="current-status">
-                        Playing
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="sidebar-card">
-
-                <h2>
-                    How to Play
-                </h2>
-
-                <ul class="help-list">
-
-                    <li>
-                        White moves first.
-                    </li>
-
-                    <li>
-                        Select a piece to see available moves.
-                    </li>
-
-                    <li>
-                        Click a highlighted square to move.
-                    </li>
-
-                    <li>
-                        Capture your opponent's pieces.
-                    </li>
-
-                    <li>
-                        Checkmate the king to win.
-                    </li>
-
-                </ul>
-
-            </div>
-
-
-        </aside>
-
-    </section>
-
-
-
-    <!-- =========================================
-         SEO CONTENT
-    ========================================== -->
-
-    <section class="game-info-content">
-
-        <h2>
-            Play Chess Online for Free
-        </h2>
-
-        <p>
-            Chess is a classic strategy game played between two
-            players. Each player starts with sixteen pieces,
-            including a king, queen, rooks, bishops, knights,
-            and pawns.
-        </p>
-
-        <p>
-            The objective of chess is to checkmate your opponent's
-            king. White moves first, and players alternate turns
-            until the game ends.
-        </p>
-
-
-        <h2>
-            Chess Game Modes
-        </h2>
-
-        <p>
-            Play against the computer, play with another person
-            on the same device, or use online multiplayer to
-            challenge a friend. More chess features are being
-            added to Prasun Games.
-        </p>
-
-    </section>
-
-
-</main>
-
-
-
-<footer class="site-footer">
-
-    <p>
-        © 2026 Prasun Games. All rights reserved.
-    </p>
-
-    <p>
-        <a href="/">
-            Prasun Games
-        </a>
-    </p>
-
-</footer>
-
-
-
-<script src="script.js"></script>
-
+    </div>
+
+    <footer class="site-footer">
+        <p>© 2026 Prasun Games. All rights reserved. Built for competitive and casual play.</p>
+        <p><a href="/">Back to Home</a> • <a href="/privacy">Privacy Policy</a></p>
+    </footer>
+
+    <!-- Main JavaScript Logic -->
+    <script src="script.js"></script>
 </body>
 
 </html>
