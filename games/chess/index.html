@@ -1,26 +1,819 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chess - Prasun Games</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Chess 3D | Prasun Games</title>
+  <meta name="description" content="Play free 3D Chess online against AI or friends. Clean, modern, responsive browser chess game.">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    :root {
+      --bg: #07111f;
+      --surface: rgba(17, 29, 46, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      
+      /* Board Colors */
+      --sq-light: #e2e8f0;
+      --sq-dark: #334155;
+      --sq-highlight: rgba(34, 197, 94, 0.55);
+      --sq-last-move: rgba(234, 179, 8, 0.4);
+      --sq-check: rgba(239, 68, 68, 0.65);
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1b3150 0%, #07111f 50%, #020617 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* HEADER / NAV */
+    .site-header {
+      width: 100%;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 17, 31, 0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      width: min(1200px, 94%);
+      height: 64px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .home-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .home-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(-3px);
+    }
+
+    .game-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* MAIN CONTAINER */
+    .app-container {
+      width: min(1200px, 94%);
+      margin: 24px auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 950px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* GAME BOARD STAGE & 3D ENGINE */
+    .board-stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      perspective: 1200px;
+    }
+
+    .status-bar {
+      width: min(560px, 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .turn-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .turn-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      transition: background 0.3s;
+    }
+
+    .turn-dot.black {
+      background: #1e293b;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+      border: 1px solid #475569;
+    }
+
+    /* 3D BOARD WRAPPER */
+    .board-3d-wrapper {
+      position: relative;
+      width: min(520px, 88vw);
+      height: min(520px, 88vw);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+      transform: rotateX(32deg) rotateZ(0deg);
+      box-shadow: 0 35px 60px rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+    }
+
+    /* 2D Mode Class */
+    .board-stage.mode-2d .board-3d-wrapper {
+      transform: rotateX(0deg) rotateZ(0deg);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Board 3D Side Thickness Frame */
+    .board-3d-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: -14px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-radius: 12px;
+      transform: translateZ(-20px);
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 20px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chess-board {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      border-radius: 6px;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .square {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: clamp(2rem, 8vw, 3.2rem);
+      transition: background 0.15s ease;
+    }
+
+    .square.light { background: var(--sq-light); color: #0f172a; }
+    .square.dark { background: var(--sq-dark); color: #f8fafc; }
+
+    .square.selected {
+      background: var(--sq-highlight) !important;
+    }
+
+    .square.last-move {
+      background: var(--sq-last-move) !important;
+    }
+
+    .square.in-check {
+      background: var(--sq-check) !important;
+      animation: pulseCheck 1s infinite alternate;
+    }
+
+    @keyframes pulseCheck {
+      0% { box-shadow: inset 0 0 0 0px red; }
+      100% { box-shadow: inset 0 0 15px 3px red; }
+    }
+
+    /* Legal Move Indicator Dot */
+    .square.legal-move::after {
+      content: '';
+      position: absolute;
+      width: 24%;
+      height: 24%;
+      background: rgba(34, 197, 94, 0.75);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+      pointer-events: none;
+    }
+
+    /* 3D Piece Stand-up Effect */
+    .piece {
+      position: relative;
+      z-index: 2;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.45));
+      transform: translateZ(12px) rotateX(-20deg);
+    }
+
+    .board-stage.mode-2d .piece {
+      transform: translateZ(0) rotateX(0deg);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    .square:hover .piece {
+      transform: translateZ(22px) rotateX(-20deg) scale(1.12);
+    }
+
+    .board-stage.mode-2d .square:hover .piece {
+      transform: scale(1.12);
+    }
+
+    /* CONTROL PANEL SIDEBAR */
+    .control-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+    }
+
+    select.btn {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 36px;
+    }
+
+    /* Captured Pieces Box */
+    .captured-box {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-height: 44px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 1.4rem;
+    }
+
+    /* Move History Log */
+    .move-history {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 140px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .move-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .move-num { color: #64748b; }
+  </style>
 </head>
 <body>
-  <div class="game-container">
-    <h1>Chess</h1>
-    <div id="status">Your Turn (White)</div>
 
-    <div id="board"></div>
-
-    <div class="controls">
-      <button id="undo-btn">Undo</button>
-      <button id="reset-btn">Reset</button>
+  <!-- HEADER NAVIGATION -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="/" class="home-btn">
+        <span>←</span>
+        <span>Back to Home</span>
+      </a>
+      <div class="game-title">♟️ Prasun Chess 3D</div>
+      <div style="width: 110px;"></div> <!-- Spacer -->
     </div>
+  </header>
 
-    <div id="moves"></div>
-  </div>
+  <!-- MAIN APP -->
+  <main class="app-container">
 
-  <script src="script.js"></script>
+    <!-- 3D BOARD STAGE -->
+    <section class="board-stage" id="boardStage">
+      
+      <div class="status-bar">
+        <div class="turn-indicator">
+          <div class="turn-dot" id="turnDot"></div>
+          <span id="statusText">White's Turn</span>
+        </div>
+        <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none;">CHECK!</div>
+      </div>
+
+      <div class="board-3d-wrapper">
+        <div class="chess-board" id="chessBoard"></div>
+      </div>
+
+    </section>
+
+    <!-- SIDEBAR CONTROLS -->
+    <aside class="control-panel">
+
+      <!-- View & Sound Toggles -->
+      <div class="panel-section">
+        <div class="panel-title">Display & Audio</div>
+        <div class="btn-group">
+          <button class="btn active" id="toggle3dBtn">
+            <span>🎲 3D View</span>
+          </button>
+          <button class="btn" id="toggleSoundBtn">
+            <span>🔊 Sound ON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Game Mode & AI Level -->
+      <div class="panel-section">
+        <div class="panel-title">Game Mode & AI</div>
+        <select class="btn" id="modeSelect">
+          <option value="ai-easy">🤖 Play AI (Easy)</option>
+          <option value="ai-medium" selected>🤖 Play AI (Medium)</option>
+          <option value="ai-hard">🤖 Play AI (Hard)</option>
+          <option value="pass-play">👥 2 Players (Local)</option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="btn-group">
+        <button class="btn" id="undoBtn">↩️ Undo</button>
+        <button class="btn active" id="resetBtn">🔄 New Game</button>
+      </div>
+
+      <!-- Captured Pieces -->
+      <div class="panel-section">
+        <div class="panel-title">Captured Pieces</div>
+        <div class="captured-box" id="capturedWhite"></div>
+        <div class="captured-box" id="capturedBlack"></div>
+      </div>
+
+      <!-- Move History -->
+      <div class="panel-section">
+        <div class="panel-title">Move History</div>
+        <div class="move-history" id="moveHistory"></div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- GAME ENGINE & SOUND SYNTHESIZER -->
+  <script>
+    // --- WEB AUDIO API SOUND SYNTHESIZER ---
+    const AudioEngine = {
+      enabled: true,
+      ctx: null,
+      
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+
+      playMove() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      },
+
+      playCapture() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+
+      playCheck() {
+        if (!this.enabled) return;
+        this.init();
+        [523.25, 659.25].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.08));
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.08));
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.08) + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + (idx * 0.08));
+          osc.stop(this.ctx.currentTime + (idx * 0.08) + 0.15);
+        });
+      }
+    };
+
+    // --- CHESS ENGINE & STATE ---
+    const UNICODE_PIECES = {
+      'wP': '♙', 'wR': '♖', 'wN': '♘', 'wB': '♗', 'wQ': '♕', 'wK': '♔',
+      'bP': '♟', 'bR': '♜', 'bN': '♞', 'bB': '♝', 'bQ': '♛', 'bK': '♚'
+    };
+
+    const INITIAL_BOARD = [
+      ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+      ['bP','bP','bP','bP','bP','bP','bP','bP'],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['wP','wP','wP','wP','wP','wP','wP','wP'],
+      ['wR','wN','wB','wQ','wK','wB','wN','wR']
+    ];
+
+    let board = JSON.parse(JSON.stringify(INITIAL_BOARD));
+    let turn = 'w'; // 'w' or 'b'
+    let selectedSquare = null;
+    let legalMoves = [];
+    let moveHistory = [];
+    let capturedWhite = [];
+    let capturedBlack = [];
+    let is3D = true;
+
+    // DOM Elements
+    const boardEl = document.getElementById('chessBoard');
+    const boardStage = document.getElementById('boardStage');
+    const statusText = document.getElementById('statusText');
+    const turnDot = document.getElementById('turnDot');
+    const checkBadge = document.getElementById('checkBadge');
+    const toggle3dBtn = document.getElementById('toggle3dBtn');
+    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+    const modeSelect = document.getElementById('modeSelect');
+    const undoBtn = document.getElementById('undoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // INITIALIZE BOARD
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const sq = document.createElement('div');
+          sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+          sq.dataset.row = r;
+          sq.dataset.col = c;
+
+          const piece = board[r][c];
+          if (piece) {
+            const pieceEl = document.createElement('span');
+            pieceEl.className = 'piece';
+            pieceEl.textContent = UNICODE_PIECES[piece];
+            sq.appendChild(pieceEl);
+          }
+
+          // Highlight Selection
+          if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
+            sq.classList.add('selected');
+          }
+
+          // Highlight Legal Moves
+          if (legalMoves.some(m => m.r === r && m.c === c)) {
+            sq.classList.add('legal-move');
+          }
+
+          // Highlight Last Move
+          if (moveHistory.length > 0) {
+            const last = moveHistory[moveHistory.length - 1];
+            if ((last.from.r === r && last.from.c === c) || (last.to.r === r && last.to.c === c)) {
+              sq.classList.add('last-move');
+            }
+          }
+
+          sq.addEventListener('click', () => handleSquareClick(r, c));
+          boardEl.appendChild(sq);
+        }
+      }
+      updateStatus();
+    }
+
+    // HANDLE SQUARE CLICK
+    function handleSquareClick(r, c) {
+      const piece = board[r][c];
+      const isCurrentColor = piece && piece[0] === turn;
+
+      if (selectedSquare) {
+        const move = legalMoves.find(m => m.r === r && m.c === c);
+        if (move) {
+          executeMove(selectedSquare, { r, c });
+          selectedSquare = null;
+          legalMoves = [];
+          
+          // Trigger AI Move if enabled
+          const mode = modeSelect.value;
+          if (mode.startsWith('ai') && turn === 'b') {
+            setTimeout(makeAIMove, 300);
+          }
+          return;
+        }
+      }
+
+      if (isCurrentColor) {
+        selectedSquare = { r, c };
+        legalMoves = getPseudoLegalMoves(r, c, piece);
+      } else {
+        selectedSquare = null;
+        legalMoves = [];
+      }
+      renderBoard();
+    }
+
+    // EXECUTE MOVE
+    function executeMove(from, to) {
+      const piece = board[from.r][from.c];
+      const target = board[to.r][to.c];
+
+      if (target) {
+        AudioEngine.playCapture();
+        if (target[0] === 'w') capturedWhite.push(UNICODE_PIECES[target]);
+        else capturedBlack.push(UNICODE_PIECES[target]);
+        updateCapturedUI();
+      } else {
+        AudioEngine.playMove();
+      }
+
+      board[to.r][to.c] = piece;
+      board[from.r][from.c] = '';
+
+      // Pawn Promotion to Queen
+      if (piece === 'wP' && to.r === 0) board[to.r][to.c] = 'wQ';
+      if (piece === 'bP' && to.r === 7) board[to.r][to.c] = 'bQ';
+
+      moveHistory.push({ from, to, piece, captured: target });
+      turn = turn === 'w' ? 'b' : 'w';
+      renderBoard();
+      updateHistoryUI();
+    }
+
+    // PSEUDO LEGAL MOVES CALCULATOR
+    function getPseudoLegalMoves(r, c, piece) {
+      const moves = [];
+      const type = piece[1];
+      const color = piece[0];
+      const dir = color === 'w' ? -1 : 1;
+
+      if (type === 'P') {
+        if (isEmpty(r + dir, c)) {
+          moves.push({ r: r + dir, c });
+          if ((color === 'w' && r === 6) || (color === 'b' && r === 1)) {
+            if (isEmpty(r + 2 * dir, c)) moves.push({ r: r + 2 * dir, c });
+          }
+        }
+        [-1, 1].forEach(dc => {
+          if (isEnemy(r + dir, c + dc, color)) moves.push({ r: r + dir, c: c + dc });
+        });
+      }
+
+      if (type === 'N') {
+        const offsets = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+        offsets.forEach(([dr, dc]) => {
+          const nr = r + dr, nc = c + dc;
+          if (isVal(nr, nc) && (!board[nr][nc] || isEnemy(nr, nc, color))) moves.push({ r: nr, c: nc });
+        });
+      }
+
+      if (type === 'R' || type === 'Q') addRayMoves(r, c, color, [[1,0],[-1,0],[0,1],[0,-1]], moves);
+      if (type === 'B' || type === 'Q') addRayMoves(r, c, color, [[1,1],[1,-1],[-1,1],[-1,-1]], moves);
+
+      if (type === 'K') {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr, nc = c + dc;
+            if (isVal(nr, nc) && (!board[nr][nc] || isEnemy(nr, nc, color))) moves.push({ r: nr, c: nc });
+          }
+        }
+      }
+
+      return moves;
+    }
+
+    function addRayMoves(r, c, color, dirs, moves) {
+      dirs.forEach(([dr, dc]) => {
+        let nr = r + dr, nc = c + dc;
+        while (isVal(nr, nc)) {
+          if (!board[nr][nc]) {
+            moves.push({ r: nr, c: nc });
+          } else {
+            if (isEnemy(nr, nc, color)) moves.push({ r: nr, c: nc });
+            break;
+          }
+          nr += dr; nc += dc;
+        }
+      });
+    }
+
+    function isVal(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+    function isEmpty(r, c) { return isVal(r, c) && !board[r][c]; }
+    function isEnemy(r, c, color) { return isVal(r, c) && board[r][c] && board[r][c][0] !== color; }
+
+    // SIMPLE AI ENGINE
+    function makeAIMove() {
+      const allMoves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] && board[r][c][0] === 'b') {
+            const moves = getPseudoLegalMoves(r, c, board[r][c]);
+            moves.forEach(m => allMoves.push({ from: { r, c }, to: m }));
+          }
+        }
+      }
+
+      if (allMoves.length === 0) return;
+
+      let chosenMove;
+      const level = modeSelect.value;
+
+      if (level === 'ai-easy') {
+        chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+      } else {
+        // Medium & Hard: Prioritize Captures
+        const captureMoves = allMoves.filter(m => board[m.to.r][m.to.c] !== '');
+        if (captureMoves.length > 0) {
+          chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+        } else {
+          chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+        }
+      }
+
+      executeMove(chosenMove.from, chosenMove.to);
+    }
+
+    // UI UPDATES
+    function updateStatus() {
+      statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
+      turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
+    }
+
+    function updateCapturedUI() {
+      document.getElementById('capturedWhite').textContent = capturedWhite.join(' ');
+      document.getElementById('capturedBlack').textContent = capturedBlack.join(' ');
+    }
+
+    function updateHistoryUI() {
+      const historyEl = document.getElementById('moveHistory');
+      historyEl.innerHTML = '';
+      for (let i = 0; i < moveHistory.length; i += 2) {
+        const row = document.createElement('div');
+        row.className = 'move-row';
+        const wMove = `${moveHistory[i].piece} → ${String.fromCharCode(97 + moveHistory[i].to.c)}${8 - moveHistory[i].to.r}`;
+        const bMove = moveHistory[i+1] ? `${moveHistory[i+1].piece} → ${String.fromCharCode(97 + moveHistory[i+1].to.c)}${8 - moveHistory[i+1].to.r}` : '';
+        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${wMove}</span> <span>${bMove}</span>`;
+        historyEl.appendChild(row);
+      }
+      historyEl.scrollTop = historyEl.scrollHeight;
+    }
+
+    // BUTTON LISTENERS
+    toggle3dBtn.addEventListener('click', () => {
+      is3D = !is3D;
+      boardStage.classList.toggle('mode-2d', !is3D);
+      toggle3dBtn.classList.toggle('active', is3D);
+      toggle3dBtn.innerHTML = is3D ? '<span>🎲 3D View</span>' : '<span>🖼️ 2D View</span>';
+    });
+
+    toggleSoundBtn.addEventListener('click', () => {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
+      toggleSoundBtn.innerHTML = AudioEngine.enabled ? '<span>🔊 Sound ON</span>' : '<span>🔇 Muted</span>';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      board = JSON.parse(JSON.stringify(INITIAL_BOARD));
+      turn = 'w';
+      selectedSquare = null;
+      legalMoves = [];
+      moveHistory = [];
+      capturedWhite = [];
+      capturedBlack = [];
+      updateCapturedUI();
+      updateHistoryUI();
+      renderBoard();
+    });
+
+    undoBtn.addEventListener('click', () => {
+      if (moveHistory.length === 0) return;
+      const steps = modeSelect.value.startsWith('ai') ? 2 : 1;
+      for (let i = 0; i < steps; i++) {
+        if (moveHistory.length === 0) break;
+        const last = moveHistory.pop();
+        board[last.from.r][last.from.c] = last.piece;
+        board[last.to.r][last.to.c] = last.captured || '';
+      }
+      turn = 'w';
+      selectedSquare = null;
+      legalMoves = [];
+      renderBoard();
+      updateHistoryUI();
+    });
+
+    // INITIAL RENDER
+    renderBoard();
+  </script>
 </body>
 </html>
