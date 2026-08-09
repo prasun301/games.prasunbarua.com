@@ -166,8 +166,7 @@
     .webgl-container {
       position: relative;
       width: 100%;
-      aspect-ratio: 1 / 1;
-      max-height: 65vh;
+      height: 540px;
       border-radius: 14px;
       overflow: hidden;
       background: #03050a;
@@ -441,7 +440,7 @@
         <div class="ai-thinking-badge" id="aiThinkingBadge">
           <span>AI is calculating</span>
         </div>
-        <div class="camera-hint" id="cameraHint">Rotate: Drag | Zoom: Scroll | Pan: Right-Click</div>
+        <div class="camera-hint">Left Click + Drag: Rotate | Scroll: Zoom | Right Click: Pan</div>
       </div>
 
     </section>
@@ -507,12 +506,12 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(260, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.09);
-        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
+        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
         osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.09);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.08);
       },
       playCapture() {
         if (!this.enabled) return;
@@ -521,12 +520,12 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.14);
-        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
+        osc.frequency.setValueAtTime(420, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
         osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.14);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.12);
       },
       playCheck() {
         if (!this.enabled) return;
@@ -537,7 +536,7 @@
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.07));
-          gain.gain.setValueAtTime(0.2, this.ctx.currentTime + (idx * 0.07));
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime + (idx * 0.07));
           gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.07) + 0.15);
           osc.connect(gain); gain.connect(this.ctx.destination);
           osc.start(this.ctx.currentTime + (idx * 0.07));
@@ -553,16 +552,16 @@
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.12));
-          gain.gain.setValueAtTime(0.25, this.ctx.currentTime + (idx * 0.12));
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.12) + 0.22);
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.12));
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.12) + 0.2);
           osc.connect(gain); gain.connect(this.ctx.destination);
           osc.start(this.ctx.currentTime + (idx * 0.12));
-          osc.stop(this.ctx.currentTime + (idx * 0.12) + 0.22);
+          osc.stop(this.ctx.currentTime + (idx * 0.12) + 0.25);
         });
       }
     };
 
-    // --- AI ENGINE (Minimax with Alpha-Beta Pruning, Move Ordering & PST) ---
+    // --- AI ENGINE (Minimax with Alpha-Beta Pruning & Piece-Square Tables) ---
     const AIEngine = {
       pawnTable: [
         [0,  0,  0,  0,  0,  0,  0,  0],
@@ -657,23 +656,12 @@
         return piece.color === 'w' ? score : -score;
       },
 
-      orderMoves(moves) {
-        // Prioritize captures and checks for better alpha-beta pruning efficiency
-        return moves.sort((a, b) => {
-          let scoreA = a.captured ? 10 + ({q:9, r:5, b:3, n:3, p:1}[a.captured] || 0) : 0;
-          let scoreB = b.captured ? 10 + ({q:9, r:5, b:3, n:3, p:1}[b.captured] || 0) : 0;
-          if (a.promotion) scoreA += 8;
-          if (b.promotion) scoreB += 8;
-          return scoreB - scoreA;
-        });
-      },
-
       minimax(gameInstance, depth, alpha, beta, isMaximizing) {
         if (depth === 0 || gameInstance.game_over()) {
           return this.evaluateBoard(gameInstance);
         }
 
-        const moves = this.orderMoves(gameInstance.moves({ verbose: true }));
+        const moves = gameInstance.moves({ verbose: true });
         if (isMaximizing) {
           let maxEval = -Infinity;
           for (const move of moves) {
@@ -704,8 +692,9 @@
         if (moves.length === 0) return null;
 
         if (difficulty === 'easy') {
+          // Easy: random move with occasional capture preference
           const captures = moves.filter(m => m.captured);
-          if (captures.length > 0 && Math.random() < 0.5) {
+          if (captures.length > 0 && Math.random() < 0.6) {
             return captures[Math.floor(Math.random() * captures.length)];
           }
           return moves[Math.floor(Math.random() * moves.length)];
@@ -716,8 +705,10 @@
         let bestValue = gameInstance.turn() === 'w' ? -Infinity : Infinity;
         const isMaximizing = gameInstance.turn() === 'w';
 
-        const orderedMoves = this.orderMoves(moves);
-        for (const move of orderedMoves) {
+        // Shuffle moves to add variety in equal evaluations
+        moves.sort(() => Math.random() - 0.5);
+
+        for (const move of moves) {
           gameInstance.move(move);
           const value = this.minimax(gameInstance, depth - 1, -Infinity, Infinity, !isMaximizing);
           gameInstance.undo();
@@ -753,7 +744,7 @@
     const SQ_SIZE = 1.2;
     const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
 
-    // Geometry & Material Caches
+    // Geometry Caches
     const pieceGeometryCache = {};
     const highlightGeometryCache = {};
 
@@ -786,23 +777,23 @@
     const lightWoodTex = createWoodTexture(false);
     const darkWoodTex = createWoodTexture(true);
 
-    // Premium Materials
+    // Premium Materials (Polished Ivory & Ebony with Physical Clearcoat)
     const whitePieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf8f6f0,
-      roughness: 0.15,
+      color: 0xf5f2eb,
+      roughness: 0.16,
       metalness: 0.05,
-      clearcoat: 0.6,
+      clearcoat: 0.5,
       clearcoatRoughness: 0.1,
-      reflectivity: 0.95
+      reflectivity: 0.9
     });
 
     const blackPieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x181412,
-      roughness: 0.18,
-      metalness: 0.12,
-      clearcoat: 0.6,
+      color: 0x16120e,
+      roughness: 0.2,
+      metalness: 0.15,
+      clearcoat: 0.5,
       clearcoatRoughness: 0.1,
-      reflectivity: 0.85
+      reflectivity: 0.8
     });
 
     const lightSquareMat = new THREE.MeshStandardMaterial({ map: lightWoodTex, roughness: 0.28, metalness: 0.05 });
@@ -854,10 +845,10 @@
       controls.screenSpacePanning = false;
 
       // Studio Lighting
-      const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.65);
+      const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.6);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xfffaed, 1.25);
+      const dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
       dirLight.position.set(8, 14, 8);
       dirLight.castShadow = true;
       dirLight.shadow.mapSize.width = isMobile ? 1024 : 2048;
@@ -871,22 +862,17 @@
       dirLight.shadow.bias = -0.0004;
       scene.add(dirLight);
 
-      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.5);
+      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.45);
       fillLight.position.set(-8, 10, -8);
       scene.add(fillLight);
 
-      const rimLight = new THREE.DirectionalLight(0xffedd5, 0.4);
+      const rimLight = new THREE.DirectionalLight(0xffedd5, 0.35);
       rimLight.position.set(0, 6, -10);
       scene.add(rimLight);
 
       buildBoardAndFrame();
       setupRaycaster();
       syncPiecesWithBoard(true);
-
-      // Update camera instructions for mobile/desktop
-      if (isMobile) {
-        document.getElementById('cameraHint').textContent = "Rotate: 1 Finger | Zoom: Pinch | Pan: 2 Fingers";
-      }
 
       window.addEventListener('resize', onWindowResize);
       animate();
@@ -906,6 +892,7 @@
     function buildBoardAndFrame() {
       const frameGroup = new THREE.Group();
 
+      // Outer Beveled Frame
       const outerFrameGeo = new THREE.BoxGeometry(11.2, 0.65, 11.2);
       const outerFrameMesh = new THREE.Mesh(outerFrameGeo, new THREE.MeshStandardMaterial({ map: darkWoodTex, roughness: 0.35, metalness: 0.1 }));
       outerFrameMesh.position.y = -0.35;
@@ -913,6 +900,7 @@
       outerFrameMesh.receiveShadow = true;
       frameGroup.add(outerFrameMesh);
 
+      // Inner platform
       const innerPlatGeo = new THREE.BoxGeometry(10.2, 0.15, 10.2);
       const innerPlatMesh = new THREE.Mesh(innerPlatGeo, new THREE.MeshStandardMaterial({ color: 0x140d08, roughness: 0.6 }));
       innerPlatMesh.position.y = -0.05;
@@ -921,6 +909,7 @@
 
       scene.add(frameGroup);
 
+      // 8x8 Board Tiles
       const sqGeo = new THREE.BoxGeometry(SQ_SIZE - 0.015, 0.07, SQ_SIZE - 0.015);
       for (let r = 0; r < 8; r++) {
         squareMeshes[r] = [];
@@ -1002,8 +991,9 @@
         group.add(baseMesh);
       }
 
-      // Detailed Architectural Enhancements & Sculpted Knight
+      // Detailed Architectural Enhancements
       if (type === 'r') {
+        // Rook Crenellations
         for (let i = 0; i < 6; i++) {
           const angle = (i / 6) * Math.PI * 2;
           const toothGeo = new THREE.BoxGeometry(0.1, 0.1, 0.06);
@@ -1013,7 +1003,7 @@
           group.add(toothMesh);
         }
       } else if (type === 'n') {
-        // Highly sculpted 3D Knight head & mane
+        // Sculpted 3D Knight Head & Mane
         const neckGeo = new THREE.CylinderGeometry(0.16, 0.22, 0.32, 16);
         const neckMesh = new THREE.Mesh(neckGeo, mat);
         neckMesh.position.set(0, 0.5, 0);
@@ -1021,24 +1011,25 @@
         group.add(neckMesh);
 
         const headShape = new THREE.Shape();
-        headShape.moveTo(-0.16, 0);
-        headShape.lineTo(0.16, 0);
-        headShape.lineTo(0.28, 0.35);
-        headShape.lineTo(0.42, 0.65); // Snout
-        headShape.lineTo(0.24, 0.82); // Forehead
-        headShape.lineTo(0.06, 0.75); // Ears
-        headShape.lineTo(-0.18, 0.45); // Mane crest
+        headShape.moveTo(-0.15, 0);
+        headShape.lineTo(0.15, 0);
+        headShape.lineTo(0.26, 0.32);
+        headShape.lineTo(0.38, 0.62); // Muzzle
+        headShape.lineTo(0.22, 0.78); // Forehead
+        headShape.lineTo(0.05, 0.72); // Ears
+        headShape.lineTo(-0.16, 0.42); // Mane
         headShape.closePath();
 
-        const extrudeSettings = { depth: 0.28, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 0.06, bevelThickness: 0.06 };
+        const extrudeSettings = { depth: 0.26, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
         const horseGeo = new THREE.ExtrudeGeometry(headShape, extrudeSettings);
         horseGeo.center();
         const horseMesh = new THREE.Mesh(horseGeo, mat);
-        horseMesh.position.set(0, 0.8, 0.02);
+        horseMesh.position.set(0, 0.78, 0.02);
         horseMesh.rotation.y = Math.PI / 2;
         horseMesh.castShadow = true;
         group.add(horseMesh);
       } else if (type === 'b') {
+        // Bishop Mitre Slit & Spherical Finial
         const slitGeo = new THREE.BoxGeometry(0.035, 0.32, 0.26);
         const slitMat = new THREE.MeshStandardMaterial({ color: color === 'w' ? 0xd5d0c5 : 0x0f0b08, roughness: 0.3 });
         const slitMesh = new THREE.Mesh(slitGeo, slitMat);
@@ -1052,6 +1043,7 @@
         bTipMesh.castShadow = true;
         group.add(bTipMesh);
       } else if (type === 'q') {
+        // Queen Coronet Spikes
         for (let i = 0; i < 8; i++) {
           const angle = (i / 8) * Math.PI * 2;
           const cpGeo = new THREE.SphereGeometry(0.04, 12, 12);
@@ -1061,6 +1053,7 @@
           group.add(cpMesh);
         }
       } else if (type === 'k') {
+        // Integrated 3D Cross
         const crossV = new THREE.BoxGeometry(0.07, 0.34, 0.07);
         const crossH = new THREE.BoxGeometry(0.24, 0.07, 0.07);
         const cVMesh = new THREE.Mesh(crossV, mat);
@@ -1077,18 +1070,20 @@
       return group;
     }
 
-    // --- ROBUST PIECE MANAGEMENT & ANIMATION ---
+    // --- REBUILT PIECE MANAGEMENT & ANIMATION ARCHITECTURE ---
     function syncPiecesWithBoard(instant = false) {
       const boardState = chess.board();
       const newPieceMeshes = {};
       const currentSquares = Object.keys(pieceMeshes);
       const accountedForMeshes = new Set();
 
+      // Track target pieces
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
           const pieceObj = boardState[r][c];
           if (pieceObj) {
             const sqStr = String.fromCharCode(97 + c) + (8 - r);
+            // Check if a matching piece already exists on board
             let foundKey = null;
             for (const oldSq of currentSquares) {
               if (!accountedForMeshes.has(oldSq)) {
@@ -1104,6 +1099,7 @@
             const targetZ = r * SQ_SIZE - BOARD_OFFSET;
 
             if (foundKey) {
+              // Reuse existing mesh
               const mesh = pieceMeshes[foundKey];
               accountedForMeshes.add(foundKey);
               newPieceMeshes[sqStr] = mesh;
@@ -1114,6 +1110,7 @@
                 animatePieceMove(mesh, mesh.position.x, mesh.position.z, targetX, targetZ, 220);
               }
             } else {
+              // Create new piece (e.g. promotion spawn)
               const mesh = createPiece3DMesh(pieceObj.type, pieceObj.color);
               mesh.position.set(targetX, 0.08, targetZ);
               if (pieceObj.color === 'b') mesh.rotation.y = Math.PI;
@@ -1124,6 +1121,7 @@
         }
       }
 
+      // Remove captured or obsolete meshes with fade/scale animation
       for (const oldSq of currentSquares) {
         if (!accountedForMeshes.has(oldSq)) {
           const capturedMesh = pieceMeshes[oldSq];
@@ -1140,10 +1138,12 @@
       function frame(now) {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
+        // Ease out quad
         const ease = progress * (2 - progress);
 
         mesh.position.x = startX + (targetX - startX) * ease;
         mesh.position.z = startZ + (targetZ - startZ) * ease;
+        // Subtle parabolic arc lift during movement
         mesh.position.y = 0.08 + Math.sin(progress * Math.PI) * 0.35;
 
         if (progress < 1) {
@@ -1281,6 +1281,7 @@
       highlightMeshes.forEach(h => scene.remove(h));
       highlightMeshes = [];
 
+      // Reset tile colors
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
           squareMeshes[r][c].material.color.set(0xffffff);
@@ -1292,21 +1293,7 @@
         squareMeshes[r][c].material.color.set(0x34d399);
       }
 
-      // Check feedback highlight
-      if (chess.in_check()) {
-        const board = chess.board();
-        const turn = chess.turn();
-        outerLoop: for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
-            const p = board[r][c];
-            if (p && p.type === 'k' && p.color === turn) {
-              squareMeshes[r][c].material.color.set(0xef4444);
-              break outerLoop;
-            }
-          }
-        }
-      }
-
+      // Cache highlight geometries
       if (!highlightGeometryCache['ring']) {
         highlightGeometryCache['ring'] = new THREE.RingGeometry(0.2, 0.34, 32);
         highlightGeometryCache['matNormal'] = new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
@@ -1429,7 +1416,7 @@
       const steps = mode.startsWith('ai') ? 2 : 1;
       
       for (let i = 0; i < steps; i++) {
-        if (chess.history().length > 0) chess.undo();
+        chess.undo();
       }
       selectedSquare = null;
       legalMovesForSelected = [];
