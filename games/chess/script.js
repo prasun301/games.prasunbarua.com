@@ -131,70 +131,45 @@ document.addEventListener("DOMContentLoaded", () => {
     updateHistoryUI();
   }
 
-  /* =========================================================
-     3. CLOUDFLARE WORKER AI INTEGRATION
+ /* =========================================================
+     3. LOCAL AI MOVE GENERATION (OPTION A)
      ========================================================= */
   async function triggerAIMove() {
     isThinking = true;
     updateStatus("AI is thinking...");
 
-    const currentFEN = generateFEN();
+    // 300ms natural delay before AI makes its move
+    setTimeout(() => {
+      const moveMade = fallbackAIMove();
 
-    try {
-      // Fetch sub-second move from Cloudflare Worker API
-      const response = await fetch("/api/chess-move", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fen: currentFEN })
-      });
-
-      if (!response.ok) throw new Error("API network error");
-
-      const data = await response.json();
-      const aiMove = data.move ? data.move.trim().toLowerCase() : null;
-
-      if (aiMove && aiMove.length >= 4) {
-        const from = squareToCoords(aiMove.substring(0, 2));
-        const to = squareToCoords(aiMove.substring(2, 4));
-
-        if (from && to) {
-          makeMove(from, to);
-        } else {
-          fallbackAIMove();
-        }
-      } else {
-        fallbackAIMove();
+      if (!moveMade) {
+        updateStatus("Game Over — AI has no legal moves!");
       }
-    } catch (err) {
-      console.warn("Worker API error, falling back to local move logic:", err);
-      fallbackAIMove();
-    } finally {
+
       isThinking = false;
       renderBoard();
-      updateStatus();
-    }
+      if (moveMade) updateStatus();
+    }, 300);
   }
 
-  // Fallback random legal move generator in case API is offline
+  // Scans all squares to guarantee Black plays a valid move
   function fallbackAIMove() {
     const blackMoves = [];
+
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (board[r][c] && isBlack(board[r][c])) {
-          // Look for adjacent/forward open squares
-          const targets = [
-            { r: r + 1, c: c },
-            { r: r + 1, c: c - 1 },
-            { r: r + 1, c: c + 1 },
-            { r: r + 2, c: c }
-          ];
-          targets.forEach(t => {
-            if (t.r >= 0 && t.r < 8 && t.c >= 0 && t.c < 8) {
-              if (!board[t.r][t.c] || isWhite(board[t.r][t.c])) {
-                blackMoves.push({ from: { r, c }, to: t });
+          const from = { r, c };
+
+          // Test every square on the board for a valid move
+          for (let tr = 0; tr < 8; tr++) {
+            for (let tc = 0; tc < 8; tc++) {
+              const to = { r: tr, c: tc };
+              if (isValidMove(from, to)) {
+                blackMoves.push({ from, to });
               }
             }
-          });
+          }
         }
       }
     }
@@ -202,7 +177,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (blackMoves.length > 0) {
       const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
       makeMove(randomMove.from, randomMove.to);
+      return true;
     }
+
+    return false; // No legal moves available
   }
 
   /* =========================================================
