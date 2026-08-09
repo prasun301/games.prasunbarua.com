@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Photorealistic 3D Chess | Prasun Games</title>
+  <title>Play Photorealistic 3D Chess | Premium</title>
   <meta name="description" content="Play official 3D Chess with realistic PBR carved wooden Staunton pieces, dynamic studio lighting, and AI.">
   
   <!-- Chess Logic Engine -->
@@ -14,304 +14,126 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     :root {
-      --bg: #07111f;
-      --surface: rgba(17, 29, 46, 0.85);
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f8fafc;
+      --bg: #0b111a;
+      --surface: rgba(18, 25, 36, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
       --muted: #94a3b8;
-      --accent: #22c55e;
+      --accent: #10b981; /* Premium Emerald */
     }
 
     body {
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at top, #1e293b 0%, #07111f 60%, #020617 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: hidden;
+      background: radial-gradient(circle at center, #1e293b 0%, #0b111a 70%, #000000 100%);
+      display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
     /* HEADER */
     .site-header {
-      width: 100%;
-      border-bottom: 1px solid var(--border);
-      background: rgba(7, 17, 31, 0.95);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      width: 100%; border-bottom: 1px solid var(--border);
+      background: rgba(11, 17, 26, 0.85); backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     }
-
     .header-container {
-      width: min(1200px, 94%);
-      height: 64px;
-      margin: auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      width: min(1200px, 94%); height: 64px; margin: auto;
+      display: flex; align-items: center; justify-content: space-between;
     }
-
     .home-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.95rem;
-      padding: 8px 16px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px; color: var(--text);
+      text-decoration: none; font-weight: 600; font-size: 0.9rem;
+      padding: 8px 16px; border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
       transition: all 0.2s ease;
     }
-
-    .home-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      transform: translateX(-3px);
-    }
-
-    .game-title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-    }
+    .home-btn:hover { background: rgba(255, 255, 255, 0.1); transform: translateX(-2px); }
+    .game-title { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px; }
 
     /* MAIN CONTAINER */
     .app-container {
-      width: min(1200px, 94%);
-      margin: 24px auto;
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 28px;
-      align-items: start;
+      width: min(1200px, 94%); margin: 24px auto;
+      display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start;
     }
+    @media (max-width: 950px) { .app-container { grid-template-columns: 1fr; } }
 
-    @media (max-width: 950px) {
-      .app-container {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* 3D STAGE & WEBGL CANVAS */
+    /* 3D STAGE */
     .board-stage {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      position: relative; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px; display: flex; flex-direction: column;
+      align-items: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
     }
-
     .status-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding: 12px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding: 12px 20px; background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border); border-radius: 10px;
     }
-
-    .turn-indicator {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
+    .turn-indicator { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.05rem; }
     .turn-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #f8fafc;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-      transition: background 0.3s;
+      width: 12px; height: 12px; border-radius: 50%; background: #f8fafc;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.8); transition: background 0.3s;
     }
-
-    .turn-dot.black {
-      background: #1e293b;
-      box-shadow: 0 0 10px rgba(0,0,0,0.8);
-      border: 1px solid #475569;
-    }
-
+    .turn-dot.black { background: #1e293b; box-shadow: 0 0 12px rgba(0,0,0,0.9); border: 1px solid #475569; }
     .webgl-container {
-      position: relative;
-      width: 100%;
-      height: 540px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #020617;
-      border: 1px solid rgba(255,255,255,0.08);
+      position: relative; width: 100%; height: 560px; border-radius: 10px;
+      overflow: hidden; background: #05080c; border: 1px solid rgba(255,255,255,0.05);
       cursor: grab;
     }
-
-    .webgl-container:active {
-      cursor: grabbing;
-    }
-
+    .webgl-container:active { cursor: grabbing; }
     .camera-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 12px;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      color: var(--muted);
-      pointer-events: none;
-      border: 1px solid rgba(255,255,255,0.08);
+      position: absolute; bottom: 12px; left: 12px; background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px); padding: 6px 12px; border-radius: 6px;
+      font-size: 0.75rem; color: var(--muted); pointer-events: none; border: 1px solid rgba(255,255,255,0.05);
     }
 
     /* CONTROL PANEL */
     .control-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px; display: flex; flex-direction: column; gap: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
     }
-
-    .panel-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .panel-title {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
+    .panel-section { display: flex; flex-direction: column; gap: 12px; }
+    .panel-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 700; }
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
+      padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05); color: var(--text); font-weight: 600;
+      font-size: 0.9rem; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: 8px; transition: all 0.2s ease;
     }
-
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    .btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
-    }
-
+    .btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+    .btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
     select.btn {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      background-size: 16px;
-      padding-right: 36px;
+      appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 36px;
     }
 
     .captured-box {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      min-height: 44px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-      font-size: 1.2rem;
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; min-height: 48px; display: flex; flex-wrap: wrap; align-items: center;
+      gap: 6px; font-size: 1.4rem; color: #cbd5e1;
     }
-
     .move-history {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      height: 130px;
-      overflow-y: auto;
-      padding: 10px 14px;
-      font-family: monospace;
-      font-size: 0.88rem;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px;
+      height: 160px; overflow-y: auto; padding: 12px 16px; font-family: "Menlo", "Consolas", monospace;
+      font-size: 0.85rem; color: var(--muted); display: flex; flex-direction: column; gap: 6px;
     }
-
-    .move-row {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .move-num { color: #64748b; }
+    .move-row { display: grid; grid-template-columns: 30px 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;}
+    .move-num { color: #475569; font-weight: bold; }
+    .move-white, .move-black { color: #e2e8f0; }
 
     /* GAME OVER OVERLAY */
     .game-over-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(7, 17, 31, 0.92);
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
+      position: absolute; inset: 0; background: rgba(7, 17, 31, 0.85); backdrop-filter: blur(10px);
+      border-radius: 16px; z-index: 50; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px; opacity: 0;
+      pointer-events: none; transition: opacity 0.4s ease;
     }
-
-    .game-over-overlay.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .game-over-title {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--accent);
-    }
+    .game-over-overlay.show { opacity: 1; pointer-events: auto; }
+    .game-over-title { font-size: 2.5rem; font-weight: 800; color: var(--accent); text-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
   </style>
 </head>
 <body>
@@ -319,12 +141,10 @@
   <!-- HEADER -->
   <header class="site-header">
     <div class="header-container">
-      <a href="/" class="home-btn">
-        <span>←</span>
-        <span>Back to Home</span>
-      </a>
-      <div class="game-title">♟️ Real Wooden 3D Chess</div>
-      <div style="width: 110px;"></div>
+      <a href="#" class="home-btn"><span>←</span><span>Back to Hub</span></a>
+      <div class="game-title">♟️ Premium 3D Chess</div>
+      <div style="width: 120px;"></div>
+    }
     </div>
   </header>
 
@@ -333,12 +153,10 @@
 
     <!-- 3D STAGE -->
     <section class="board-stage">
-      
-      <!-- GAME OVER BANNER -->
       <div class="game-over-overlay" id="gameOverOverlay">
         <div class="game-over-title" id="gameOverTitle">Checkmate!</div>
-        <p id="gameOverMsg" style="color: var(--muted);">White wins the game.</p>
-        <button class="btn active" id="modalRestartBtn" style="margin-top: 10px;">Play Again</button>
+        <p id="gameOverMsg" style="color: var(--text); font-size: 1.1rem;"></p>
+        <button class="btn active" id="modalRestartBtn" style="margin-top: 16px; padding: 12px 32px;">Play Again</button>
       </div>
 
       <div class="status-bar">
@@ -346,19 +164,16 @@
           <div class="turn-dot" id="turnDot"></div>
           <span id="statusText">White's Turn</span>
         </div>
-        <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none;">CHECK!</div>
+        <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none; background: rgba(239, 68, 68, 0.1); padding: 4px 12px; border-radius: 6px; border: 1px solid #ef4444;">CHECK</div>
       </div>
 
-      <!-- WEBGL CANVAS CONTAINER -->
       <div class="webgl-container" id="webglContainer">
-        <div class="camera-hint">🖱️ Drag: Rotate Camera | Scroll: Zoom | Right Click: Pan</div>
+        <div class="camera-hint">🖱️ Drag: Rotate | Scroll: Zoom | Right Click: Pan</div>
       </div>
-
     </section>
 
     <!-- CONTROL PANEL -->
     <aside class="control-panel">
-
       <div class="panel-section">
         <div class="panel-title">Camera & Sound</div>
         <div class="btn-group">
@@ -368,31 +183,30 @@
       </div>
 
       <div class="panel-section">
-        <div class="panel-title">Game Mode & AI</div>
+        <div class="panel-title">Match Settings</div>
         <select class="btn" id="modeSelect">
-          <option value="ai-easy">🤖 Play AI (Easy)</option>
-          <option value="ai-medium" selected>🤖 Play AI (Medium)</option>
-          <option value="ai-hard">🤖 Play AI (Hard)</option>
+          <option value="ai-easy">🤖 Play AI (Novice)</option>
+          <option value="ai-medium" selected>🤖 Play AI (Club Player)</option>
+          <option value="ai-hard">🤖 Play AI (Expert)</option>
           <option value="pass-play">👥 2 Players (Local)</option>
         </select>
       </div>
 
       <div class="btn-group">
-        <button class="btn" id="undoBtn">↩️ Undo</button>
-        <button class="btn active" id="resetBtn">🔄 New Game</button>
+        <button class="btn" id="undoBtn">↩️ Undo Move</button>
+        <button class="btn active" id="resetBtn">🔄 Resign / New</button>
       </div>
 
       <div class="panel-section">
-        <div class="panel-title">Captured Pieces</div>
+        <div class="panel-title">Captured Material</div>
         <div class="captured-box" id="capturedWhite"></div>
         <div class="captured-box" id="capturedBlack"></div>
       </div>
 
       <div class="panel-section">
-        <div class="panel-title">Move History</div>
+        <div class="panel-title">Match Notation</div>
         <div class="move-history" id="moveHistory"></div>
       </div>
-
     </aside>
 
   </main>
@@ -402,48 +216,25 @@
     const AudioEngine = {
       enabled: true,
       ctx: null,
-      init() {
-        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      },
-      playMove() {
+      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+      playTone(type, freqStart, freqEnd, dur, vol) {
         if (!this.enabled) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, this.ctx.currentTime + dur);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + dur);
         osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+        osc.start(); osc.stop(this.ctx.currentTime + dur);
       },
-      playCapture() {
-        if (!this.enabled) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(360, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.12);
-        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.12);
-      },
-      playCheck() {
-        if (!this.enabled) return;
-        this.init();
-        [523.25, 659.25].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.08));
-          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.08));
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.08) + 0.15);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(this.ctx.currentTime + (idx * 0.08));
-          osc.stop(this.ctx.currentTime + (idx * 0.08) + 0.15);
-        });
+      playMove() { this.playTone('sine', 200, 80, 0.1, 0.4); },
+      playCapture() { this.playTone('triangle', 300, 100, 0.15, 0.5); },
+      playCheck() { 
+        this.playTone('sine', 523.25, 400, 0.2, 0.3);
+        setTimeout(() => this.playTone('sine', 659.25, 500, 0.2, 0.3), 80);
       }
     };
 
@@ -464,130 +255,83 @@
     const gameOverTitle = document.getElementById('gameOverTitle');
     const gameOverMsg = document.getElementById('gameOverMsg');
     const modalRestartBtn = document.getElementById('modalRestartBtn');
+    const historyDiv = document.getElementById('moveHistory');
 
     // THREE.JS SETUP
     let scene, camera, renderer, controls;
     let squareMeshes = [];
     let pieceMeshes = [];
     let highlightMeshes = [];
-
     let selectedSquare = null;
     let legalMovesForSelected = [];
 
     const BOARD_SIZE = 8;
-    const SQ_SIZE = 1.25;
+    const SQ_SIZE = 1.35; // Slightly larger squares for a grander look
     const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
 
     // --- PROCEDURAL PBR WOOD TEXTURE GENERATORS ---
     function generateWoodCanvasTexture(baseHex, ringHex, noiseIntensity = 0.08) {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
+      canvas.width = 1024; canvas.height = 1024;
       const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = baseHex;
-      ctx.fillRect(0, 0, 512, 512);
-
-      // Radial wood grain rings
-      const centerX = 256 + Math.random() * 100;
-      const centerY = 256 + Math.random() * 100;
-
-      for (let r = 5; r < 400; r += 6 + Math.random() * 4) {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
-        ctx.strokeStyle = ringHex;
-        ctx.lineWidth = 1.5 + Math.random() * 2;
-        ctx.globalAlpha = 0.12 + Math.random() * 0.08;
-        ctx.stroke();
+      ctx.fillStyle = baseHex; ctx.fillRect(0, 0, 1024, 1024);
+      const centerX = 512 + (Math.random() - 0.5) * 400;
+      const centerY = 512 + (Math.random() - 0.5) * 400;
+      for (let r = 10; r < 900; r += 8 + Math.random() * 6) {
+        ctx.beginPath(); ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+        ctx.strokeStyle = ringHex; ctx.lineWidth = 2 + Math.random() * 3;
+        ctx.globalAlpha = 0.1 + Math.random() * 0.1; ctx.stroke();
       }
-
-      // Fine grain streaks
       ctx.globalAlpha = noiseIntensity;
-      for (let i = 0; i < 5000; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
+      for (let i = 0; i < 15000; i++) {
+        const x = Math.random() * 1024; const y = Math.random() * 1024;
         ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctx.fillRect(x, y, 1, 3 + Math.random() * 8);
+        ctx.fillRect(x, y, 1, 4 + Math.random() * 12);
       }
-
       const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
+      texture.anisotropy = 16;
       return texture;
     }
 
     function generateBumpMap() {
       const canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 256;
+      canvas.width = 512; canvas.height = 512;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#808080'; ctx.fillRect(0,0,256,256);
-      
-      for (let i = 0; i < 3000; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
+      ctx.fillStyle = '#808080'; ctx.fillRect(0,0,512,512);
+      for (let i = 0; i < 8000; i++) {
+        const x = Math.random() * 512; const y = Math.random() * 512;
         ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctx.globalAlpha = 0.15;
-        ctx.fillRect(x, y, 1, 4 + Math.random() * 6);
+        ctx.globalAlpha = 0.2; ctx.fillRect(x, y, 1, 6 + Math.random() * 10);
       }
       return new THREE.CanvasTexture(canvas);
     }
 
-    // Shared PBR Textures
-    const lightWoodTex = generateWoodCanvasTexture('#f3e8d2', '#d4be98', 0.05);
-    const darkWoodTex  = generateWoodCanvasTexture('#26170d', '#130a05', 0.12);
-    const boardFrameTex = generateWoodCanvasTexture('#1c0d06', '#090301', 0.15);
+    // High-End Tournament Wood Palettes
+    const lightWoodTex = generateWoodCanvasTexture('#f3e5ab', '#d4b872', 0.04); // Maple
+    const darkWoodTex  = generateWoodCanvasTexture('#3b2113', '#1f0f07', 0.12); // Walnut
+    const boardFrameTex = generateWoodCanvasTexture('#1c0d06', '#090301', 0.15); // Ebony Trim
     const sharedBumpTex = generateBumpMap();
 
     // PBR MATERIALS WITH CLEARCOAT REFLECTION
     const whitePieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf5ebd7,
-      map: lightWoodTex,
-      bumpMap: sharedBumpTex,
-      bumpScale: 0.015,
-      roughness: 0.25,
-      metalness: 0.05,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.15
+      color: 0xfff6e5, map: lightWoodTex, bumpMap: sharedBumpTex, bumpScale: 0.015,
+      roughness: 0.2, metalness: 0.0, clearcoat: 0.8, clearcoatRoughness: 0.1
     });
-
     const blackPieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x221711,
-      map: darkWoodTex,
-      bumpMap: sharedBumpTex,
-      bumpScale: 0.02,
-      roughness: 0.3,
-      metalness: 0.05,
-      clearcoat: 0.5,
-      clearcoatRoughness: 0.2
+      color: 0x1f1410, map: darkWoodTex, bumpMap: sharedBumpTex, bumpScale: 0.02,
+      roughness: 0.25, metalness: 0.0, clearcoat: 0.7, clearcoatRoughness: 0.15
     });
-
-    const feltMaterial = new THREE.MeshStandardMaterial({
-      color: 0x064e3b, // Dark green felt bottom
-      roughness: 0.9
-    });
-
-    const lightSquareMat = new THREE.MeshStandardMaterial({
-      color: 0xe2d4ba,
-      map: lightWoodTex,
-      bumpMap: sharedBumpTex,
-      bumpScale: 0.008,
-      roughness: 0.35
-    });
-
-    const darkSquareMat = new THREE.MeshStandardMaterial({
-      color: 0x3d271d,
-      map: darkWoodTex,
-      bumpMap: sharedBumpTex,
-      bumpScale: 0.01,
-      roughness: 0.4
-    });
+    const feltMaterial = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 1.0 });
+    const lightSquareMat = new THREE.MeshStandardMaterial({ color: 0xeedeb9, map: lightWoodTex, bumpMap: sharedBumpTex, bumpScale: 0.005, roughness: 0.3 });
+    const darkSquareMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, map: darkWoodTex, bumpMap: sharedBumpTex, bumpScale: 0.008, roughness: 0.35 });
 
     // INIT SCENE & STUDIO LIGHTING
     function init3D() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x07111f);
+      scene.background = new THREE.Color(0x05080c);
+      scene.fog = new THREE.FogExp2(0x05080c, 0.015);
 
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
       setInitialCamera();
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -596,38 +340,27 @@
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.1;
+      renderer.toneMappingExposure = 1.2;
       container.appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.maxPolarAngle = Math.PI / 2 - 0.05;
-      controls.minDistance = 6;
-      controls.maxDistance = 22;
+      controls.enableDamping = true; controls.dampingFactor = 0.06;
+      controls.maxPolarAngle = Math.PI / 2.1; // Don't go completely below board
+      controls.minDistance = 8; controls.maxDistance = 25;
+      controls.target.set(0, 0, 0);
 
-      // 3-Point Studio Lighting Setup
-      const ambientLight = new THREE.AmbientLight(0xfff8ed, 0.75);
-      scene.add(ambientLight);
-
-      // Key Light (Main Shadow Caster)
-      const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.2);
-      keyLight.position.set(9, 16, 9);
+      // Studio Lighting
+      scene.add(new THREE.AmbientLight(0xfff5e6, 0.6));
+      const keyLight = new THREE.DirectionalLight(0xffeedd, 1.4);
+      keyLight.position.set(12, 20, 10);
       keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 2048;
-      keyLight.shadow.mapSize.height = 2048;
-      keyLight.shadow.bias = -0.0001;
+      keyLight.shadow.mapSize.width = 2048; keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.bias = -0.0005;
       scene.add(keyLight);
-
-      // Fill Light (Soft side light)
-      const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
-      fillLight.position.set(-10, 10, -10);
+      
+      const fillLight = new THREE.DirectionalLight(0x7da4ff, 0.5);
+      fillLight.position.set(-15, 10, -15);
       scene.add(fillLight);
-
-      // Rim Light (Highlight edges from back)
-      const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
-      rimLight.position.set(0, 12, -12);
-      scene.add(rimLight);
 
       build3DBoard();
       setupRaycaster();
@@ -638,382 +371,288 @@
     }
 
     function setInitialCamera() {
-      camera.position.set(0, 10.5, 10.5);
-      camera.lookAt(0, 0, 0);
+      camera.position.set(0, 11, 14);
+      if(controls) controls.target.set(0, 0, 0);
     }
 
-    // BUILD WOODEN BOARD & BORDER
+    // BUILD WOODEN BOARD
     function build3DBoard() {
-      // Mahogany Frame Base
-      const borderGeo = new THREE.BoxGeometry(11.6, 0.6, 11.6);
-      const borderMat = new THREE.MeshStandardMaterial({
-        color: 0x1a0c06,
-        map: boardFrameTex,
-        roughness: 0.3
-      });
+      const boardWidth = BOARD_SIZE * SQ_SIZE;
+      
+      // Shadow plane underneath to ground it
+      const shadowPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(30, 30),
+        new THREE.ShadowMaterial({ opacity: 0.6 })
+      );
+      shadowPlane.rotation.x = -Math.PI / 2;
+      shadowPlane.position.y = -0.6;
+      shadowPlane.receiveShadow = true;
+      scene.add(shadowPlane);
+
+      // Main Frame
+      const borderGeo = new THREE.BoxGeometry(boardWidth + 1.2, 0.8, boardWidth + 1.2);
+      const borderMat = new THREE.MeshStandardMaterial({ color: 0x110804, map: boardFrameTex, roughness: 0.2 });
       const borderMesh = new THREE.Mesh(borderGeo, borderMat);
-      borderMesh.position.y = -0.31;
-      borderMesh.receiveShadow = true;
+      borderMesh.position.y = -0.4; borderMesh.receiveShadow = true; borderMesh.castShadow = true;
       scene.add(borderMesh);
 
-      // Gold Trim Accent Line
-      const trimGeo = new THREE.BoxGeometry(10.1, 0.02, 10.1);
-      const trimMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
+      // Gold Trim
+      const trimGeo = new THREE.BoxGeometry(boardWidth + 0.1, 0.04, boardWidth + 0.1);
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xcca654, metalness: 0.9, roughness: 0.2 });
       const trimMesh = new THREE.Mesh(trimGeo, trimMat);
-      trimMesh.position.y = 0.01;
+      trimMesh.position.y = -0.01;
       scene.add(trimMesh);
 
-      // 8x8 Board Tiles
+      // Tiles
       const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.2, SQ_SIZE);
-
       for (let r = 0; r < 8; r++) {
         squareMeshes[r] = [];
         for (let c = 0; c < 8; c++) {
           const isLight = (r + c) % 2 === 0;
-          const mat = (isLight ? lightSquareMat : darkSquareMat).clone();
-          const sqMesh = new THREE.Mesh(sqGeo, mat);
-          
-          const x = c * SQ_SIZE - BOARD_OFFSET;
-          const z = r * SQ_SIZE - BOARD_OFFSET;
-          sqMesh.position.set(x, 0, z);
+          const sqMesh = new THREE.Mesh(sqGeo, (isLight ? lightSquareMat : darkSquareMat).clone());
+          sqMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0, r * SQ_SIZE - BOARD_OFFSET);
           sqMesh.receiveShadow = true;
-          
-          const sqStr = String.fromCharCode(97 + c) + (8 - r);
-          sqMesh.userData = { sqStr, r, c, defaultMat: mat };
-
+          sqMesh.userData = { sqStr: String.fromCharCode(97 + c) + (8 - r), r, c };
           scene.add(sqMesh);
           squareMeshes[r][c] = sqMesh;
         }
       }
     }
 
-    // DETAILED HIGH-PRECISION STAUNTON GEOMETRY CREATOR
     function createPiece3DMesh(type, color) {
       const group = new THREE.Group();
       const mat = color === 'w' ? whitePieceMaterial : blackPieceMaterial;
+      let pts = [];
 
-      let geomPoints = [];
-      if (type === 'p') { // PAWN
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.44, 0), new THREE.Vector2(0.44, 0.08),
-          new THREE.Vector2(0.32, 0.16), new THREE.Vector2(0.2, 0.48), new THREE.Vector2(0.26, 0.54),
-          new THREE.Vector2(0.22, 0.6), new THREE.Vector2(0.28, 0.62), new THREE.Vector2(0, 0.9)
-        ];
-      } else if (type === 'r') { // ROOK (with crenellations)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.32, 0.68), new THREE.Vector2(0.42, 0.75),
-          new THREE.Vector2(0.42, 1.05), new THREE.Vector2(0.32, 1.05), new THREE.Vector2(0.32, 0.92), new THREE.Vector2(0, 0.92)
-        ];
-      } else if (type === 'n') { // KNIGHT (Carved Horse Head)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.35, 0.25), new THREE.Vector2(0.26, 0.55), new THREE.Vector2(0, 0.55)
-        ];
-        // Detailed Horse Head Shape
-        const headGeo = new THREE.CylinderGeometry(0.18, 0.32, 0.6, 16);
-        const headMesh = new THREE.Mesh(headGeo, mat);
-        headMesh.position.set(0, 0.78, 0.08);
-        headMesh.rotation.x = 0.35;
-        headMesh.castShadow = true;
-        group.add(headMesh);
-
-        // Snout
-        const snoutGeo = new THREE.BoxGeometry(0.28, 0.26, 0.35);
-        const snoutMesh = new THREE.Mesh(snoutGeo, mat);
-        snoutMesh.position.set(0, 0.72, 0.26);
-        snoutMesh.rotation.x = 0.2;
-        snoutMesh.castShadow = true;
-        group.add(snoutMesh);
-
-        // Ears
-        const earGeo = new THREE.ConeGeometry(0.08, 0.2, 8);
-        const earL = new THREE.Mesh(earGeo, mat);
-        const earR = new THREE.Mesh(earGeo, mat);
-        earL.position.set(-0.1, 1.05, -0.05);
-        earR.position.set(0.1, 1.05, -0.05);
-        group.add(earL); group.add(earR);
-      } else if (type === 'b') { // BISHOP
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.35, 0.22), new THREE.Vector2(0.2, 0.65), new THREE.Vector2(0.3, 0.75),
-          new THREE.Vector2(0.14, 1.05), new THREE.Vector2(0, 1.2)
-        ];
-        const tipGeo = new THREE.SphereGeometry(0.08, 16, 16);
-        const tipMesh = new THREE.Mesh(tipGeo, mat);
-        tipMesh.position.y = 1.28;
-        group.add(tipMesh);
-      } else if (type === 'q') { // QUEEN
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.22, 0.75), new THREE.Vector2(0.4, 0.9),
-          new THREE.Vector2(0.38, 1.25), new THREE.Vector2(0, 1.25)
-        ];
-        const crownGeo = new THREE.SphereGeometry(0.1, 16, 16);
-        const crownMesh = new THREE.Mesh(crownGeo, mat);
-        crownMesh.position.y = 1.34;
-        group.add(crownMesh);
-      } else if (type === 'k') { // KING
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.24, 0.75), new THREE.Vector2(0.4, 0.9),
-          new THREE.Vector2(0.38, 1.3), new THREE.Vector2(0, 1.3)
-        ];
-        const crossV = new THREE.BoxGeometry(0.08, 0.28, 0.08);
-        const crossH = new THREE.BoxGeometry(0.24, 0.08, 0.08);
-        const cVMesh = new THREE.Mesh(crossV, mat);
-        const cHMesh = new THREE.Mesh(crossH, mat);
-        cVMesh.position.y = 1.46; cHMesh.position.y = 1.49;
-        group.add(cVMesh); group.add(cHMesh);
+      // Simplified Profile Geometries
+      if (type === 'p') pts = [[0,0], [0.4,0], [0.4,0.1], [0.3,0.15], [0.2,0.4], [0.25,0.5], [0.15,0.6], [0.25,0.65], [0,0.9]];
+      else if (type === 'r') pts = [[0,0], [0.45,0], [0.45,0.1], [0.35,0.2], [0.3,0.6], [0.4,0.7], [0.4,1.0], [0.3,1.0], [0.3,0.9], [0,0.9]];
+      else if (type === 'b') {
+        pts = [[0,0], [0.45,0], [0.45,0.1], [0.35,0.2], [0.2,0.6], [0.3,0.7], [0.15,1.0], [0,1.2]];
+        const tip = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), mat); tip.position.y = 1.25; group.add(tip);
+      }
+      else if (type === 'q') {
+        pts = [[0,0], [0.48,0], [0.48,0.1], [0.35,0.2], [0.22,0.7], [0.4,0.9], [0.35,1.2], [0,1.2]];
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), mat); crown.position.y = 1.3; group.add(crown);
+      }
+      else if (type === 'k') {
+        pts = [[0,0], [0.48,0], [0.48,0.1], [0.35,0.2], [0.22,0.7], [0.4,0.9], [0.35,1.2], [0,1.2]];
+        const cross = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.25,0.08), mat); cross.position.y=1.35;
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.08,0.08), mat); bar.position.y=1.35;
+        group.add(cross); group.add(bar);
+      }
+      
+      if (type === 'n') {
+        pts = [[0,0], [0.45,0], [0.45,0.1], [0.35,0.2], [0.25,0.5], [0,0.5]];
+        const head = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.35, 0.65, 16), mat);
+        head.position.set(0, 0.8, 0.1); head.rotation.x = 0.35; head.castShadow = true; group.add(head);
+        const snout = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.4), mat);
+        snout.position.set(0, 0.75, 0.3); snout.rotation.x = 0.15; snout.castShadow = true; group.add(snout);
       }
 
-      // Lathe Body
-      const latheGeo = new THREE.LatheGeometry(geomPoints, 32);
-      const latheMesh = new THREE.Mesh(latheGeo, mat);
-      latheMesh.castShadow = true;
-      latheMesh.receiveShadow = true;
-      group.add(latheMesh);
+      if(pts.length > 0) {
+        const vPts = pts.map(p => new THREE.Vector2(p[0]*1.1, p[1]*1.2)); // Scale up slightly
+        const latheMesh = new THREE.Mesh(new THREE.LatheGeometry(vPts, 32), mat);
+        latheMesh.castShadow = true; latheMesh.receiveShadow = true;
+        group.add(latheMesh);
+      }
 
-      // Felt Base Ring
-      const feltGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.02, 32);
-      const feltMesh = new THREE.Mesh(feltGeo, feltMaterial);
-      feltMesh.position.y = -0.01;
-      group.add(feltMesh);
+      const felt = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.03, 32), feltMaterial);
+      felt.position.y = -0.015; group.add(felt);
 
       group.userData = { type, color };
       return group;
     }
 
-    // SYNC 3D PIECES WITH BOARD ENGINE
     function syncPiecesWithBoard() {
       pieceMeshes.forEach(p => scene.remove(p));
       pieceMeshes = [];
-
       const boardState = game.board();
 
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const pieceObj = boardState[r][c];
-          if (pieceObj) {
-            const mesh = createPiece3DMesh(pieceObj.type, pieceObj.color);
-            const x = c * SQ_SIZE - BOARD_OFFSET;
-            const z = r * SQ_SIZE - BOARD_OFFSET;
-            mesh.position.set(x, 0.1, z);
-            
-            if (pieceObj.color === 'b') mesh.rotation.y = Math.PI;
-
+          const p = boardState[r][c];
+          if (p) {
+            const mesh = createPiece3DMesh(p.type, p.color);
+            mesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.1, r * SQ_SIZE - BOARD_OFFSET);
+            if (p.color === 'b') mesh.rotation.y = Math.PI;
             mesh.userData.sqStr = String.fromCharCode(97 + c) + (8 - r);
-            scene.add(mesh);
-            pieceMeshes.push(mesh);
+            scene.add(mesh); pieceMeshes.push(mesh);
           }
         }
       }
-
-      updateHighlightsAndStatus();
+      updateUI();
     }
 
-    // RAYCASTING FOR TILE CLICKS
     function setupRaycaster() {
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
 
       container.addEventListener('pointerdown', (e) => {
         if (game.game_over()) return;
-
         const rect = renderer.domElement.getBoundingClientRect();
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
         raycaster.setFromCamera(mouse, camera);
 
-        const allTiles = squareMeshes.flat();
-        const intersects = raycaster.intersectObjects(allTiles);
-
-        if (intersects.length > 0) {
-          const clickedSqStr = intersects[0].object.userData.sqStr;
-          handleSquareClick(clickedSqStr);
-        }
+        const intersects = raycaster.intersectObjects(squareMeshes.flat());
+        if (intersects.length > 0) handleSquareClick(intersects[0].object.userData.sqStr);
       });
     }
 
-    // GAME CLICK LOGIC
     function handleSquareClick(sqStr) {
-      const pieceOnSq = game.get(sqStr);
-      const isCurrentTurnPiece = pieceOnSq && pieceOnSq.color === game.turn();
+      const p = game.get(sqStr);
+      const isMine = p && p.color === game.turn();
 
       if (selectedSquare) {
-        const validMove = legalMovesForSelected.find(m => m.to === sqStr);
-        if (validMove) {
-          executeMove3D(validMove);
-          selectedSquare = null;
-          legalMovesForSelected = [];
+        const move = legalMovesForSelected.find(m => m.to === sqStr);
+        if (move) {
+          executeMove(move);
+          selectedSquare = null; legalMovesForSelected = [];
           return;
         }
       }
 
-      if (isCurrentTurnPiece) {
+      if (isMine) {
         selectedSquare = sqStr;
         legalMovesForSelected = game.moves({ square: sqStr, verbose: true });
       } else {
-        selectedSquare = null;
-        legalMovesForSelected = [];
+        selectedSquare = null; legalMovesForSelected = [];
       }
-
-      updateHighlightsAndStatus();
+      updateUI();
     }
 
-    // EXECUTE MOVE
-    function executeMove3D(moveObj) {
-      const result = game.move({
-        from: moveObj.from,
-        to: moveObj.to,
-        promotion: 'q'
-      });
-
+    function executeMove(moveObj) {
+      const result = game.move({ from: moveObj.from, to: moveObj.to, promotion: 'q' });
       if (result) {
-        if (result.captured) AudioEngine.playCapture();
-        else AudioEngine.playMove();
-
+        if (result.captured) AudioEngine.playCapture(); else AudioEngine.playMove();
         if (game.in_check()) AudioEngine.playCheck();
-
         syncPiecesWithBoard();
 
         if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
-          setTimeout(makeAIMove, 350);
+          setTimeout(makeAIMove, 400);
         }
       }
     }
 
-    // MINIMAX AI
     function makeAIMove() {
       if (game.game_over()) return;
-
       const moves = game.moves({ verbose: true });
       if (moves.length === 0) return;
 
       const mode = modeSelect.value;
-      let chosenMove;
+      let chosen = moves[Math.floor(Math.random() * moves.length)];
 
-      if (mode === 'ai-easy') {
-        chosenMove = moves[Math.floor(Math.random() * moves.length)];
-      } else if (mode === 'ai-medium') {
-        const capOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
-        chosenMove = capOrCheck.length > 0 ? capOrCheck[Math.floor(Math.random() * capOrCheck.length)] : moves[Math.floor(Math.random() * moves.length)];
-      } else {
-        let bestScore = -Infinity;
-        chosenMove = moves[0];
-        const pVals = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
-
-        moves.forEach(m => {
-          game.move(m);
-          let total = 0;
-          game.board().forEach(row => row.forEach(p => {
-            if (p) total += (p.color === 'b' ? pVals[p.type] : -pVals[p.type]);
-          }));
-          game.undo();
-
-          if (total > bestScore) {
-            bestScore = total;
-            chosenMove = m;
-          }
-        });
+      if (mode === 'ai-medium' || mode === 'ai-hard') {
+        const captures = moves.filter(m => m.captured || m.san.includes('+'));
+        if (captures.length > 0 && mode === 'ai-medium') {
+          chosen = captures[Math.floor(Math.random() * captures.length)];
+        } else if (mode === 'ai-hard') {
+          let best = -Infinity;
+          const vals = { p:10, n:30, b:30, r:50, q:90, k:900 };
+          moves.forEach(m => {
+            game.move(m);
+            let score = 0;
+            game.board().forEach(row => row.forEach(pc => {
+              if (pc) score += (pc.color === 'b' ? vals[pc.type] : -vals[pc.type]);
+            }));
+            game.undo();
+            if (score > best) { best = score; chosen = m; }
+          });
+        }
       }
-
-      executeMove3D(chosenMove);
+      executeMove(chosen);
     }
 
-    // HIGHLIGHTS & OVERLAYS
-    function updateHighlightsAndStatus() {
-      highlightMeshes.forEach(h => scene.remove(h));
-      highlightMeshes = [];
-
+    function updateUI() {
+      // Highlight squares
+      highlightMeshes.forEach(h => scene.remove(h)); highlightMeshes = [];
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const sqMesh = squareMeshes[r][c];
-          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xe2d4ba : 0x3d271d);
+          squareMeshes[r][c].material.color.set((r + c) % 2 === 0 ? 0xeedeb9 : 0x5c3a21);
         }
       }
 
       if (selectedSquare) {
-        const { r, c } = sqToCoords(selectedSquare);
-        squareMeshes[r][c].material.color.set(0x22c55e);
+        const c = selectedSquare.charCodeAt(0) - 97; const r = 8 - parseInt(selectedSquare[1]);
+        squareMeshes[r][c].material.color.set(0x10b981);
       }
 
       legalMovesForSelected.forEach(m => {
-        const { r, c } = sqToCoords(m.to);
-        const ringGeo = new THREE.RingGeometry(0.2, 0.36, 24);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = Math.PI / 2;
-        ringMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.12, r * SQ_SIZE - BOARD_OFFSET);
-        scene.add(ringMesh);
-        highlightMeshes.push(ringMesh);
+        const c = m.to.charCodeAt(0) - 97; const r = 8 - parseInt(m.to[1]);
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.25, 0.4, 24),
+          new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.12, r * SQ_SIZE - BOARD_OFFSET);
+        scene.add(ring); highlightMeshes.push(ring);
       });
 
-      const turn = game.turn();
-      statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
-      turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
+      // Status Bar
+      const t = game.turn();
+      statusText.textContent = t === 'w' ? "White to Move" : "Black to Move";
+      turnDot.className = `turn-dot ${t === 'b' ? 'black' : ''}`;
       checkBadge.style.display = game.in_check() ? 'block' : 'none';
 
+      // Game Over Screen
       if (game.game_over()) {
         gameOverOverlay.classList.add('show');
         if (game.in_checkmate()) {
           gameOverTitle.textContent = "Checkmate!";
-          gameOverMsg.textContent = `${turn === 'w' ? 'Black' : 'White'} wins the game!`;
+          gameOverMsg.textContent = `${t === 'w' ? 'Black' : 'White'} is victorious.`;
         } else {
-          gameOverTitle.textContent = "Draw!";
-          gameOverMsg.textContent = "Game drawn by stalemate or repetition.";
+          gameOverTitle.textContent = "Draw";
+          gameOverMsg.textContent = "Match ended in a stalemate/repetition.";
         }
       } else {
         gameOverOverlay.classList.remove('show');
       }
 
-      updateCapturedAndHistoryUI();
+      updateCapturedAndHistory();
     }
 
-    function sqToCoords(sqStr) {
-      return {
-        r: 8 - parseInt(sqStr[1]),
-        c: sqStr.charCodeAt(0) - 97
-      };
-    }
-
-    function updateCapturedAndHistoryUI() {
+    function updateCapturedAndHistory() {
       const UNICODE = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕' };
       const counts = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
+      game.board().forEach(row => row.forEach(p => { if (p && p.type !== 'k') counts[p.color][p.type]--; }));
 
-      game.board().forEach(row => row.forEach(p => {
-        if (p && p.type !== 'k') counts[p.color][p.type]--;
-      }));
-
-      const capWhite = [], capBlack = [];
-      ['p','n','b','r','q'].forEach(t => {
-        for(let i=0; i<counts.w[t]; i++) capWhite.push(UNICODE['w' + t.toUpperCase()]);
-        for(let i=0; i<counts.b[t]; i++) capBlack.push(UNICODE[t]);
+      let cW = [], cB = [];
+      ['q','r','b','n','p'].forEach(t => {
+        for(let i=0; i<counts.w[t]; i++) cW.push(UNICODE['w'+t.toUpperCase()]);
+        for(let i=0; i<counts.b[t]; i++) cB.push(UNICODE[t]);
       });
+      document.getElementById('capturedWhite').textContent = cW.join(' ');
+      document.getElementById('capturedBlack').textContent = cB.join(' ');
 
-      document.getElementById('capturedWhite').textContent = capWhite.join(' ');
-      document.getElementById('capturedBlack').textContent = capBlack.join(' ');
-
-      const historyEl = document.getElementById('moveHistory');
-      historyEl.innerHTML = '';
-      const history = game.history({ verbose: true });
-
-      for (let i = 0; i < history.length; i += 2) {
+      // Move History
+      const hist = game.history();
+      historyDiv.innerHTML = '';
+      for (let i = 0; i < hist.length; i += 2) {
         const row = document.createElement('div');
         row.className = 'move-row';
-        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${history[i].san}</span> <span>${history[i+1] ? history[i+1].san : ''}</span>`;
-        historyEl.appendChild(row);
+        row.innerHTML = `<span class="move-num">${Math.floor(i/2)+1}.</span><span class="move-white">${hist[i]}</span><span class="move-black">${hist[i+1] || ''}</span>`;
+        historyDiv.appendChild(row);
       }
-      historyEl.scrollTop = historyEl.scrollHeight;
+      historyDiv.scrollTop = historyDiv.scrollHeight;
     }
 
-    // ANIMATION & RESIZE LOOP
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
+    // EVENT LISTENERS
+    resetCamBtn.addEventListener('click', setInitialCamera);
+    toggleSoundBtn.addEventListener('click', () => {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      toggleSoundBtn.textContent = AudioEngine.enabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+      toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
+    });
+    undoBtn.addEventListener('click', () => {
+      game.undo();
+      if (modeSelect.value.startsWith('ai') && game.turn() === 'b') game.undo();
+      selectedSquare = null; legalMovesForSelected = [];
+      syncPiecesWithBoard();
+    });
+    resetBtn.addEventListener('click', () => { game.reset(); syncPiecesWithBoard(); });
+    modalRestartBtn.addEventListener('click', () => { game.reset(); syncPiecesWithBoard(); });
+    modeSelect.addEventListener('change', () => { game.reset(); syncPiecesWithBoard(); });
 
     function onWindowResize() {
       camera.aspect = container.clientWidth / container.clientHeight;
@@ -1021,36 +660,12 @@
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
-    resetCamBtn.addEventListener('click', () => {
-      setInitialCamera();
-      controls.reset();
-    });
-
-    toggleSoundBtn.addEventListener('click', () => {
-      AudioEngine.enabled = !AudioEngine.enabled;
-      toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
-      toggleSoundBtn.textContent = AudioEngine.enabled ? '🔊 Sound ON' : '🔇 Muted';
-    });
-
-    function startNewGame() {
-      game.reset();
-      selectedSquare = null;
-      legalMovesForSelected = [];
-      syncPiecesWithBoard();
+    function animate() {
+      requestAnimationFrame(animate);
+      if(controls) controls.update();
+      renderer.render(scene, camera);
     }
 
-    resetBtn.addEventListener('click', startNewGame);
-    modalRestartBtn.addEventListener('click', startNewGame);
-
-    undoBtn.addEventListener('click', () => {
-      const steps = modeSelect.value.startsWith('ai') ? 2 : 1;
-      for (let i = 0; i < steps; i++) game.undo();
-      selectedSquare = null;
-      legalMovesForSelected = [];
-      syncPiecesWithBoard();
-    });
-
-    // START ENGINE
     init3D();
   </script>
 </body>
