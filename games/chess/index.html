@@ -3,1225 +3,352 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photorealistic 3D Staunton Chess | Masterpiece Edition</title>
-  <meta name="description" content="Play professional 3D Chess with PBR materials, post-processing bloom, parabolic move animations, and AI.">
+  <title>3D Staunton Chess</title>
   
-  <!-- Chess Logic Engine -->
+  <!-- Core Engines -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  
-  <!-- Three.js Engine & OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-  <!-- Three.js Post-Processing Pipeline -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
-
-    :root {
-      --bg: #030712;
-      --surface: rgba(15, 23, 42, 0.85);
-      --border: rgba(255, 255, 255, 0.12);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --accent: #22c55e;
-      --gold: #f59e0b;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
       min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #f8fafc;
+      background: #030712;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
     }
-
-    /* HEADER */
-    .site-header {
+    .header {
       width: 100%;
-      border-bottom: 1px solid var(--border);
-      background: rgba(3, 7, 18, 0.85);
-      backdrop-filter: blur(16px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-container {
-      width: min(1280px, 94%);
-      height: 64px;
-      margin: auto;
+      height: 60px;
+      background: #0f172a;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid #1e293b;
     }
-
-    .home-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 8px 16px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      transition: all 0.2s ease;
-    }
-
-    .home-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      transform: translateX(-3px);
-    }
-
-    .game-title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* MAIN LAYOUT */
     .app-container {
-      width: min(1280px, 94%);
+      width: min(1200px, 96%);
       margin: 20px auto;
       display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 24px;
-      align-items: start;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
     }
-
-    @media (max-width: 980px) {
-      .app-container {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 850px) { .app-container { grid-template-columns: 1fr; } }
+    .stage {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #1e293b;
     }
-
-    /* 3D STAGE */
-    .board-stage {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    #webglContainer {
+      width: 100%;
+      height: 520px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #020617;
+      cursor: grab;
+    }
+    .panel {
+      background: #0f172a;
+      border-radius: 12px;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    }
-
-    .status-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding: 12px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-    }
-
-    .turn-indicator {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .turn-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #ffffff;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
-      transition: all 0.3s ease;
-    }
-
-    .turn-dot.black {
-      background: #1e293b;
-      box-shadow: 0 0 12px rgba(0,0,0,0.9);
-      border: 1px solid #475569;
-    }
-
-    .webgl-container {
-      position: relative;
-      width: 100%;
-      height: 580px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: #020617;
-      border: 1px solid rgba(255,255,255,0.08);
-      cursor: grab;
-    }
-
-    .webgl-container:active {
-      cursor: grabbing;
-    }
-
-    .camera-hint {
-      position: absolute;
-      bottom: 14px;
-      left: 14px;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      color: var(--muted);
-      pointer-events: none;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    /* CONTROL PANEL */
-    .control-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    }
-
-    .panel-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .panel-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .btn {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    .btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
-    }
-
-    select.btn {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      background-size: 16px;
-      padding-right: 36px;
-    }
-
-    .captured-box {
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      min-height: 46px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      font-size: 1.25rem;
-    }
-
-    .move-history {
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      height: 140px;
-      overflow-y: auto;
-      padding: 10px 14px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.85rem;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .move-row {
-      display: flex;
-      justify-content: space-between;
-      padding-bottom: 2px;
-      border-bottom: 1px dotted rgba(255,255,255,0.05);
-    }
-
-    .move-num { color: #64748b; font-weight: 600; }
-
-    /* OVERLAY */
-    .game-over-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(3, 7, 18, 0.92);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       gap: 16px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
+      border: 1px solid #1e293b;
     }
-
-    .game-over-overlay.show {
-      opacity: 1;
-      pointer-events: auto;
+    .btn {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
-
-    .game-over-title {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+    .btn:hover { background: #334155; }
+    .btn.active { background: #22c55e; border-color: #22c55e; }
+    .history {
+      background: #020617;
+      border-radius: 6px;
+      height: 150px;
+      overflow-y: auto;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="header-container">
-      <a href="/" class="home-btn">
-        <span>←</span>
-        <span>Back to Home</span>
-      </a>
-      <div class="game-title">👑 10/10 Photorealistic 3D Chess</div>
-      <div style="width: 110px;"></div>
-    </div>
-  </header>
+  <div class="header">
+    <h3>👑 3D Chess Master</h3>
+  </div>
 
-  <!-- MAIN CONTAINER -->
-  <main class="app-container">
-
-    <!-- 3D STAGE -->
-    <section class="board-stage">
-      
-      <div class="game-over-overlay" id="gameOverOverlay">
-        <div class="game-over-title" id="gameOverTitle">Checkmate!</div>
-        <p id="gameOverMsg" style="color: var(--muted);">White wins the game.</p>
-        <button class="btn active" id="modalRestartBtn" style="margin-top: 12px; padding: 14px 28px;">Play Again</button>
-      </div>
-
+  <div class="app-container">
+    <div class="stage">
       <div class="status-bar">
-        <div class="turn-indicator">
-          <div class="turn-dot" id="turnDot"></div>
-          <span id="statusText">White's Turn</span>
-        </div>
-        <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none; background: rgba(239,68,68,0.15); padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3);">CHECK!</div>
+        <span id="statusText">White's Turn</span>
+        <span id="checkBadge" style="color: #ef4444; display:none;">CHECK!</span>
       </div>
+      <div id="webglContainer"></div>
+    </div>
 
-      <!-- WEBGL CANVAS -->
-      <div class="webgl-container" id="webglContainer">
-        <div class="camera-hint">🖱️ Left Drag: Orbit | Scroll: Zoom | Right Drag: Pan</div>
-      </div>
-
-    </section>
-
-    <!-- SIDE PANEL -->
-    <aside class="control-panel">
-
-      <div class="panel-section">
-        <div class="panel-title">Camera Presets & Effects</div>
-        <div class="btn-group">
-          <button class="btn" id="camWhiteBtn">⚪ White View</button>
-          <button class="btn" id="camBlackBtn">⚫ Black View</button>
-        </div>
-        <div class="btn-group">
-          <button class="btn" id="resetCamBtn">🎥 Free View</button>
-          <button class="btn active" id="toggleSoundBtn">🔊 Sound ON</button>
-        </div>
-      </div>
-
-      <div class="panel-section">
-        <div class="panel-title">Game Mode & AI Engine</div>
-        <select class="btn" id="modeSelect">
-          <option value="ai-easy">🤖 AI Level 1 (Easy)</option>
-          <option value="ai-medium" selected>🤖 AI Level 2 (Medium)</option>
-          <option value="ai-hard">🤖 AI Level 3 (Master Minimax)</option>
-          <option value="pass-play">👥 2 Players (Local)</option>
+    <div class="panel">
+      <button class="btn" id="resetBtn">🔄 New Game</button>
+      <button class="btn" id="undoBtn">↩️ Undo Move</button>
+      <div>
+        <label style="font-size: 0.8rem; color: #94a3b8;">Game Mode</label>
+        <select id="modeSelect" class="btn" style="width: 100%; margin-top: 4px;">
+          <option value="ai">🤖 vs AI Engine</option>
+          <option value="pvp">👥 2 Players (Local)</option>
         </select>
       </div>
-
-      <div class="btn-group">
-        <button class="btn" id="undoBtn">↩️ Undo</button>
-        <button class="btn active" id="resetBtn">🔄 New Game</button>
-      </div>
-
-      <div class="panel-section">
-        <div class="panel-title">Captured Pieces</div>
-        <div class="captured-box" id="capturedWhite"></div>
-        <div class="captured-box" id="capturedBlack"></div>
-      </div>
-
-      <div class="panel-section">
-        <div class="panel-title">Notation History</div>
-        <div class="move-history" id="moveHistory"></div>
-      </div>
-
-    </aside>
-
-  </main>
+      <div class="history" id="history"></div>
+    </div>
+  </div>
 
   <script>
-    // --- SYNTHETIC AUDIO ENGINE ---
-    const AudioEngine = {
-      enabled: true,
-      ctx: null,
-      init() {
-        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      },
-      playMove() {
-        if (!this.enabled) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.09);
-        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.09);
-      },
-      playCapture() {
-        if (!this.enabled) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(340, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.14);
-        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.14);
-      },
-      playCheck() {
-        if (!this.enabled) return;
-        this.init();
-        [523.25, 659.25, 783.99].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.06));
-          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.06));
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.06) + 0.16);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(this.ctx.currentTime + (idx * 0.06));
-          osc.stop(this.ctx.currentTime + (idx * 0.06) + 0.16);
-        });
-      }
-    };
-
-    // --- CHESS LOGIC ENGINE ---
+    // --- 1. CHESS LOGIC ---
     const game = new Chess();
 
-    // DOM Elements
+    // --- 2. THREE.JS INITIALIZATION ---
     const container = document.getElementById('webglContainer');
-    const statusText = document.getElementById('statusText');
-    const turnDot = document.getElementById('turnDot');
-    const checkBadge = document.getElementById('checkBadge');
-    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
-    const modeSelect = document.getElementById('modeSelect');
-    const undoBtn = document.getElementById('undoBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const resetCamBtn = document.getElementById('resetCamBtn');
-    const camWhiteBtn = document.getElementById('camWhiteBtn');
-    const camBlackBtn = document.getElementById('camBlackBtn');
-    const gameOverOverlay = document.getElementById('gameOverOverlay');
-    const gameOverTitle = document.getElementById('gameOverTitle');
-    const gameOverMsg = document.getElementById('gameOverMsg');
-    const modalRestartBtn = document.getElementById('modalRestartBtn');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
 
-    // THREE.JS SETUP & POST-PROCESSING
-    let scene, camera, renderer, controls, composer;
-    let squareMeshes = [];
-    let pieceMeshMap = new Map();
-    let highlightMeshes = [];
-    let activeAnimations = [];
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 10, 10);
 
-    let selectedSquare = null;
-    let legalMovesForSelected = [];
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
 
-    const BOARD_SIZE = 8;
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 0, 0);
+
+    // --- 3. LIGHTING ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(8, 12, 8);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    // --- 4. BOARD CREATION ---
     const SQ_SIZE = 1.25;
-    const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
+    const OFFSET = (8 * SQ_SIZE) / 2 - SQ_SIZE / 2;
+    const squareMeshes = {};
+    let pieceMeshes = {};
 
-    // MULTI-MAP PROCEDURAL PBR WOOD GENERATOR
-    function createWoodTextures(baseHex, ringHex, noiseScale = 0.08) {
-      const size = 512;
+    const lightMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
 
-      // Color Map
-      const canvasColor = document.createElement('canvas');
-      canvasColor.width = size; canvasColor.height = size;
-      const ctx = canvasColor.getContext('2d');
-      ctx.fillStyle = baseHex;
-      ctx.fillRect(0, 0, size, size);
+    // Board Base Frame
+    const baseGeo = new THREE.BoxGeometry(11, 0.4, 11);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x020617 });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    baseMesh.position.y = -0.25;
+    scene.add(baseMesh);
 
-      const cx = size / 2 + Math.random() * 100;
-      const cy = size / 2 + Math.random() * 100;
-      for (let r = 10; r < 500; r += 5 + Math.random() * 5) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.strokeStyle = ringHex;
-        ctx.lineWidth = 1 + Math.random() * 2.5;
-        ctx.globalAlpha = 0.15 + Math.random() * 0.1;
-        ctx.stroke();
-      }
-      ctx.globalAlpha = noiseScale;
-      for (let i = 0; i < 8000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctx.fillRect(Math.random() * size, Math.random() * size, 1, 3 + Math.random() * 6);
-      }
-
-      // Bump Map
-      const canvasBump = document.createElement('canvas');
-      canvasBump.width = size; canvasBump.height = size;
-      const ctxB = canvasBump.getContext('2d');
-      ctxB.fillStyle = '#808080';
-      ctxB.fillRect(0, 0, size, size);
-      ctxB.globalAlpha = 0.2;
-      for (let i = 0; i < 10000; i++) {
-        ctxB.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctxB.fillRect(Math.random() * size, Math.random() * size, 1, 4 + Math.random() * 8);
-      }
-
-      // Roughness Map
-      const canvasRough = document.createElement('canvas');
-      canvasRough.width = size; canvasRough.height = size;
-      const ctxR = canvasRough.getContext('2d');
-      ctxR.fillStyle = '#404040';
-      ctxR.fillRect(0, 0, size, size);
-      ctxR.strokeStyle = '#ffffff';
-      ctxR.globalAlpha = 0.1;
-      for (let i = 0; i < 40; i++) {
-        ctxR.beginPath();
-        ctxR.moveTo(Math.random() * size, Math.random() * size);
-        ctxR.lineTo(Math.random() * size, Math.random() * size);
-        ctxR.stroke();
-      }
-
-      const map = new THREE.CanvasTexture(canvasColor);
-      const bumpMap = new THREE.CanvasTexture(canvasBump);
-      const roughnessMap = new THREE.CanvasTexture(canvasRough);
-
-      [map, bumpMap, roughnessMap].forEach(t => {
-        t.wrapS = THREE.RepeatWrapping;
-        t.wrapT = THREE.RepeatWrapping;
-        t.needsUpdate = true;
-      });
-
-      return { map, bumpMap, roughnessMap };
-    }
-
-    let boxwoodTex, rosewoodTex, frameTex;
-    let whitePieceMaterial, blackPieceMaterial, brassAccentMaterial, feltMaterial, lightSquareMat, darkSquareMat;
-
-    function initMaterials() {
-      boxwoodTex = createWoodTextures('#f4ece1', '#d4c2a5', 0.04);
-      rosewoodTex = createWoodTextures('#1e120c', '#0d0704', 0.12);
-      frameTex = createWoodTextures('#140904', '#050201', 0.15);
-
-      whitePieceMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xf2ebdc,
-        map: boxwoodTex.map,
-        bumpMap: boxwoodTex.bumpMap,
-        bumpScale: 0.012,
-        roughnessMap: boxwoodTex.roughnessMap,
-        roughness: 0.2,
-        metalness: 0.02,
-        clearcoat: 0.8,
-        clearcoatRoughness: 0.1
-      });
-
-      blackPieceMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0x1a120c,
-        map: rosewoodTex.map,
-        bumpMap: rosewoodTex.bumpMap,
-        bumpScale: 0.018,
-        roughnessMap: rosewoodTex.roughnessMap,
-        roughness: 0.25,
-        metalness: 0.05,
-        clearcoat: 0.7,
-        clearcoatRoughness: 0.15
-      });
-
-      brassAccentMaterial = new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        metalness: 0.9,
-        roughness: 0.2
-      });
-
-      feltMaterial = new THREE.MeshStandardMaterial({
-        color: 0x064e3b,
-        roughness: 0.95
-      });
-
-      lightSquareMat = new THREE.MeshStandardMaterial({
-        color: 0xe6d7be,
-        map: boxwoodTex.map,
-        bumpMap: boxwoodTex.bumpMap,
-        bumpScale: 0.008,
-        roughness: 0.35
-      });
-
-      darkSquareMat = new THREE.MeshStandardMaterial({
-        color: 0x3d261a,
-        map: rosewoodTex.map,
-        bumpMap: rosewoodTex.bumpMap,
-        bumpScale: 0.01,
-        roughness: 0.4
-      });
-    }
-
-    // PROCEDURAL STUDIO ENVIRONMENT CUBEMAP
-    function generateStudioEnvironment(renderer) {
-      try {
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        const envScene = new THREE.Scene();
-        envScene.background = new THREE.Color(0x0a111e);
-
-        const lightGeo = new THREE.PlaneGeometry(12, 12);
-        const lightMat = new THREE.MeshBasicMaterial({ color: 0xfff8eb });
-
-        const light1 = new THREE.Mesh(lightGeo, lightMat);
-        light1.position.set(0, 15, 0);
-        light1.rotation.x = Math.PI / 2;
-        envScene.add(light1);
-
-        const light2 = new THREE.Mesh(lightGeo, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
-        light2.position.set(-15, 10, -15);
-        light2.lookAt(0, 0, 0);
-        envScene.add(light2);
-
-        const renderTarget = pmremGenerator.fromScene(envScene);
-        pmremGenerator.dispose();
-        return renderTarget.texture;
-      } catch (e) {
-        console.warn("PMREM environment generation skipped:", e);
-        return null;
+    // Squares
+    const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.1, SQ_SIZE);
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const isLight = (r + c) % 2 === 0;
+        const mesh = new THREE.Mesh(sqGeo, (isLight ? lightMat : darkMat).clone());
+        const x = c * SQ_SIZE - OFFSET;
+        const z = r * SQ_SIZE - OFFSET;
+        mesh.position.set(x, 0, z);
+        mesh.receiveShadow = true;
+        
+        const sqName = String.fromCharCode(97 + c) + (8 - r);
+        mesh.userData = { sqName, r, c, isLight };
+        scene.add(mesh);
+        squareMeshes[sqName] = mesh;
       }
     }
 
-    // INITIALIZE SCENE, CAMERA, LIGHTS & POST-PROCESSING
-    function init3D() {
-      initMaterials();
+    // --- 5. SIMPLE FAIL-PROOF 3D PIECES ---
+    const whitePieceMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 });
+    const blackPieceMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
 
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x030712);
-
-      camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 100);
-      
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
-      container.appendChild(renderer.domElement);
-
-      const envMap = generateStudioEnvironment(renderer);
-      if (envMap) scene.environment = envMap;
-
-      // OrbitControls
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.maxPolarAngle = Math.PI / 2 - 0.04;
-      controls.minDistance = 6;
-      controls.maxDistance = 22;
-
-      setCameraView('white');
-
-      // Studio Lighting
-      const ambientLight = new THREE.AmbientLight(0xfff8ee, 0.75);
-      scene.add(ambientLight);
-
-      const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.4);
-      keyLight.position.set(10, 18, 10);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 2048;
-      keyLight.shadow.mapSize.height = 2048;
-      keyLight.shadow.bias = -0.0001;
-      keyLight.shadow.radius = 2;
-      scene.add(keyLight);
-
-      const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
-      fillLight.position.set(-12, 12, -12);
-      scene.add(fillLight);
-
-      const rimLight = new THREE.DirectionalLight(0xffedd5, 0.6);
-      rimLight.position.set(0, 14, -14);
-      scene.add(rimLight);
-
-      // POST-PROCESSING PIPELINE WITH SAFE FALLBACK
-      try {
-        if (typeof THREE.EffectComposer !== 'undefined') {
-          composer = new THREE.EffectComposer(renderer);
-          const renderPass = new THREE.RenderPass(scene, camera);
-          composer.addPass(renderPass);
-
-          if (typeof THREE.UnrealBloomPass !== 'undefined') {
-            const bloomPass = new THREE.UnrealBloomPass(
-              new THREE.Vector2(container.clientWidth, container.clientHeight),
-              0.2, 0.4, 0.85
-            );
-            composer.addPass(bloomPass);
-          }
-        }
-      } catch (e) {
-        console.warn("Post-processing setup fallback to direct render:", e);
-        composer = null;
-      }
-
-      build3DBoard();
-      setupRaycaster();
-      syncPiecesWithBoard(false);
-
-      window.addEventListener('resize', onWindowResize);
-      animate();
-    }
-
-    // CAMERA PRESET POSITIONS
-    function setCameraView(view) {
-      let targetPos;
-      if (view === 'white') targetPos = new THREE.Vector3(0, 10, 10.5);
-      else if (view === 'black') targetPos = new THREE.Vector3(0, 10, -10.5);
-      else targetPos = new THREE.Vector3(7, 11, 8);
-
-      animateCameraTo(targetPos, new THREE.Vector3(0, 0, 0), 1000);
-    }
-
-    function animateCameraTo(targetPos, targetLookAt, duration) {
-      const startPos = camera.position.clone();
-      const startLook = controls.target.clone();
-      const startTime = performance.now();
-
-      activeAnimations.push({
-        update(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const ease = 1 - Math.pow(1 - progress, 3);
-
-          camera.position.lerpVectors(startPos, targetPos, ease);
-          controls.target.lerpVectors(startLook, targetLookAt, ease);
-          controls.update();
-
-          return progress < 1;
-        }
-      });
-    }
-
-    // BUILD WOODEN BOARD
-    function build3DBoard() {
-      const borderGeo = new THREE.BoxGeometry(11.8, 0.65, 11.8);
-      const borderMat = new THREE.MeshStandardMaterial({
-        color: 0x140a05,
-        map: frameTex.map,
-        bumpMap: frameTex.bumpMap,
-        bumpScale: 0.015,
-        roughness: 0.3
-      });
-      const borderMesh = new THREE.Mesh(borderGeo, borderMat);
-      borderMesh.position.y = -0.33;
-      borderMesh.receiveShadow = true;
-      scene.add(borderMesh);
-
-      const trimGeo = new THREE.BoxGeometry(10.15, 0.02, 10.15);
-      const trimMesh = new THREE.Mesh(trimGeo, brassAccentMaterial);
-      trimMesh.position.y = 0.01;
-      scene.add(trimMesh);
-
-      const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.2, SQ_SIZE);
-
-      for (let r = 0; r < 8; r++) {
-        squareMeshes[r] = [];
-        for (let c = 0; c < 8; c++) {
-          const isLight = (r + c) % 2 === 0;
-          const mat = (isLight ? lightSquareMat : darkSquareMat).clone();
-          const sqMesh = new THREE.Mesh(sqGeo, mat);
-          
-          const x = c * SQ_SIZE - BOARD_OFFSET;
-          const z = r * SQ_SIZE - BOARD_OFFSET;
-          sqMesh.position.set(x, 0, z);
-          sqMesh.receiveShadow = true;
-          
-          const sqStr = String.fromCharCode(97 + c) + (8 - r);
-          sqMesh.userData = { sqStr, r, c };
-
-          scene.add(sqMesh);
-          squareMeshes[r][c] = sqMesh;
-        }
-      }
-    }
-
-    // STAUNTON PIECE GEOMETRY
-    function createPiece3DMesh(type, color) {
+    function createPieceMesh(type, color) {
       const group = new THREE.Group();
-      const mat = color === 'w' ? whitePieceMaterial : blackPieceMaterial;
+      const mat = color === 'w' ? whitePieceMat : blackPieceMat;
+      let geo;
 
-      let geomPoints = [];
-      if (type === 'p') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.44, 0), new THREE.Vector2(0.44, 0.08),
-          new THREE.Vector2(0.32, 0.16), new THREE.Vector2(0.2, 0.48), new THREE.Vector2(0.26, 0.54),
-          new THREE.Vector2(0.22, 0.6), new THREE.Vector2(0.28, 0.62), new THREE.Vector2(0, 0.92)
-        ];
-      } else if (type === 'r') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.32, 0.68), new THREE.Vector2(0.42, 0.75),
-          new THREE.Vector2(0.42, 1.05), new THREE.Vector2(0.32, 1.05), new THREE.Vector2(0.32, 0.92), new THREE.Vector2(0, 0.92)
-        ];
-      } else if (type === 'n') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.35, 0.25), new THREE.Vector2(0.26, 0.55), new THREE.Vector2(0, 0.55)
-        ];
-        const headGeo = new THREE.CylinderGeometry(0.18, 0.32, 0.6, 20);
-        const headMesh = new THREE.Mesh(headGeo, mat);
-        headMesh.position.set(0, 0.78, 0.08);
-        headMesh.rotation.x = 0.35;
-        headMesh.castShadow = true;
-        group.add(headMesh);
-
-        const snoutGeo = new THREE.BoxGeometry(0.28, 0.26, 0.36);
-        const snoutMesh = new THREE.Mesh(snoutGeo, mat);
-        snoutMesh.position.set(0, 0.72, 0.26);
-        snoutMesh.rotation.x = 0.2;
-        snoutMesh.castShadow = true;
-        group.add(snoutMesh);
-
-        const earGeo = new THREE.ConeGeometry(0.08, 0.22, 8);
-        const earL = new THREE.Mesh(earGeo, mat);
-        const earR = new THREE.Mesh(earGeo, mat);
-        earL.position.set(-0.1, 1.06, -0.05);
-        earR.position.set(0.1, 1.06, -0.05);
-        group.add(earL); group.add(earR);
-      } else if (type === 'b') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
-          new THREE.Vector2(0.35, 0.22), new THREE.Vector2(0.2, 0.65), new THREE.Vector2(0.3, 0.75),
-          new THREE.Vector2(0.14, 1.08), new THREE.Vector2(0, 1.2)
-        ];
-        const tipGeo = new THREE.SphereGeometry(0.08, 16, 16);
-        const tipMesh = new THREE.Mesh(tipGeo, mat);
-        tipMesh.position.y = 1.28;
-        group.add(tipMesh);
-      } else if (type === 'q') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.22, 0.75), new THREE.Vector2(0.4, 0.9),
-          new THREE.Vector2(0.38, 1.25), new THREE.Vector2(0, 1.25)
-        ];
-        const crownGeo = new THREE.SphereGeometry(0.1, 16, 16);
-        const crownMesh = new THREE.Mesh(crownGeo, mat);
-        crownMesh.position.y = 1.34;
-        group.add(crownMesh);
-      } else if (type === 'k') {
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
-          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.24, 0.75), new THREE.Vector2(0.4, 0.9),
-          new THREE.Vector2(0.38, 1.3), new THREE.Vector2(0, 1.3)
-        ];
-        const crossV = new THREE.BoxGeometry(0.08, 0.28, 0.08);
-        const crossH = new THREE.BoxGeometry(0.24, 0.08, 0.08);
-        const cVMesh = new THREE.Mesh(crossV, mat);
-        const cHMesh = new THREE.Mesh(crossH, mat);
-        cVMesh.position.y = 1.46; cHMesh.position.y = 1.49;
-        group.add(cVMesh); group.add(cHMesh);
+      switch(type) {
+        case 'p': // Pawn
+          geo = new THREE.CylinderGeometry(0.2, 0.35, 0.6, 16);
+          break;
+        case 'r': // Rook
+          geo = new THREE.BoxGeometry(0.6, 0.7, 0.6);
+          break;
+        case 'n': // Knight
+          geo = new THREE.ConeGeometry(0.35, 0.8, 16);
+          break;
+        case 'b': // Bishop
+          geo = new THREE.CylinderGeometry(0.1, 0.38, 0.9, 16);
+          break;
+        case 'q': // Queen
+          geo = new THREE.CylinderGeometry(0.25, 0.42, 1.1, 16);
+          break;
+        case 'k': // King
+          geo = new THREE.CylinderGeometry(0.3, 0.45, 1.3, 16);
+          break;
       }
 
-      const latheGeo = new THREE.LatheGeometry(geomPoints, 36);
-      const latheMesh = new THREE.Mesh(latheGeo, mat);
-      latheMesh.castShadow = true;
-      latheMesh.receiveShadow = true;
-      group.add(latheMesh);
-
-      const brassRingGeo = new THREE.TorusGeometry(0.46, 0.02, 16, 32);
-      const brassRingMesh = new THREE.Mesh(brassRingGeo, brassAccentMaterial);
-      brassRingMesh.rotation.x = Math.PI / 2;
-      brassRingMesh.position.y = 0.12;
-      group.add(brassRingMesh);
-
-      const feltGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.02, 32);
-      const feltMesh = new THREE.Mesh(feltGeo, feltMaterial);
-      feltMesh.position.y = -0.01;
-      group.add(feltMesh);
-
-      group.userData = { type, color };
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      mesh.position.y = geo.parameters.height / 2 || 0.4;
+      group.add(mesh);
       return group;
     }
 
-    // SYNC BOARD & PARABOLIC MOVE ANIMATIONS
-    function syncPiecesWithBoard(animateMove = false, moveInfo = null) {
-      const boardState = game.board();
-      const newPieceMap = new Map();
+    // --- 6. RENDER BOARD STATE ---
+    let selectedSquare = null;
+    let legalMoves = [];
+
+    function updateBoard() {
+      // Clear existing pieces
+      Object.values(pieceMeshes).forEach(p => scene.remove(p));
+      pieceMeshes = {};
+
+      const board = game.board();
 
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const pieceObj = boardState[r][c];
-          if (pieceObj) {
-            const sqStr = String.fromCharCode(97 + c) + (8 - r);
-            const targetX = c * SQ_SIZE - BOARD_OFFSET;
-            const targetZ = r * SQ_SIZE - BOARD_OFFSET;
+          const piece = board[r][c];
+          const sqName = String.fromCharCode(97 + c) + (8 - r);
+          
+          // Reset square colors
+          const sqMesh = squareMeshes[sqName];
+          sqMesh.material.color.set(sqMesh.userData.isLight ? 0xe2e8f0 : 0x334155);
 
-            let pieceGroup = pieceMeshMap.get(sqStr);
-
-            if (!pieceGroup && animateMove && moveInfo && moveInfo.to === sqStr) {
-              pieceGroup = pieceMeshMap.get(moveInfo.from);
-              if (pieceGroup) {
-                pieceMeshMap.delete(moveInfo.from);
-                animatePieceParabola(pieceGroup, targetX, targetZ);
-              }
-            }
-
-            if (!pieceGroup) {
-              pieceGroup = createPiece3DMesh(pieceObj.type, pieceObj.color);
-              pieceGroup.position.set(targetX, 0.1, targetZ);
-              if (pieceObj.color === 'b') pieceGroup.rotation.y = Math.PI;
-              scene.add(pieceGroup);
-            }
-
-            pieceGroup.userData.sqStr = sqStr;
-            newPieceMap.set(sqStr, pieceGroup);
+          if (piece) {
+            const pMesh = createPieceMesh(piece.type, piece.color);
+            const x = c * SQ_SIZE - OFFSET;
+            const z = r * SQ_SIZE - OFFSET;
+            pMesh.position.set(x, 0.05, z);
+            scene.add(pMesh);
+            pieceMeshes[sqName] = pMesh;
           }
         }
       }
 
-      pieceMeshMap.forEach((mesh, sq) => {
-        if (!newPieceMap.has(sq) && (!moveInfo || moveInfo.from !== sq)) {
-          scene.remove(mesh);
+      // Highlight selected square
+      if (selectedSquare && squareMeshes[selectedSquare]) {
+        squareMeshes[selectedSquare].material.color.set(0x22c55e);
+      }
+
+      // Highlight legal target moves
+      legalMoves.forEach(m => {
+        if (squareMeshes[m.to]) {
+          squareMeshes[m.to].material.color.set(0x38bdf8);
         }
       });
 
-      pieceMeshMap = newPieceMap;
-      updateHighlightsAndStatus();
+      // Update UI Text
+      document.getElementById('statusText').textContent = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
+      document.getElementById('checkBadge').style.display = game.in_check() ? 'inline' : 'none';
+
+      // Update Move History
+      const history = game.history();
+      document.getElementById('history').innerHTML = history.map((m, i) => `${i % 2 === 0 ? (i/2 + 1) + '.' : ''} ${m}`).join(' ');
     }
 
-    // PARABOLIC LERP MOVE ANIMATION
-    function animatePieceParabola(meshGroup, targetX, targetZ) {
-      const startX = meshGroup.position.x;
-      const startZ = meshGroup.position.z;
-      const startTime = performance.now();
-      const duration = 320;
+    // --- 7. INTERACTION LOGIC ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
 
-      activeAnimations.push({
-        update(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
+    container.addEventListener('pointerdown', (e) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-          meshGroup.position.x = THREE.MathUtils.lerp(startX, targetX, progress);
-          meshGroup.position.z = THREE.MathUtils.lerp(startZ, targetZ, progress);
-          meshGroup.position.y = 0.1 + Math.sin(progress * Math.PI) * 0.8;
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(Object.values(squareMeshes));
 
-          return progress < 1;
-        }
-      });
-    }
+      if (intersects.length > 0) {
+        const clickedSq = intersects[0].object.userData.sqName;
+        handleClick(clickedSq);
+      }
+    });
 
-    // RAYCASTING FOR TILE SELECTION
-    function setupRaycaster() {
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-
-      container.addEventListener('pointerdown', (e) => {
-        if (game.game_over()) return;
-
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-
-        const allTiles = squareMeshes.flat();
-        const intersects = raycaster.intersectObjects(allTiles);
-
-        if (intersects.length > 0) {
-          const clickedSqStr = intersects[0].object.userData.sqStr;
-          handleSquareClick(clickedSqStr);
-        }
-      });
-    }
-
-    // GAME CLICK LOGIC
-    function handleSquareClick(sqStr) {
-      const pieceOnSq = game.get(sqStr);
-      const isCurrentTurnPiece = pieceOnSq && pieceOnSq.color === game.turn();
+    function handleClick(sq) {
+      const piece = game.get(sq);
 
       if (selectedSquare) {
-        const validMove = legalMovesForSelected.find(m => m.to === sqStr);
-        if (validMove) {
-          executeMove3D(validMove);
+        // Try executing move
+        const move = game.move({ from: selectedSquare, to: sq, promotion: 'q' });
+        if (move) {
           selectedSquare = null;
-          legalMovesForSelected = [];
+          legalMoves = [];
+          updateBoard();
+
+          // AI Move trigger
+          if (document.getElementById('modeSelect').value === 'ai' && !game.game_over() && game.turn() === 'b') {
+            setTimeout(makeAIMove, 300);
+          }
           return;
         }
       }
 
-      if (isCurrentTurnPiece) {
-        selectedSquare = sqStr;
-        legalMovesForSelected = game.moves({ square: sqStr, verbose: true });
+      // Select piece
+      if (piece && piece.color === game.turn()) {
+        selectedSquare = sq;
+        legalMoves = game.moves({ square: sq, verbose: true });
       } else {
         selectedSquare = null;
-        legalMovesForSelected = [];
+        legalMoves = [];
       }
 
-      updateHighlightsAndStatus();
+      updateBoard();
     }
 
-    // EXECUTE MOVE
-    function executeMove3D(moveObj) {
-      const result = game.move({
-        from: moveObj.from,
-        to: moveObj.to,
-        promotion: 'q'
-      });
-
-      if (result) {
-        if (result.captured) AudioEngine.playCapture();
-        else AudioEngine.playMove();
-
-        if (game.in_check()) AudioEngine.playCheck();
-
-        syncPiecesWithBoard(true, result);
-
-        if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
-          setTimeout(makeAIMove, 400);
-        }
-      }
-    }
-
-    // MINIMAX AI ENGINE
     function makeAIMove() {
-      if (game.game_over()) return;
-
-      const moves = game.moves({ verbose: true });
+      const moves = game.moves();
       if (moves.length === 0) return;
-
-      const mode = modeSelect.value;
-      let chosenMove;
-
-      if (mode === 'ai-easy') {
-        chosenMove = moves[Math.floor(Math.random() * moves.length)];
-      } else if (mode === 'ai-medium') {
-        const capOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
-        chosenMove = capOrCheck.length > 0 ? capOrCheck[Math.floor(Math.random() * capOrCheck.length)] : moves[Math.floor(Math.random() * moves.length)];
-      } else {
-        let bestScore = -Infinity;
-        chosenMove = moves[0];
-        const pVals = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
-
-        moves.forEach(m => {
-          game.move(m);
-          let total = 0;
-          game.board().forEach(row => row.forEach(p => {
-            if (p) total += (p.color === 'b' ? pVals[p.type] : -pVals[p.type]);
-          }));
-          game.undo();
-
-          if (total > bestScore) {
-            bestScore = total;
-            chosenMove = m;
-          }
-        });
-      }
-
-      executeMove3D(chosenMove);
+      const randomMove = moves[Math.floor(Math.random() * moves.length)];
+      game.move(randomMove);
+      updateBoard();
     }
 
-    // HIGHLIGHTS & STATUS OVERLAYS
-    function updateHighlightsAndStatus() {
-      highlightMeshes.forEach(h => scene.remove(h));
-      highlightMeshes = [];
+    // Buttons
+    document.getElementById('resetBtn').onclick = () => { game.reset(); selectedSquare = null; legalMoves = []; updateBoard(); };
+    document.getElementById('undoBtn').onclick = () => { game.undo(); if(document.getElementById('modeSelect').value === 'ai') game.undo(); selectedSquare = null; legalMoves = []; updateBoard(); };
 
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const sqMesh = squareMeshes[r][c];
-          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xe6d7be : 0x3d261a);
-        }
-      }
-
-      if (selectedSquare) {
-        const { r, c } = sqToCoords(selectedSquare);
-        squareMeshes[r][c].material.color.set(0x22c55e);
-      }
-
-      legalMovesForSelected.forEach(m => {
-        const { r, c } = sqToCoords(m.to);
-        const ringGeo = new THREE.RingGeometry(0.22, 0.38, 32);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = Math.PI / 2;
-        ringMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.12, r * SQ_SIZE - BOARD_OFFSET);
-        scene.add(ringMesh);
-        highlightMeshes.push(ringMesh);
-      });
-
-      const turn = game.turn();
-      statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
-      turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
-      checkBadge.style.display = game.in_check() ? 'block' : 'none';
-
-      if (game.game_over()) {
-        gameOverOverlay.classList.add('show');
-        if (game.in_checkmate()) {
-          gameOverTitle.textContent = "Checkmate!";
-          gameOverMsg.textContent = `${turn === 'w' ? 'Black' : 'White'} wins the game!`;
-        } else {
-          gameOverTitle.textContent = "Draw!";
-          gameOverMsg.textContent = "Game drawn by stalemate or repetition.";
-        }
-      } else {
-        gameOverOverlay.classList.remove('show');
-      }
-
-      updateCapturedAndHistoryUI();
-    }
-
-    function sqToCoords(sqStr) {
-      return {
-        r: 8 - parseInt(sqStr[1]),
-        c: sqStr.charCodeAt(0) - 97
-      };
-    }
-
-    function updateCapturedAndHistoryUI() {
-      const UNICODE = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕' };
-      const counts = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
-
-      game.board().forEach(row => row.forEach(p => {
-        if (p && p.type !== 'k') counts[p.color][p.type]--;
-      }));
-
-      const capWhite = [], capBlack = [];
-      ['p','n','b','r','q'].forEach(t => {
-        for(let i=0; i<counts.w[t]; i++) capWhite.push(UNICODE['w' + t.toUpperCase()]);
-        for(let i=0; i<counts.b[t]; i++) capBlack.push(UNICODE[t]);
-      });
-
-      document.getElementById('capturedWhite').textContent = capWhite.join(' ');
-      document.getElementById('capturedBlack').textContent = capBlack.join(' ');
-
-      const historyEl = document.getElementById('moveHistory');
-      historyEl.innerHTML = '';
-      const history = game.history({ verbose: true });
-
-      for (let i = 0; i < history.length; i += 2) {
-        const row = document.createElement('div');
-        row.className = 'move-row';
-        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${history[i].san}</span> <span>${history[i+1] ? history[i+1].san : ''}</span>`;
-        historyEl.appendChild(row);
-      }
-      historyEl.scrollTop = historyEl.scrollHeight;
-    }
-
-    // RENDER LOOP
-    function animate(time) {
+    // --- 8. ANIMATION LOOP ---
+    function animate() {
       requestAnimationFrame(animate);
-
-      activeAnimations = activeAnimations.filter(anim => anim.update(time));
-
       controls.update();
-
-      if (composer) {
-        composer.render();
-      } else {
-        renderer.render(scene, camera);
-      }
+      renderer.render(scene, camera);
     }
 
-    function onWindowResize() {
+    window.addEventListener('resize', () => {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
-      if (composer) composer.setSize(container.clientWidth, container.clientHeight);
-    }
-
-    // BUTTON LISTENERS
-    camWhiteBtn.addEventListener('click', () => setCameraView('white'));
-    camBlackBtn.addEventListener('click', () => setCameraView('black'));
-    resetCamBtn.addEventListener('click', () => setCameraView('free'));
-
-    toggleSoundBtn.addEventListener('click', () => {
-      AudioEngine.enabled = !AudioEngine.enabled;
-      toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
-      toggleSoundBtn.textContent = AudioEngine.enabled ? '🔊 Sound ON' : '🔇 Muted';
     });
 
-    function startNewGame() {
-      game.reset();
-      selectedSquare = null;
-      legalMovesForSelected = [];
-      syncPiecesWithBoard(false);
-    }
-
-    resetBtn.addEventListener('click', startNewGame);
-    modalRestartBtn.addEventListener('click', startNewGame);
-
-    undoBtn.addEventListener('click', () => {
-      const steps = modeSelect.value.startsWith('ai') ? 2 : 1;
-      for (let i = 0; i < steps; i++) game.undo();
-      selectedSquare = null;
-      legalMovesForSelected = [];
-      syncPiecesWithBoard(false);
-    });
-
-    // START
-    init3D();
+    // Start
+    updateBoard();
+    animate();
   </script>
 </body>
 </html>
