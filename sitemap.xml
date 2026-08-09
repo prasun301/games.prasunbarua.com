@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    <!-- Main Games Page -->
+    <url>
+        <loc>https://games.prasunbarua.com/</loc>
+    </url>
+
+    <!-- Games -->
+    <url>
+        <loc>https://games.prasunbarua.com/chess/</loc>
+    </url>
+
+    <!-- Company & Contact Pages -->
+    <url>
+        <loc>https://games.prasunbarua.com/about.html</loc>
+    </url>
+
+    <url>
+        <loc>https://games.prasunbarua.com/contact.html</loc>
+    </url>
+
+    <!-- Legal & Policy Pages -->
+    <url>
+        <loc>https://games.prasunbarua.com/privacy.html</loc>
+    </url>
+
+    <url>
+        <loc>https://games.prasunbarua.com/terms.html</loc>
+    </url>
+
+</urlset>
