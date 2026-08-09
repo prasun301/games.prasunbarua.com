@@ -4,10 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Play Chess 3D | Prasun Games</title>
-  <meta name="description" content="Play free official 3D Chess online against AI or friends with crisp vector SVG pieces, full rules, castling, and en passant.">
+  <meta name="description" content="Play official 3D Chess online with WebGL, real-time lighting, full FIDE rules, castling, en passant, and AI.">
   
-  <!-- chess.js Engine for full rule enforcement -->
+  <!-- Chess Logic Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  
+  <!-- Three.js 3D Engine & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
     * {
@@ -24,13 +28,6 @@
       --text: #f8fafc;
       --muted: #94a3b8;
       --accent: #22c55e;
-      
-      /* Board Colors */
-      --sq-light: #e2e8f0;
-      --sq-dark: #334155;
-      --sq-highlight: rgba(34, 197, 94, 0.55);
-      --sq-last-move: rgba(234, 179, 8, 0.4);
-      --sq-check: rgba(239, 68, 68, 0.7);
     }
 
     body {
@@ -106,26 +103,25 @@
       }
     }
 
-    /* 3D BOARD STAGE */
+    /* 3D STAGE & WEBGL CANVAS */
     .board-stage {
       position: relative;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 30px 20px 40px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      perspective: 1200px;
     }
 
     .status-bar {
-      width: min(520px, 100%);
+      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       padding: 12px 20px;
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border);
@@ -155,115 +151,33 @@
       border: 1px solid #475569;
     }
 
-    /* 3D BOARD WRAPPER */
-    .board-3d-wrapper {
+    .webgl-container {
       position: relative;
-      width: min(520px, 88vw);
-      height: min(520px, 88vw);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      transform-style: preserve-3d;
-      transform: rotateX(32deg) rotateZ(0deg);
-      box-shadow: 0 35px 60px rgba(0, 0, 0, 0.7);
-      border-radius: 8px;
-    }
-
-    .board-stage.mode-2d .board-3d-wrapper {
-      transform: rotateX(0deg) rotateZ(0deg);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-    }
-
-    .board-3d-wrapper::before {
-      content: '';
-      position: absolute;
-      inset: -14px;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
+      width: 100%;
+      height: 520px;
       border-radius: 12px;
-      transform: translateZ(-20px);
-      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 20px 25px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .chess-board {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(8, 1fr);
-      border-radius: 6px;
       overflow: hidden;
-      transform-style: preserve-3d;
+      background: #020617;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: grab;
     }
 
-    .square {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.15s ease;
+    .webgl-container:active {
+      cursor: grabbing;
     }
 
-    .square.light { background: var(--sq-light); }
-    .square.dark { background: var(--sq-dark); }
-
-    .square.selected { background: var(--sq-highlight) !important; }
-    .square.last-move { background: var(--sq-last-move) !important; }
-
-    .square.in-check {
-      background: var(--sq-check) !important;
-      animation: pulseCheck 1s infinite alternate;
-    }
-
-    @keyframes pulseCheck {
-      0% { box-shadow: inset 0 0 0 0px red; }
-      100% { box-shadow: inset 0 0 15px 3px red; }
-    }
-
-    /* Legal Move Dot */
-    .square.legal-move::after {
-      content: '';
+    .camera-hint {
       position: absolute;
-      width: 24%;
-      height: 24%;
-      background: rgba(34, 197, 94, 0.85);
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
       pointer-events: none;
-      z-index: 5;
-    }
-
-    /* VECTOR SVG PIECE STYLING */
-    .piece {
-      position: relative;
-      z-index: 2;
-      width: 82%;
-      height: 82%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease, filter 0.2s ease;
-      filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.45));
-      transform: translateZ(12px) rotateX(-20deg);
-    }
-
-    .piece-svg {
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .board-stage.mode-2d .piece {
-      transform: translateZ(0) rotateX(0deg);
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    }
-
-    .square:hover .piece {
-      transform: translateZ(22px) rotateX(-20deg) scale(1.12);
-    }
-
-    .board-stage.mode-2d .square:hover .piece {
-      transform: scale(1.12);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     /* CONTROL PANEL */
@@ -335,31 +249,24 @@
       padding-right: 36px;
     }
 
-    /* Captured Pieces SVG Box */
     .captured-box {
       background: rgba(0,0,0,0.3);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 8px 12px;
+      padding: 10px;
       min-height: 44px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      font-size: 1.2rem;
     }
 
-    .captured-svg {
-      width: 24px;
-      height: 24px;
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
-    }
-
-    /* Move History */
     .move-history {
       background: rgba(0,0,0,0.3);
       border: 1px solid var(--border);
       border-radius: 12px;
-      height: 140px;
+      height: 130px;
       overflow-y: auto;
       padding: 10px 14px;
       font-family: monospace;
@@ -409,105 +316,6 @@
 </head>
 <body>
 
-  <!-- EMBEDDED VECTOR STAUNTON SVG PIECES -->
-  <svg style="display: none;">
-    <defs>
-      <!-- White Pawn -->
-      <g id="wP" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,21.53 15.58,22.05 15.72,22.5 C 14.1,23.16 13,24.7 13,26.5 C 13,27.14 13.14,27.75 13.39,28.31 C 11.39,29.38 10,31.53 10,34 C 10,34.5 10.05,35 10.14,35.5 L 34.86,35.5 C 34.95,35 35,34.5 35,34 C 35,31.53 33.61,29.38 31.61,28.31 C 31.86,27.75 32,27.14 32,26.5 C 32,24.7 30.9,23.16 29.28,22.5 C 29.42,22.05 29.5,21.53 29.5,21 C 29.5,18.59 28.17,16.5 26.22,15.38 C 26.71,14.71 27,13.89 27,13 C 27,10.79 25.21,9 23,9 L 22,9 z" />
-        <path d="M 11.5,37 L 33.5,37 L 33.5,40 L 11.5,40 z" />
-      </g>
-      <!-- Black Pawn -->
-      <g id="bP" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,21.53 15.58,22.05 15.72,22.5 C 14.1,23.16 13,24.7 13,26.5 C 13,27.14 13.14,27.75 13.39,28.31 C 11.39,29.38 10,31.53 10,34 C 10,34.5 10.05,35 10.14,35.5 L 34.86,35.5 C 34.95,35 35,34.5 35,34 C 35,31.53 33.61,29.38 31.61,28.31 C 31.86,27.75 32,27.14 32,26.5 C 32,24.7 30.9,23.16 29.28,22.5 C 29.42,22.05 29.5,21.53 29.5,21 C 29.5,18.59 28.17,16.5 26.22,15.38 C 26.71,14.71 27,13.89 27,13 C 27,10.79 25.21,9 23,9 L 22,9 z" />
-        <path d="M 11.5,37 L 33.5,37 L 33.5,40 L 11.5,40 z" />
-      </g>
-
-      <!-- White Knight -->
-      <g id="wN" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18" />
-        <path d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,8.5 C 14.5,9.5 16.5,9.5 18,7.5 C 20,10.5 22,10 22,10 z" />
-        <circle cx="9.5" cy="25.5" r="1" fill="#1e293b" />
-        <path d="M 15,15.5 A 0.5,1.5 0 1,1 14,15.5 A 0.5,1.5 0 1,1 15,15.5 z" transform="rotate(30 14.5 15.5)" fill="#1e293b" />
-      </g>
-      <!-- Black Knight -->
-      <g id="bN" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18" />
-        <path d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,8.5 C 14.5,9.5 16.5,9.5 18,7.5 C 20,10.5 22,10 22,10 z" />
-        <circle cx="9.5" cy="25.5" r="1" fill="#f8fafc" />
-        <path d="M 15,15.5 A 0.5,1.5 0 1,1 14,15.5 A 0.5,1.5 0 1,1 15,15.5 z" transform="rotate(30 14.5 15.5)" fill="#f8fafc" />
-      </g>
-
-      <!-- White Bishop -->
-      <g id="wB" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <g stroke-linejoin="miter">
-          <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" fill="#ffffff"/>
-          <path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,20 22.5,17 C 15,20 14.5,30.5 15,32 z" fill="#ffffff"/>
-          <path d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" fill="#ffffff"/>
-        </g>
-        <path d="M 17.5,26 L 27.5,26 M 22.5,21 L 22.5,31" fill="none"/>
-      </g>
-      <!-- Black Bishop -->
-      <g id="bB" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <g stroke-linejoin="miter">
-          <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" fill="#1e293b"/>
-          <path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,20 22.5,17 C 15,20 14.5,30.5 15,32 z" fill="#1e293b"/>
-          <path d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" fill="#1e293b"/>
-        </g>
-        <path d="M 17.5,26 L 27.5,26 M 22.5,21 L 22.5,31" fill="none"/>
-      </g>
-
-      <!-- White Rook -->
-      <g id="wR" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 9,39 L 36,39 L 36,36 L 9,36 z M 12,36 L 12,32 L 33,32 L 33,36 z M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 31,17 L 31,29.5 L 14,29.5 L 14,17 z M 12,32 L 33,32 L 33,29.5 L 12,29.5 z" />
-        <path d="M 14,17 L 31,17" fill="none" />
-      </g>
-      <!-- Black Rook -->
-      <g id="bR" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 9,39 L 36,39 L 36,36 L 9,36 z M 12,36 L 12,32 L 33,32 L 33,36 z M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 31,17 L 31,29.5 L 14,29.5 L 14,17 z M 12,32 L 33,32 L 33,29.5 L 12,29.5 z" />
-        <path d="M 14,17 L 31,17" fill="none" />
-      </g>
-
-      <!-- White Queen -->
-      <g id="wQ" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" />
-        <path d="M 9,26 C 17.5,24.5 30,24.5 36,26 C 36.5,22 36.5,10 36.5,10 L 31,17 L 22.5,9 L 14,17 L 8.5,10 C 8.5,10 8.5,22 9,26 z" />
-        <path d="M 11.5,30 C 15,29 30,29 33.5,30" fill="none"/>
-        <circle cx="6" cy="12" r="2" fill="#ffffff"/>
-        <circle cx="14" cy="9" r="2" fill="#ffffff"/>
-        <circle cx="22.5" cy="8" r="2" fill="#ffffff"/>
-        <circle cx="31" cy="9" r="2" fill="#ffffff"/>
-        <circle cx="39" cy="12" r="2" fill="#ffffff"/>
-      </g>
-      <!-- Black Queen -->
-      <g id="bQ" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" />
-        <path d="M 9,26 C 17.5,24.5 30,24.5 36,26 C 36.5,22 36.5,10 36.5,10 L 31,17 L 22.5,9 L 14,17 L 8.5,10 C 8.5,10 8.5,22 9,26 z" />
-        <path d="M 11.5,30 C 15,29 30,29 33.5,30" fill="none"/>
-        <circle cx="6" cy="12" r="2" fill="#1e293b"/>
-        <circle cx="14" cy="9" r="2" fill="#1e293b"/>
-        <circle cx="22.5" cy="8" r="2" fill="#1e293b"/>
-        <circle cx="31" cy="9" r="2" fill="#1e293b"/>
-        <circle cx="39" cy="12" r="2" fill="#1e293b"/>
-      </g>
-
-      <!-- White King -->
-      <g id="wK" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22.5,11.63 L 22.5,6 M 20,8 L 25,8" fill="none" />
-        <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" />
-        <path d="M 11.5,30 C 15,29 30,29 33.5,30 M 11.5,33.5 C 15,32.5 30,32.5 33.5,33.5" fill="none" />
-        <path d="M 11.5,30 C 11.5,24.5 15,18 22.5,18 C 30,18 33.5,24.5 33.5,30 C 33.5,30 11.5,30 11.5,30 z" />
-      </g>
-      <!-- Black King -->
-      <g id="bK" fill="#1e293b" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 22.5,11.63 L 22.5,6 M 20,8 L 25,8" fill="none" />
-        <path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,36.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" />
-        <path d="M 11.5,30 C 15,29 30,29 33.5,30 M 11.5,33.5 C 15,32.5 30,32.5 33.5,33.5" fill="none" />
-        <path d="M 11.5,30 C 11.5,24.5 15,18 22.5,18 C 30,18 33.5,24.5 33.5,30 C 33.5,30 11.5,30 11.5,30 z" />
-      </g>
-    </defs>
-  </svg>
-
   <!-- HEADER -->
   <header class="site-header">
     <div class="header-container">
@@ -515,7 +323,7 @@
         <span>←</span>
         <span>Back to Home</span>
       </a>
-      <div class="game-title">♟️ Prasun Chess 3D</div>
+      <div class="game-title">♟️ Prasun Real 3D Chess</div>
       <div style="width: 110px;"></div>
     </div>
   </header>
@@ -524,7 +332,7 @@
   <main class="app-container">
 
     <!-- 3D STAGE -->
-    <section class="board-stage" id="boardStage">
+    <section class="board-stage">
       
       <!-- GAME OVER BANNER -->
       <div class="game-over-overlay" id="gameOverOverlay">
@@ -541,8 +349,9 @@
         <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none;">CHECK!</div>
       </div>
 
-      <div class="board-3d-wrapper">
-        <div class="chess-board" id="chessBoard"></div>
+      <!-- WEBGL CANVAS CONTAINER -->
+      <div class="webgl-container" id="webglContainer">
+        <div class="camera-hint">🖱️ Left Click + Drag: Rotate | Scroll: Zoom | Right Click: Pan</div>
       </div>
 
     </section>
@@ -551,14 +360,10 @@
     <aside class="control-panel">
 
       <div class="panel-section">
-        <div class="panel-title">Display & Audio</div>
+        <div class="panel-title">Camera & Sound</div>
         <div class="btn-group">
-          <button class="btn active" id="toggle3dBtn">
-            <span>🎲 3D View</span>
-          </button>
-          <button class="btn active" id="toggleSoundBtn">
-            <span>🔊 Sound ON</span>
-          </button>
+          <button class="btn" id="resetCamBtn">🎥 Reset View</button>
+          <button class="btn active" id="toggleSoundBtn">🔊 Sound ON</button>
         </div>
       </div>
 
@@ -597,45 +402,35 @@
     const AudioEngine = {
       enabled: true,
       ctx: null,
-      
       init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       },
-
       playMove() {
         if (!this.enabled) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(200, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.09);
         gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.08);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.09);
       },
-
       playCapture() {
         if (!this.enabled) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(350, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.12);
+        osc.frequency.setValueAtTime(380, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.12);
         gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.12);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.12);
       },
-
       playCheck() {
         if (!this.enabled) return;
         this.init();
@@ -645,120 +440,304 @@
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.08));
           gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.08));
           gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.08) + 0.15);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          osc.connect(gain); gain.connect(this.ctx.destination);
           osc.start(this.ctx.currentTime + (idx * 0.08));
           osc.stop(this.ctx.currentTime + (idx * 0.08) + 0.15);
         });
       }
     };
 
-    // --- CHESS ENGINE SETUP ---
+    // --- CHESS RULE ENGINE ---
     const game = new Chess();
-    
-    // SVG Symbol ID mapping
-    const SVG_PIECE_MAP = {
-      'P': 'wP', 'R': 'wR', 'N': 'wN', 'B': 'wB', 'Q': 'wQ', 'K': 'wK',
-      'p': 'bP', 'r': 'bR', 'n': 'bN', 'b': 'bB', 'q': 'bQ', 'k': 'bK'
-    };
 
-    let selectedSquare = null;
-    let legalMovesForSelected = [];
-    let is3D = true;
-
-    // DOM Elements
-    const boardEl = document.getElementById('chessBoard');
-    const boardStage = document.getElementById('boardStage');
+    // DOM UI
+    const container = document.getElementById('webglContainer');
     const statusText = document.getElementById('statusText');
     const turnDot = document.getElementById('turnDot');
     const checkBadge = document.getElementById('checkBadge');
-    const toggle3dBtn = document.getElementById('toggle3dBtn');
     const toggleSoundBtn = document.getElementById('toggleSoundBtn');
     const modeSelect = document.getElementById('modeSelect');
     const undoBtn = document.getElementById('undoBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const resetCamBtn = document.getElementById('resetCamBtn');
     const gameOverOverlay = document.getElementById('gameOverOverlay');
     const gameOverTitle = document.getElementById('gameOverTitle');
     const gameOverMsg = document.getElementById('gameOverMsg');
     const modalRestartBtn = document.getElementById('modalRestartBtn');
 
-    // CONVERT HELPERS
-    function coordsToSq(r, c) {
-      return String.fromCharCode(97 + c) + (8 - r);
+    // --- THREE.JS REAL 3D ENGINE ---
+    let scene, camera, renderer, controls;
+    let squareMeshes = []; // 8x8 grid of 3D tiles
+    let pieceMeshes = [];  // Array holding active 3D pieces
+    let highlightMeshes = [];
+
+    let selectedSquare = null;
+    let legalMovesForSelected = [];
+
+    const BOARD_SIZE = 8;
+    const SQ_SIZE = 1.2;
+    const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
+
+    // 3D Piece Materials
+    const whitePieceMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.15,
+      metalness: 0.1,
+      clearcoat: 0.3
+    });
+
+    const blackPieceMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.2,
+      metalness: 0.3,
+      clearcoat: 0.2
+    });
+
+    const lightSquareMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.4 });
+    const darkSquareMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+
+    function init3D() {
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x07111f);
+
+      // Camera
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      setInitialCamera();
+
+      // Renderer with Real-time Shadows
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // OrbitControls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevents camera going under board
+      controls.minDistance = 6;
+      controls.maxDistance = 22;
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      dirLight.position.set(8, 14, 8);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      dirLight.shadow.camera.near = 0.5;
+      dirLight.shadow.camera.far = 30;
+      dirLight.shadow.camera.left = -6;
+      dirLight.shadow.camera.right = 6;
+      dirLight.shadow.camera.top = 6;
+      dirLight.shadow.camera.bottom = -6;
+      scene.add(dirLight);
+
+      const fillLight = new THREE.PointLight(0x38bdf8, 0.4, 20);
+      fillLight.position.set(-6, 8, -6);
+      scene.add(fillLight);
+
+      // Build 3D Wooden Frame & Board Grid
+      build3DBoard();
+
+      // Raycaster for 3D Tile Click Detection
+      setupRaycaster();
+
+      // Sync 3D Pieces with Engine
+      syncPiecesWithBoard();
+
+      // Window Resize Listener
+      window.addEventListener('resize', onWindowResize);
+
+      // Render Loop
+      animate();
     }
 
-    // RENDER BOARD
-    function renderBoard() {
-      boardEl.innerHTML = '';
-      const b = game.board();
-      const history = game.history({ verbose: true });
-      const lastMove = history.length > 0 ? history[history.length - 1] : null;
+    function setInitialCamera() {
+      camera.position.set(0, 9.5, 9.5);
+      camera.lookAt(0, 0, 0);
+    }
 
-      // Find King in check square if applicable
-      let checkSquare = null;
-      if (game.in_check()) {
-        const turnColor = game.turn();
-        for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
-            const p = b[r][c];
-            if (p && p.type === 'k' && p.color === turnColor) {
-              checkSquare = coordsToSq(r, c);
-            }
-          }
+    // BUILD 3D BOARD MESHES
+    function build3DBoard() {
+      // Outer Board Base
+      const borderGeo = new THREE.BoxGeometry(10.8, 0.5, 10.8);
+      const borderMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
+      const borderMesh = new THREE.Mesh(borderGeo, borderMat);
+      borderMesh.position.y = -0.26;
+      borderMesh.receiveShadow = true;
+      scene.add(borderMesh);
+
+      // 8x8 Board Tiles
+      const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.2, SQ_SIZE);
+
+      for (let r = 0; r < 8; r++) {
+        squareMeshes[r] = [];
+        for (let c = 0; c < 8; c++) {
+          const isLight = (r + c) % 2 === 0;
+          const mat = (isLight ? lightSquareMat : darkSquareMat).clone();
+          const sqMesh = new THREE.Mesh(sqGeo, mat);
+          
+          const x = c * SQ_SIZE - BOARD_OFFSET;
+          const z = r * SQ_SIZE - BOARD_OFFSET;
+          sqMesh.position.set(x, 0, z);
+          sqMesh.receiveShadow = true;
+          
+          const sqStr = String.fromCharCode(97 + c) + (8 - r);
+          sqMesh.userData = { sqStr, r, c, defaultMat: mat };
+
+          scene.add(sqMesh);
+          squareMeshes[r][c] = sqMesh;
         }
       }
+    }
+
+    // PROCEDURAL 3D STAUNTON GEOMETRY CREATOR
+    function createPiece3DMesh(type, color) {
+      const group = new THREE.Group();
+      const mat = color === 'w' ? whitePieceMaterial : blackPieceMaterial;
+
+      let geomPoints = [];
+      if (type === 'p') { // PAWN
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.42, 0), new THREE.Vector2(0.42, 0.08),
+          new THREE.Vector2(0.28, 0.15), new THREE.Vector2(0.18, 0.5), new THREE.Vector2(0.24, 0.55),
+          new THREE.Vector2(0.2, 0.6), new THREE.Vector2(0.26, 0.62), new THREE.Vector2(0, 0.85)
+        ];
+      } else if (type === 'r') { // ROOK
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.12),
+          new THREE.Vector2(0.34, 0.22), new THREE.Vector2(0.3, 0.65), new THREE.Vector2(0.4, 0.72),
+          new THREE.Vector2(0.4, 0.95), new THREE.Vector2(0, 0.95)
+        ];
+      } else if (type === 'n') { // KNIGHT
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.12),
+          new THREE.Vector2(0.32, 0.25), new THREE.Vector2(0.22, 0.55), new THREE.Vector2(0, 0.55)
+        ];
+        // Add Horse Head mesh on top
+        const headGeo = new THREE.BoxGeometry(0.35, 0.5, 0.6);
+        const headMesh = new THREE.Mesh(headGeo, mat);
+        headMesh.position.set(0, 0.75, 0.1);
+        headMesh.rotation.x = 0.2;
+        headMesh.castShadow = true;
+        group.add(headMesh);
+      } else if (type === 'b') { // BISHOP
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.12),
+          new THREE.Vector2(0.32, 0.22), new THREE.Vector2(0.18, 0.6), new THREE.Vector2(0.28, 0.7),
+          new THREE.Vector2(0.12, 0.95), new THREE.Vector2(0, 1.1)
+        ];
+        const tipGeo = new THREE.SphereGeometry(0.08, 12, 12);
+        const tipMesh = new THREE.Mesh(tipGeo, mat);
+        tipMesh.position.y = 1.18;
+        group.add(tipMesh);
+      } else if (type === 'q') { // QUEEN
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
+          new THREE.Vector2(0.34, 0.22), new THREE.Vector2(0.2, 0.7), new THREE.Vector2(0.38, 0.85),
+          new THREE.Vector2(0.36, 1.15), new THREE.Vector2(0, 1.15)
+        ];
+        const crownGeo = new THREE.SphereGeometry(0.1, 12, 12);
+        const crownMesh = new THREE.Mesh(crownGeo, mat);
+        crownMesh.position.y = 1.22;
+        group.add(crownMesh);
+      } else if (type === 'k') { // KING
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
+          new THREE.Vector2(0.34, 0.22), new THREE.Vector2(0.22, 0.7), new THREE.Vector2(0.36, 0.85),
+          new THREE.Vector2(0.34, 1.2), new THREE.Vector2(0, 1.2)
+        ];
+        // Add Cross Top
+        const crossV = new THREE.BoxGeometry(0.08, 0.26, 0.08);
+        const crossH = new THREE.BoxGeometry(0.22, 0.08, 0.08);
+        const cVMesh = new THREE.Mesh(crossV, mat);
+        const cHMesh = new THREE.Mesh(crossH, mat);
+        cVMesh.position.y = 1.35; cHMesh.position.y = 1.38;
+        group.add(cVMesh); group.add(cHMesh);
+      }
+
+      const latheGeo = new THREE.LatheGeometry(geomPoints, 24);
+      const latheMesh = new THREE.Mesh(latheGeo, mat);
+      latheMesh.castShadow = true;
+      latheMesh.receiveShadow = true;
+      group.add(latheMesh);
+
+      group.userData = { type, color };
+      return group;
+    }
+
+    // SYNC 3D PIECES WITH CHESS.JS BOARD
+    function syncPiecesWithBoard() {
+      // Clear existing 3D piece meshes
+      pieceMeshes.forEach(p => scene.remove(p));
+      pieceMeshes = [];
+
+      const boardState = game.board();
 
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const sqStr = coordsToSq(r, c);
-          const sq = document.createElement('div');
-          sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
-          sq.dataset.sq = sqStr;
-
-          const pieceObj = b[r][c];
+          const pieceObj = boardState[r][c];
           if (pieceObj) {
-            const pieceEl = document.createElement('div');
-            pieceEl.className = 'piece';
-            const symbolKey = pieceObj.color === 'w' ? pieceObj.type.toUpperCase() : pieceObj.type.toLowerCase();
-            const svgId = SVG_PIECE_MAP[symbolKey];
-            pieceEl.innerHTML = `<svg viewBox="0 0 45 45" class="piece-svg"><use href="#${svgId}"/></svg>`;
-            sq.appendChild(pieceEl);
+            const mesh = createPiece3DMesh(pieceObj.type, pieceObj.color);
+            const x = c * SQ_SIZE - BOARD_OFFSET;
+            const z = r * SQ_SIZE - BOARD_OFFSET;
+            mesh.position.set(x, 0.1, z);
+            
+            // Orient Black pieces facing White
+            if (pieceObj.color === 'b') mesh.rotation.y = Math.PI;
+
+            mesh.userData.sqStr = String.fromCharCode(97 + c) + (8 - r);
+            scene.add(mesh);
+            pieceMeshes.push(mesh);
           }
-
-          // Highlights
-          if (selectedSquare === sqStr) sq.classList.add('selected');
-          if (legalMovesForSelected.some(m => m.to === sqStr)) sq.classList.add('legal-move');
-          if (lastMove && (lastMove.from === sqStr || lastMove.to === sqStr)) sq.classList.add('last-move');
-          if (checkSquare === sqStr) sq.classList.add('in-check');
-
-          sq.addEventListener('click', () => handleSquareClick(sqStr));
-          boardEl.appendChild(sq);
         }
       }
 
-      updateStatusUI();
-      updateCapturedAndHistoryUI();
+      updateHighlightsAndStatus();
     }
 
-    // HANDLE SQUARE CLICK
-    function handleSquareClick(sqStr) {
-      if (game.game_over()) return;
+    // RAYCASTING FOR 3D TILE SELECTION
+    function setupRaycaster() {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
 
+      container.addEventListener('pointerdown', (e) => {
+        if (game.game_over()) return;
+
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        // Check intersection with board tile meshes
+        const allTiles = squareMeshes.flat();
+        const intersects = raycaster.intersectObjects(allTiles);
+
+        if (intersects.length > 0) {
+          const clickedSqStr = intersects[0].object.userData.sqStr;
+          handleSquareClick(clickedSqStr);
+        }
+      });
+    }
+
+    // GAME CLICK LOGIC
+    function handleSquareClick(sqStr) {
       const pieceOnSq = game.get(sqStr);
-      const isCurrentTurnPiece = pieceOnSq && pieceObjBelongsToTurn(pieceOnSq);
+      const isCurrentTurnPiece = pieceOnSq && pieceOnSq.color === game.turn();
 
       if (selectedSquare) {
-        // Try executing legal move
         const validMove = legalMovesForSelected.find(m => m.to === sqStr);
         if (validMove) {
-          executeMove(validMove);
+          executeMove3D(validMove);
           selectedSquare = null;
           legalMovesForSelected = [];
-
-          // AI turn trigger
-          if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
-            setTimeout(makeAIMove, 300);
-          }
           return;
         }
       }
@@ -771,19 +750,15 @@
         legalMovesForSelected = [];
       }
 
-      renderBoard();
+      updateHighlightsAndStatus();
     }
 
-    function pieceObjBelongsToTurn(pieceObj) {
-      return pieceObj.color === game.turn();
-    }
-
-    // EXECUTE MOVE
-    function executeMove(moveObj) {
+    // EXECUTE MOVE WITH 3D ANIMATION
+    function executeMove3D(moveObj) {
       const result = game.move({
         from: moveObj.from,
         to: moveObj.to,
-        promotion: 'q' // Auto-promote to Queen
+        promotion: 'q'
       });
 
       if (result) {
@@ -792,11 +767,16 @@
 
         if (game.in_check()) AudioEngine.playCheck();
 
-        renderBoard();
+        syncPiecesWithBoard();
+
+        // AI trigger
+        if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
+          setTimeout(makeAIMove, 350);
+        }
       }
     }
 
-    // MINIMAX EVALUATION AI ENGINE
+    // MINIMAX AI
     function makeAIMove() {
       if (game.game_over()) return;
 
@@ -809,100 +789,113 @@
       if (mode === 'ai-easy') {
         chosenMove = moves[Math.floor(Math.random() * moves.length)];
       } else if (mode === 'ai-medium') {
-        const captureOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
-        if (captureOrCheck.length > 0) {
-          chosenMove = captureOrCheck[Math.floor(Math.random() * captureOrCheck.length)];
-        } else {
-          chosenMove = moves[Math.floor(Math.random() * moves.length)];
-        }
+        const capOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
+        chosenMove = capOrCheck.length > 0 ? capOrCheck[Math.floor(Math.random() * capOrCheck.length)] : moves[Math.floor(Math.random() * moves.length)];
       } else {
-        // Hard AI: Material Evaluation Minimax Depth 2
+        // Hard AI Depth 2 Evaluation
         let bestScore = -Infinity;
         chosenMove = moves[0];
+        const pVals = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
 
         moves.forEach(m => {
           game.move(m);
-          const score = evaluateBoard(game.board());
+          let total = 0;
+          game.board().forEach(row => row.forEach(p => {
+            if (p) total += (p.color === 'b' ? pVals[p.type] : -pVals[p.type]);
+          }));
           game.undo();
-          if (score > bestScore) {
-            bestScore = score;
+
+          if (total > bestScore) {
+            bestScore = total;
             chosenMove = m;
           }
         });
       }
 
-      executeMove(chosenMove);
+      executeMove3D(chosenMove);
     }
 
-    // PIECE VALUES FOR HARD AI
-    const PIECE_VALUES = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
+    // HIGHLIGHTS & OVERLAYS
+    function updateHighlightsAndStatus() {
+      // Clear 3D highlight meshes
+      highlightMeshes.forEach(h => scene.remove(h));
+      highlightMeshes = [];
 
-    function evaluateBoard(boardState) {
-      let total = 0;
+      // Reset tile materials
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const p = boardState[r][c];
-          if (p) {
-            const val = PIECE_VALUES[p.type] || 0;
-            total += (p.color === 'b' ? val : -val); // AI plays Black
-          }
+          const sqMesh = squareMeshes[r][c];
+          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xd1d5db : 0x334155);
         }
       }
-      return total;
-    }
 
-    // UPDATE UI STATUS
-    function updateStatusUI() {
+      // Highlight selected square
+      if (selectedSquare) {
+        const { r, c } = sqToCoords(selectedSquare);
+        squareMeshes[r][c].material.color.set(0x22c55e);
+      }
+
+      // Render 3D glowing rings on legal move destination squares
+      legalMovesForSelected.forEach(m => {
+        const { r, c } = sqToCoords(m.to);
+        const ringGeo = new THREE.RingGeometry(0.18, 0.32, 24);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI / 2;
+        ringMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.12, r * SQ_SIZE - BOARD_OFFSET);
+        scene.add(ringMesh);
+        highlightMeshes.push(ringMesh);
+      });
+
+      // Update UI Status Bar
       const turn = game.turn();
       statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
       turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
       checkBadge.style.display = game.in_check() ? 'block' : 'none';
 
-      // Check Game Over Conditions
+      // Check Game Over Modal
       if (game.game_over()) {
         gameOverOverlay.classList.add('show');
         if (game.in_checkmate()) {
-          const winner = turn === 'w' ? "Black" : "White";
           gameOverTitle.textContent = "Checkmate!";
-          gameOverMsg.textContent = `${winner} wins by checkmate!`;
-        } else if (game.in_draw()) {
+          gameOverMsg.textContent = `${turn === 'w' ? 'Black' : 'White'} wins the game!`;
+        } else {
           gameOverTitle.textContent = "Draw!";
-          if (game.in_stalemate()) gameOverMsg.textContent = "Game drawn by Stalemate.";
-          else if (game.in_threefold_repetition()) gameOverMsg.textContent = "Game drawn by Threefold Repetition.";
-          else gameOverMsg.textContent = "Game drawn by Insufficient Material.";
+          gameOverMsg.textContent = "Game drawn by stalemate or repetition.";
         }
       } else {
         gameOverOverlay.classList.remove('show');
       }
+
+      updateCapturedAndHistoryUI();
     }
 
-    // CAPTURED PIECES & HISTORY
-    function updateCapturedAndHistoryUI() {
-      // Calculate Captured Pieces
-      const initialCount = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
-      const currentBoard = game.board();
+    function sqToCoords(sqStr) {
+      return {
+        r: 8 - parseInt(sqStr[1]),
+        c: sqStr.charCodeAt(0) - 97
+      };
+    }
 
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const p = currentBoard[r][c];
-          if (p && p.type !== 'k') {
-            initialCount[p.color][p.type]--;
-          }
-        }
-      }
+    function updateCapturedAndHistoryUI() {
+      // Captured Pieces
+      const UNICODE = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕' };
+      const counts = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
+
+      game.board().forEach(row => row.forEach(p => {
+        if (p && p.type !== 'k') counts[p.color][p.type]--;
+      }));
 
       const capWhite = [], capBlack = [];
-      ['p','n','b','r','q'].forEach(type => {
-        for (let i = 0; i < initialCount['w'][type]; i++) capWhite.push(SVG_PIECE_MAP[type.toLowerCase()]);
-        for (let i = 0; i < initialCount['b'][type]; i++) capBlack.push(SVG_PIECE_MAP[type.toUpperCase()]);
+      ['p','n','b','r','q'].forEach(t => {
+        for(let i=0; i<counts.w[t]; i++) capWhite.push(UNICODE['w' + t.toUpperCase()]);
+        for(let i=0; i<counts.b[t]; i++) capBlack.push(UNICODE[t]);
       });
 
-      const capWhiteBox = document.getElementById('capturedWhite');
-      const capBlackBox = document.getElementById('capturedBlack');
-      capWhiteBox.innerHTML = capWhite.map(id => `<svg viewBox="0 0 45 45" class="captured-svg"><use href="#${id}"/></svg>`).join('');
-      capBlackBox.innerHTML = capBlack.map(id => `<svg viewBox="0 0 45 45" class="captured-svg"><use href="#${id}"/></svg>`).join('');
+      document.getElementById('capturedWhite').textContent = capWhite.join(' ');
+      document.getElementById('capturedBlack').textContent = capBlack.join(' ');
 
-      // Render Move History
+      // Move History
       const historyEl = document.getElementById('moveHistory');
       historyEl.innerHTML = '';
       const history = game.history({ verbose: true });
@@ -910,33 +903,42 @@
       for (let i = 0; i < history.length; i += 2) {
         const row = document.createElement('div');
         row.className = 'move-row';
-        const wMove = history[i] ? history[i].san : '';
-        const bMove = history[i+1] ? history[i+1].san : '';
-        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${wMove}</span> <span>${bMove}</span>`;
+        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${history[i].san}</span> <span>${history[i+1] ? history[i+1].san : ''}</span>`;
         historyEl.appendChild(row);
       }
       historyEl.scrollTop = historyEl.scrollHeight;
     }
 
+    // ANIMATION & RESIZE LOOP
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
     // CONTROLS & LISTENERS
-    toggle3dBtn.addEventListener('click', () => {
-      is3D = !is3D;
-      boardStage.classList.toggle('mode-2d', !is3D);
-      toggle3dBtn.classList.toggle('active', is3D);
-      toggle3dBtn.innerHTML = is3D ? '<span>🎲 3D View</span>' : '<span>🖼️ 2D View</span>';
+    resetCamBtn.addEventListener('click', () => {
+      setInitialCamera();
+      controls.reset();
     });
 
     toggleSoundBtn.addEventListener('click', () => {
       AudioEngine.enabled = !AudioEngine.enabled;
       toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
-      toggleSoundBtn.innerHTML = AudioEngine.enabled ? '<span>🔊 Sound ON</span>' : '<span>🔇 Muted</span>';
+      toggleSoundBtn.textContent = AudioEngine.enabled ? '🔊 Sound ON' : '🔇 Muted';
     });
 
     function startNewGame() {
       game.reset();
       selectedSquare = null;
       legalMovesForSelected = [];
-      renderBoard();
+      syncPiecesWithBoard();
     }
 
     resetBtn.addEventListener('click', startNewGame);
@@ -944,16 +946,14 @@
 
     undoBtn.addEventListener('click', () => {
       const steps = modeSelect.value.startsWith('ai') ? 2 : 1;
-      for (let i = 0; i < steps; i++) {
-        game.undo();
-      }
+      for (let i = 0; i < steps; i++) game.undo();
       selectedSquare = null;
       legalMovesForSelected = [];
-      renderBoard();
+      syncPiecesWithBoard();
     });
 
-    // INITIAL START
-    renderBoard();
+    // START ENGINE
+    init3D();
   </script>
 </body>
 </html>
