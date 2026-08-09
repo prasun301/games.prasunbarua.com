@@ -74,12 +74,12 @@
             const payload = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
+                siteName: "Prasun Games",
                 message: document.getElementById('message').value
             };
 
             try {
-                // Replace with your actual deployed Cloudflare Worker URL
-                const workerUrl = 'https://YOUR_CLOUDFLARE_WORKER_URL.workers.dev';
+                const workerUrl = 'https://multi-site-contact-backend.prasun301.workers.dev';
 
                 const response = await fetch(workerUrl, {
                     method: 'POST',
