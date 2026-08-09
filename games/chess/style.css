@@ -3,69 +3,80 @@
    ========================================================= */
 
 :root {
-    --bg: #f4f6f8;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-soft: #334155;
+    --surface-border: #475569;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: #334155;
+
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-glow: rgba(59, 130, 246, 0.35);
+    
+    --accent: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+
+    /* Chess Board Color Themes */
+    --board-light: #eeeed2;
+    --board-dark: #769656;
+
+    /* Highlight States */
+    --selected: #f6e05e;
+    --move-hint: rgba(20, 85, 30, 0.4);
+    --capture-hint: rgba(239, 68, 68, 0.65);
+    --check-glow: #ef4444;
+
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Theme Alternative Override (Optional) */
+[data-theme="light"] {
+    --bg: #f8fafc;
     --surface: #ffffff;
-    --surface-soft: #f8fafc;
-    --text: #17202a;
-    --muted: #667085;
-    --border: #e4e7ec;
-
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-
+    --surface-soft: #f1f5f9;
+    --surface-border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
     --board-light: #f0d9b5;
     --board-dark: #b58863;
-
-    --selected: #f6c945;
-    --move: rgba(37, 99, 235, 0.35);
-    --capture: rgba(220, 38, 38, 0.55);
-    --check: #ef4444;
-
-    --shadow:
-        0 10px 30px rgba(15, 23, 42, 0.08);
-
-    --radius: 16px;
 }
 
 
 /* =========================================================
-   RESET
+   RESET & BASE STYLES
    ========================================================= */
 
-* {
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-
 html {
     scroll-behavior: smooth;
 }
 
-
 body {
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Arial,
-        sans-serif;
-
-    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg);
     color: var(--text);
-
     line-height: 1.6;
-
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
 }
-
-
-/* =========================================================
-   LINKS
-   ========================================================= */
 
 a {
     color: inherit;
@@ -73,225 +84,240 @@ a {
 }
 
 
-a:hover {
-    text-decoration: none;
-}
-
-
 /* =========================================================
-   HEADER
+   HEADER & NAVIGATION
    ========================================================= */
 
 .site-header {
     width: 100%;
-
-    background: rgba(255, 255, 255, 0.96);
-
+    background: rgba(30, 41, 59, 0.85);
     border-bottom: 1px solid var(--border);
-
     position: sticky;
     top: 0;
     z-index: 100;
-
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
-
 
 .header-container {
-    max-width: 1200px;
-
+    max-width: 1280px;
     margin: 0 auto;
-
-    padding:
-        16px 24px;
-
+    padding: 14px 24px;
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
-    gap: 20px;
 }
-
 
 .brand {
-    font-size: 1.25rem;
-
+    font-size: 1.35rem;
     font-weight: 800;
-
+    letter-spacing: -0.02em;
     color: var(--text);
-
-    display: inline-flex;
-
+    display: flex;
     align-items: center;
-
-    gap: 8px;
+    gap: 10px;
+    transition: var(--transition);
 }
-
 
 .brand:hover {
     color: var(--primary);
 }
 
-
 .home-link {
     color: var(--muted);
-
-    font-size: 0.95rem;
-
+    font-size: 0.9rem;
     font-weight: 600;
-
-    padding:
-        8px 12px;
-
-    border-radius: 8px;
-
-    transition:
-        background 0.2s ease,
-        color 0.2s ease;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    transition: var(--transition);
 }
 
-
 .home-link:hover {
-    color: var(--primary);
-
-    background: #eff6ff;
+    color: var(--text);
+    background: var(--primary);
+    border-color: var(--primary);
 }
 
 
 /* =========================================================
-   MAIN
+   MAIN LAYOUT & INTRO
    ========================================================= */
 
 .game-page {
     width: 100%;
-
-    max-width: 1200px;
-
+    max-width: 1280px;
     margin: 0 auto;
-
-    padding:
-        40px 24px 60px;
+    padding: 28px 24px 60px;
+    flex: 1;
 }
-
-
-/* =========================================================
-   INTRO
-   ========================================================= */
 
 .game-intro {
     text-align: center;
-
     max-width: 760px;
-
-    margin:
-        0 auto 34px;
+    margin: 0 auto 28px;
 }
-
 
 .game-intro h1 {
-    font-size:
-        clamp(2rem, 5vw, 3rem);
-
-    line-height: 1.15;
-
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
     font-weight: 800;
-
     letter-spacing: -0.03em;
-
-    margin-bottom: 14px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
-
 
 .game-intro p {
     color: var(--muted);
-
-    font-size:
-        clamp(0.98rem, 2vw, 1.08rem);
-
-    max-width: 680px;
-
-    margin: 0 auto;
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
 }
 
 
 /* =========================================================
-   CHESS SECTION
+   MODE SELECTOR TABS
+   ========================================================= */
+
+.mode-selector {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.mode-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mode-card:hover {
+    color: var(--text);
+    border-color: var(--surface-border);
+    background: var(--surface-soft);
+}
+
+.mode-card.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+
+/* =========================================================
+   CHESS CONTAINER GRID
    ========================================================= */
 
 .chess-container {
     display: grid;
-
-    grid-template-columns:
-        minmax(0, 1fr)
-        320px;
-
-    align-items: start;
-
+    grid-template-columns: 1fr 340px;
     gap: 28px;
+    align-items: start;
 }
 
 
 /* =========================================================
-   GAME PANEL
+   GAME PANEL (MAIN BOARD AREA)
    ========================================================= */
 
 .game-panel {
     background: var(--surface);
-
     border: 1px solid var(--border);
-
-    border-radius: var(--radius);
-
-    box-shadow: var(--shadow);
-
-    padding: 22px;
-
-    width: 100%;
-
-    max-width: 760px;
-
-    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 
 /* =========================================================
-   GAME STATUS
+   PLAYER BARS & CLOCKS
    ========================================================= */
 
-.game-status {
+.player-bar {
+    width: 100%;
+    max-width: 620px;
     display: flex;
-
     align-items: center;
-
-    justify-content: center;
-
-    min-height: 48px;
-
-    margin-bottom: 18px;
-
-    padding:
-        10px 16px;
-
+    justify-content: space-between;
+    padding: 10px 14px;
     background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin: 8px 0;
+}
 
-    border:
-        1px solid var(--border);
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-    border-radius: 10px;
-
+.player-name {
     font-weight: 700;
-
+    font-size: 0.95rem;
     color: var(--text);
+}
 
+.captured-pieces {
+    font-size: 1.2rem;
+    min-height: 24px;
+    letter-spacing: -2px;
+    user-select: none;
+    opacity: 0.9;
+}
+
+.clock-timer {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace, monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    min-width: 75px;
     text-align: center;
 }
 
+.clock-timer.active {
+    border-color: var(--warning);
+    color: var(--warning);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
 
-#turn-indicator {
-    transition:
-        color 0.2s ease;
+
+/* =========================================================
+   STATUS INDICATOR
+   ========================================================= */
+
+.game-status {
+    width: 100%;
+    max-width: 620px;
+    text-align: center;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
@@ -301,69 +327,39 @@ a:hover {
 
 .chess-board {
     width: 100%;
-
-    max-width: 680px;
-
+    max-width: 620px;
     aspect-ratio: 1 / 1;
-
-    margin: 0 auto;
-
     display: grid;
-
-    grid-template-columns:
-        repeat(8, 1fr);
-
-    grid-template-rows:
-        repeat(8, 1fr);
-
-    border-radius: 10px;
-
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    border-radius: var(--radius-md);
     overflow: hidden;
-
-    box-shadow:
-        0 8px 24px rgba(15, 23, 42, 0.16);
-
-    border:
-        4px solid #222;
+    box-shadow: var(--shadow-md);
+    border: 4px solid var(--surface-soft);
+    position: relative;
 }
-
-
-/* =========================================================
-   BOARD SQUARES
-   ========================================================= */
 
 .square {
     position: relative;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     cursor: pointer;
-
     user-select: none;
-
     -webkit-user-select: none;
-
-    transition:
-        filter 0.12s ease;
+    transition: filter 0.1s ease;
 }
-
 
 .square.light {
-    background: var(--board-light);
+    background-color: var(--board-light);
 }
-
 
 .square.dark {
-    background: var(--board-dark);
+    background-color: var(--board-dark);
 }
 
-
 .square:hover {
-    filter: brightness(1.06);
+    filter: brightness(1.08);
 }
 
 
@@ -373,411 +369,293 @@ a:hover {
 
 .piece {
     width: 100%;
-
     height: 100%;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    font-family:
-        "Segoe UI Symbol",
-        "Noto Sans Symbols 2",
-        "Arial Unicode MS",
-        sans-serif;
-
-    font-size:
-        clamp(2rem, 7vw, 4.4rem);
-
+    font-size: clamp(2.2rem, 7.5vw, 4.2rem);
     line-height: 1;
-
-    cursor: pointer;
-
-    user-select: none;
-
-    -webkit-user-select: none;
-
-    position: relative;
-
+    cursor: grab;
     z-index: 3;
-
-    transition:
-        transform 0.12s ease;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
 }
 
+.piece:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+}
 
 .square:hover .piece {
-    transform: scale(1.04);
+    transform: translateY(-2px) scale(1.04);
 }
 
 
 /* =========================================================
-   SELECTED SQUARE
+   SQUARE HIGHLIGHTS & STATES
    ========================================================= */
 
+/* Selected Square */
 .square.selected {
-    box-shadow:
-        inset 0 0 0 5px var(--selected);
+    background-color: var(--selected) !important;
 }
 
-
-/* =========================================================
-   LEGAL MOVE
-   ========================================================= */
-
+/* Legal Move Marker (Dot) */
 .square.legal-move::after {
     content: "";
-
-    width: 22%;
-
-    aspect-ratio: 1;
-
-    background:
-        rgba(20, 30, 40, 0.35);
-
+    width: 26%;
+    height: 26%;
+    background: var(--move-hint);
     border-radius: 50%;
-
     position: absolute;
-
-    left: 50%;
-
-    top: 50%;
-
-    transform:
-        translate(-50%, -50%);
-
-    z-index: 2;
-
     pointer-events: none;
+    z-index: 2;
 }
 
-
-/* =========================================================
-   LEGAL CAPTURE
-   ========================================================= */
-
+/* Legal Capture Marker (Ring) */
 .square.legal-capture::after {
     content: "";
-
     position: absolute;
-
-    inset: 7%;
-
-    border:
-        5px solid var(--capture);
-
+    inset: 6%;
+    border: 5px solid var(--capture-hint);
     border-radius: 50%;
-
-    z-index: 2;
-
     pointer-events: none;
+    z-index: 2;
 }
 
-
-/* =========================================================
-   KING IN CHECK
-   ========================================================= */
-
+/* Check State */
+.square.check,
 .square.in-check {
-    background:
-        var(--check) !important;
-
-    box-shadow:
-        inset 0 0 0 5px
-        rgba(255, 255, 255, 0.65);
-
-    animation:
-        checkPulse 0.9s ease-in-out infinite alternate;
+    background: radial-gradient(circle, var(--check-glow) 0%, transparent 80%) !important;
+    animation: checkPulse 1.2s infinite alternate;
 }
-
 
 @keyframes checkPulse {
-
-    from {
-        filter: brightness(0.95);
-    }
-
-    to {
-        filter: brightness(1.18);
-    }
+    0% { filter: brightness(1); }
+    100% { filter: brightness(1.3); }
 }
 
 
 /* =========================================================
-   GAME CONTROLS
+   GAME CONTROLS BUTTONS
    ========================================================= */
 
 .game-controls {
     display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
     gap: 12px;
-
-    margin-top: 22px;
-
+    margin-top: 20px;
+    width: 100%;
+    max-width: 620px;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
-
-.game-controls button {
+.btn {
     appearance: none;
-
-    border: none;
-
-    outline: none;
-
-    background:
-        var(--primary);
-
-    color: white;
-
+    border: 1px solid var(--border);
+    background: var(--surface-soft);
+    color: var(--text);
     font-family: inherit;
-
-    font-size: 0.98rem;
-
+    font-size: 0.9rem;
     font-weight: 700;
-
-    padding:
-        11px 22px;
-
-    min-height: 44px;
-
-    border-radius: 9px;
-
+    padding: 10px 20px;
+    min-height: 42px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        transform 0.15s ease,
-        box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
 }
 
-
-.game-controls button:hover {
-    background:
-        var(--primary-dark);
-
-    transform:
-        translateY(-1px);
-
-    box-shadow:
-        0 5px 12px
-        rgba(37, 99, 235, 0.22);
+.btn:hover {
+    background: var(--surface-border);
+    transform: translateY(-1px);
+    color: white;
 }
 
-
-.game-controls button:active {
-    transform:
-        translateY(0);
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
 }
 
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
 
-.game-controls button:focus-visible {
-    outline:
-        3px solid
-        rgba(37, 99, 235, 0.3);
+.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--danger);
+    color: var(--danger);
+}
 
-    outline-offset: 3px;
+.btn-danger:hover {
+    background: var(--danger);
+    color: white;
 }
 
 
 /* =========================================================
-   SIDEBAR
+   SIDEBAR & CARDS
    ========================================================= */
 
 .game-sidebar {
     display: flex;
-
     flex-direction: column;
-
     gap: 20px;
 }
 
-
 .sidebar-card {
     background: var(--surface);
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius);
-
-    box-shadow:
-        var(--shadow);
-
-    padding:
-        22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 20px;
 }
 
-
-.sidebar-card h2 {
-    font-size:
-        1.08rem;
-
-    line-height: 1.3;
-
-    margin-bottom: 16px;
-
+.sidebar-card h2, 
+.sidebar-card h3 {
+    font-size: 1.1rem;
     font-weight: 800;
+    margin-bottom: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Config & Controls Group */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.control-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.control-group select, 
+.control-group input {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+.control-group select:focus, 
+.control-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
 
 /* =========================================================
-   MOVE HISTORY
+   MOVE HISTORY TABLE
    ========================================================= */
 
 .move-history {
     height: 280px;
-
     overflow-y: auto;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 10px;
-
-    background:
-        var(--surface-soft);
-
-    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    padding: 4px;
 }
-
 
 .move-history::-webkit-scrollbar {
-    width: 7px;
+    width: 6px;
 }
-
-
-.move-history::-webkit-scrollbar-track {
-    background: transparent;
-}
-
 
 .move-history::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-
-    border-radius: 20px;
+    background: var(--surface-soft);
+    border-radius: 10px;
 }
-
-
-.empty-history {
-    color: var(--muted);
-
-    font-size: 0.9rem;
-
-    text-align: center;
-
-    padding: 20px 10px;
-}
-
 
 .move-row {
     display: grid;
-
-    grid-template-columns:
-        42px 1fr 1fr;
-
-    gap: 8px;
-
-    padding:
-        8px 7px;
-
-    border-bottom:
-        1px solid var(--border);
-
-    font-size: 0.9rem;
+    grid-template-columns: 48px 1fr 1fr;
+    padding: 6px 10px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-
-.move-row:last-child {
-    border-bottom: none;
+.move-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
 }
 
-
-.move-number {
+.move-num {
     color: var(--muted);
-
     font-weight: 700;
 }
 
+.move-w, .move-b {
+    font-weight: 600;
+    color: var(--text);
+}
+
 
 /* =========================================================
-   HOW TO PLAY
+   ONLINE PANEL STUB
    ========================================================= */
 
-.sidebar-card ul {
-    padding-left: 20px;
-
-    color: var(--muted);
-
-    font-size: 0.92rem;
+#online-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-
-.sidebar-card li {
-    margin-bottom: 9px;
+.room-display {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    border: 1px dashed var(--primary);
 }
 
-
-.sidebar-card li:last-child {
-    margin-bottom: 0;
+.room-display span {
+    font-family: monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 2px;
 }
 
 
 /* =========================================================
-   GAME INFORMATION
+   GAME INFO SECTION
    ========================================================= */
 
 .game-info {
     background: var(--surface);
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius);
-
-    box-shadow:
-        var(--shadow);
-
-    padding:
-        30px;
-
-    margin:
-        32px auto 0;
-
-    max-width: 1000px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-top: 32px;
 }
-
 
 .game-info h2 {
-    font-size:
-        1.45rem;
-
-    margin-bottom:
-        14px;
-
-    font-weight:
-        800;
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin-bottom: 12px;
 }
-
 
 .game-info p {
     color: var(--muted);
-
-    margin-bottom:
-        14px;
-}
-
-
-.game-info p:last-child {
-    margin-bottom: 0;
+    font-size: 0.95rem;
 }
 
 
@@ -786,298 +664,91 @@ a:hover {
    ========================================================= */
 
 .site-footer {
-    border-top:
-        1px solid var(--border);
-
-    background:
-        var(--surface);
-
-    padding:
-        28px 20px;
-
-    text-align:
-        center;
-
-    color:
-        var(--muted);
-
-    font-size:
-        0.9rem;
-
-    margin-top:
-        20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: auto;
 }
-
-
-.site-footer p {
-    margin:
-        4px 0;
-}
-
 
 .site-footer a {
-    color:
-        var(--primary);
-
-    font-weight:
-        600;
-}
-
-
-.site-footer a:hover {
-    text-decoration:
-        underline;
+    color: var(--primary);
+    font-weight: 600;
 }
 
 
 /* =========================================================
-   TABLET
+   RESPONSIVE LAYOUTS
    ========================================================= */
 
-@media (max-width: 900px) {
-
+@media (max-width: 992px) {
     .chess-container {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
-
 
     .game-sidebar {
-        display:
-            grid;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-
-    .game-panel {
-        max-width:
-            720px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
 
 @media (max-width: 640px) {
-
-    .header-container {
-        padding:
-            13px 16px;
-    }
-
-
-    .brand {
-        font-size:
-            1.05rem;
-    }
-
-
-    .home-link {
-        font-size:
-            0.85rem;
-
-        padding:
-            7px 9px;
-    }
-
-
     .game-page {
-        padding:
-            25px 12px 45px;
+        padding: 16px 10px 40px;
     }
-
-
-    .game-intro {
-        margin-bottom:
-            24px;
-    }
-
-
-    .game-intro h1 {
-        font-size:
-            2rem;
-    }
-
-
-    .game-intro p {
-        font-size:
-            0.93rem;
-    }
-
 
     .game-panel {
-        padding:
-            12px;
-
-        border-radius:
-            12px;
+        padding: 12px;
     }
-
-
-    .game-status {
-        margin-bottom:
-            12px;
-
-        min-height:
-            42px;
-
-        font-size:
-            0.9rem;
-    }
-
-
-    .chess-board {
-        border-width:
-            3px;
-
-        border-radius:
-            6px;
-    }
-
-
-    .piece {
-        font-size:
-            clamp(1.7rem, 11vw, 3.4rem);
-    }
-
-
-    .square.selected {
-        box-shadow:
-            inset 0 0 0 3px
-            var(--selected);
-    }
-
-
-    .square.legal-capture::after {
-        border-width:
-            3px;
-    }
-
 
     .game-sidebar {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
 
-
-    .sidebar-card {
-        padding:
-            18px;
+    .chess-board {
+        border-width: 2px;
     }
 
-
-    .move-history {
-        height:
-            220px;
+    .player-bar {
+        padding: 8px 10px;
     }
 
-
-    .game-info {
-        padding:
-            22px 18px;
-
-        margin-top:
-            24px;
+    .player-name {
+        font-size: 0.85rem;
     }
 
-
-    .game-info h2 {
-        font-size:
-            1.25rem;
+    .clock-timer {
+        font-size: 0.95rem;
+        min-width: 60px;
+        padding: 2px 8px;
     }
 
-
-    .game-info p {
-        font-size:
-            0.92rem;
+    .btn {
+        padding: 8px 14px;
+        font-size: 0.82rem;
     }
 }
 
 
 /* =========================================================
-   VERY SMALL PHONES
+   ACCESSIBILITY & REDUCED MOTION
    ========================================================= */
 
-@media (max-width: 380px) {
-
-    .header-container {
-        gap:
-            8px;
-    }
-
-
-    .brand {
-        font-size:
-            0.95rem;
-    }
-
-
-    .home-link {
-        font-size:
-            0.78rem;
-    }
-
-
-    .game-page {
-        padding-left:
-            8px;
-
-        padding-right:
-            8px;
-    }
-
-
-    .game-panel {
-        padding:
-            8px;
-    }
-
-
-    .piece {
-        font-size:
-            1.65rem;
-    }
+button:focus-visible, 
+a:focus-visible, 
+select:focus-visible, 
+input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
-
-
-/* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
-
-button:focus-visible,
-a:focus-visible {
-    outline:
-        3px solid
-        rgba(37, 99, 235, 0.45);
-
-    outline-offset:
-        3px;
-}
-
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        scroll-behavior:
-            auto !important;
-
-        animation-duration:
-            0.01ms !important;
-
-        animation-iteration-count:
-            1 !important;
-
-        transition-duration:
-            0.01ms !important;
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }
