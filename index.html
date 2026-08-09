@@ -11,7 +11,7 @@
 
     <meta
         name="description"
-        content="Play Chess online for free at Prasun Games. Play against the computer, play with a friend, or play online.">
+        content="Play Chess online for free at Prasun Games. Enjoy a professional browser chess game with no download or registration required.">
 
     <meta
         name="robots"
@@ -27,19 +27,487 @@
 
     <meta
         property="og:description"
-        content="Play Chess online for free. Challenge the computer, play with a friend, or play online.">
+        content="Play Chess online for free at Prasun Games. No download or registration required.">
 
     <meta
         property="og:type"
         content="website">
 
     <title>
-        Play Chess Online Free | Prasun Games
+        Prasun Games - Play Chess Online Free
     </title>
 
-    <link
-        rel="stylesheet"
-        href="style.css">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        :root {
+            --bg: #07111f;
+            --surface: #111d2e;
+            --border: rgba(255,255,255,0.08);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --accent-dark: #16a34a;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+            min-height: 100vh;
+
+            font-family:
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            color: var(--text);
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #1b3150 0%,
+                    #07111f 48%,
+                    #020617 100%
+                );
+
+            line-height: 1.6;
+        }
+
+
+        a {
+            color: inherit;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .site-header {
+            border-bottom:
+                1px solid var(--border);
+
+            background:
+                rgba(7, 17, 31, 0.94);
+
+            backdrop-filter:
+                blur(12px);
+        }
+
+
+        .header-container {
+            width: min(1100px, 92%);
+
+            min-height: 68px;
+
+            margin: auto;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+
+        .brand {
+            text-decoration: none;
+
+            font-size: 1.25rem;
+
+            font-weight: 800;
+        }
+
+
+        .header-link {
+            color: var(--muted);
+
+            text-decoration: none;
+
+            font-size: 0.9rem;
+
+            font-weight: 650;
+        }
+
+
+        .header-link:hover {
+            color: var(--text);
+        }
+
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            width: min(950px, 92%);
+
+            margin: auto;
+
+            padding:
+                90px 0 70px;
+
+            text-align: center;
+        }
+
+
+        .badge {
+            display: inline-block;
+
+            margin-bottom: 20px;
+
+            padding:
+                7px 15px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,0.05);
+
+            color: #cbd5e1;
+
+            font-size: 0.88rem;
+
+            font-weight: 700;
+        }
+
+
+        .hero h1 {
+            margin-bottom: 20px;
+
+            font-size:
+                clamp(2.7rem, 7vw, 5rem);
+
+            line-height: 1.03;
+
+            letter-spacing:
+                -0.055em;
+        }
+
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
+
+        .hero p {
+            max-width: 700px;
+
+            margin:
+                0 auto 32px;
+
+            color: var(--muted);
+
+            font-size: 1.08rem;
+        }
+
+
+        .play-button {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-width: 210px;
+
+            padding:
+                13px 25px;
+
+            border-radius: 11px;
+
+            background:
+                var(--accent);
+
+            color: white;
+
+            text-decoration: none;
+
+            font-weight: 800;
+
+            box-shadow:
+                0 10px 30px
+                rgba(34,197,94,0.18);
+
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .play-button:hover {
+            background:
+                var(--accent-dark);
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 14px 35px
+                rgba(34,197,94,0.25);
+        }
+
+
+        /* =========================
+           CHESS CARD
+        ========================= */
+
+        .games-section {
+            width: min(900px, 92%);
+
+            margin: auto;
+
+            padding-bottom: 80px;
+        }
+
+
+        .section-title {
+            margin-bottom: 24px;
+
+            text-align: center;
+        }
+
+
+        .section-title h2 {
+            margin-bottom: 5px;
+
+            font-size: 1.8rem;
+        }
+
+
+        .section-title p {
+            color: var(--muted);
+
+            font-size: 0.92rem;
+        }
+
+
+        .game-card {
+            overflow: hidden;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 22px;
+
+            background:
+                rgba(17, 29, 46, 0.92);
+
+            box-shadow:
+                0 20px 55px
+                rgba(0,0,0,0.25);
+        }
+
+
+        .game-icon {
+            min-height: 260px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 8rem;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1e293b,
+                    #0f172a
+                );
+        }
+
+
+        .game-content {
+            padding: 30px;
+
+            text-align: center;
+        }
+
+
+        .game-content h3 {
+            margin-bottom: 10px;
+
+            font-size: 1.7rem;
+        }
+
+
+        .game-content p {
+            max-width: 650px;
+
+            margin:
+                0 auto 24px;
+
+            color: var(--muted);
+
+            font-size: 0.98rem;
+        }
+
+
+        /* =========================
+           FEATURES
+        ========================= */
+
+        .features {
+            width: min(900px, 92%);
+
+            margin:
+                0 auto 80px;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 18px;
+        }
+
+
+        .feature {
+            padding: 22px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 16px;
+
+            background:
+                rgba(17,29,46,0.65);
+
+            text-align: center;
+        }
+
+
+        .feature-icon {
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-size: 1.8rem;
+        }
+
+
+        .feature h3 {
+            margin-bottom: 5px;
+
+            font-size: 1rem;
+        }
+
+
+        .feature p {
+            color: var(--muted);
+
+            font-size: 0.84rem;
+        }
+
+
+        /* =========================
+           ABOUT
+        ========================= */
+
+        .about {
+            width: min(800px, 92%);
+
+            margin:
+                0 auto 80px;
+
+            padding: 30px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 18px;
+
+            background:
+                rgba(17,29,46,0.65);
+        }
+
+
+        .about h2 {
+            margin-bottom: 12px;
+        }
+
+
+        .about p {
+            color: var(--muted);
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .site-footer {
+            padding:
+                30px 20px;
+
+            border-top:
+                1px solid var(--border);
+
+            text-align: center;
+
+            color: var(--muted);
+
+            font-size: 0.85rem;
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 650px) {
+
+            .hero {
+                padding:
+                    60px 0 50px;
+            }
+
+
+            .hero h1 {
+                font-size:
+                    2.7rem;
+            }
+
+
+            .game-icon {
+                min-height: 210px;
+
+                font-size: 6.5rem;
+            }
+
+
+            .features {
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .game-content {
+                padding: 25px 20px;
+            }
+
+        }
+
+    </style>
 
 </head>
 
@@ -61,10 +529,10 @@
 
 
         <a
-            href="/"
-            class="home-link">
+            href="/games/chess/"
+            class="header-link">
 
-            ← All Games
+            Play Chess →
 
         </a>
 
@@ -74,201 +542,156 @@
 
 
 
-<main class="chess-app">
+<main>
 
 
-    <!-- =========================================
-         GAME INTRO
-    ========================================== -->
+    <!-- HERO -->
 
-    <section class="game-intro">
+    <section class="hero">
 
-        <div class="intro-badge">
-            ♟️ ONLINE CHESS
+        <div class="badge">
+            🎮 FREE ONLINE GAME
         </div>
 
+
         <h1>
-            Play Chess Online
+            Play.
+            <span>Challenge.</span>
+            Win.
         </h1>
 
+
         <p>
-            Play against the computer, challenge a friend,
-            or play chess online with another player.
+            Welcome to Prasun Games.
+            Play our free online Chess game directly
+            in your browser with no download or
+            registration required.
         </p>
+
+
+        <a
+            href="/games/chess/"
+            class="play-button">
+
+            ♟️ Play Chess Now →
+
+        </a>
 
     </section>
 
 
 
-    <!-- =========================================
-         GAME MODE
-    ========================================== -->
+    <!-- GAME -->
 
-    <section class="mode-selector">
+    <section class="games-section">
 
-        <button
-            class="mode-card active"
-            id="mode-computer"
-            type="button">
+        <div class="section-title">
 
-            <span class="mode-icon">
+            <h2>
+                Featured Game
+            </h2>
+
+            <p>
+                Start playing instantly.
+            </p>
+
+        </div>
+
+
+        <article class="game-card">
+
+
+            <div class="game-icon">
+                ♟️
+            </div>
+
+
+            <div class="game-content">
+
+                <h3>
+                    Chess
+                </h3>
+
+
+                <p>
+                    Play the classic game of strategy
+                    online. Challenge the computer,
+                    play with a friend, and enjoy Chess
+                    directly in your browser.
+                </p>
+
+
+                <a
+                    href="/games/chess/"
+                    class="play-button">
+
+                    Play Chess →
+
+                </a>
+
+            </div>
+
+
+        </article>
+
+    </section>
+
+
+
+    <!-- FEATURES -->
+
+    <section class="features">
+
+
+        <div class="feature">
+
+            <span class="feature-icon">
                 🤖
             </span>
 
-            <span class="mode-title">
-                Computer
-            </span>
+            <h3>
+                Play Against AI
+            </h3>
 
-            <span class="mode-description">
-                Play against AI
-            </span>
+            <p>
+                Challenge the computer at different
+                difficulty levels.
+            </p>
 
-        </button>
+        </div>
 
 
-        <button
-            class="mode-card"
-            id="mode-local"
-            type="button">
+        <div class="feature">
 
-            <span class="mode-icon">
+            <span class="feature-icon">
                 👥
             </span>
 
-            <span class="mode-title">
-                2 Players
-            </span>
+            <h3>
+                Play With Friends
+            </h3>
 
-            <span class="mode-description">
-                Play on this device
-            </span>
+            <p>
+                Enjoy Chess with another player.
+            </p>
 
-        </button>
+        </div>
 
 
-        <button
-            class="mode-card"
-            id="mode-online"
-            type="button">
+        <div class="feature">
 
-            <span class="mode-icon">
+            <span class="feature-icon">
                 🌐
             </span>
 
-            <span class="mode-title">
-                Online
-            </span>
+            <h3>
+                Online Chess
+            </h3>
 
-            <span class="mode-description">
-                Play with a friend
-            </span>
-
-        </button>
-
-    </section>
-
-
-
-    <!-- =========================================
-         GAME OPTIONS
-    ========================================== -->
-
-    <section
-        class="game-options"
-        id="game-options">
-
-
-        <div class="option-group">
-
-            <label for="player-side">
-                Your Side
-            </label>
-
-            <select id="player-side">
-
-                <option value="white">
-                    White
-                </option>
-
-                <option value="black">
-                    Black
-                </option>
-
-                <option value="random">
-                    Random
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <div
-            class="option-group"
-            id="difficulty-group">
-
-            <label for="difficulty">
-                Difficulty
-            </label>
-
-            <select id="difficulty">
-
-                <option value="easy">
-                    Easy
-                </option>
-
-                <option value="medium" selected>
-                    Medium
-                </option>
-
-                <option value="hard">
-                    Hard
-                </option>
-
-                <option value="expert">
-                    Expert
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <div class="option-group">
-
-            <label for="time-control">
-                Time Control
-            </label>
-
-            <select id="time-control">
-
-                <option value="unlimited">
-                    Unlimited
-                </option>
-
-                <option value="1+0">
-                    1 + 0 Bullet
-                </option>
-
-                <option value="3+0">
-                    3 + 0 Blitz
-                </option>
-
-                <option value="5+0">
-                    5 + 0 Blitz
-                </option>
-
-                <option value="10+0">
-                    10 + 0 Rapid
-                </option>
-
-                <option value="15+10">
-                    15 + 10 Rapid
-                </option>
-
-            </select>
+            <p>
+                Play online multiplayer games
+                directly from your browser.
+            </p>
 
         </div>
 
@@ -277,421 +700,21 @@
 
 
 
-    <!-- =========================================
-         ONLINE ROOM
-    ========================================== -->
+    <!-- ABOUT -->
 
-    <section
-        class="online-panel"
-        id="online-panel"
-        hidden>
-
-        <div class="online-panel-header">
-
-            <div>
-
-                <h2>
-                    🌐 Online Game
-                </h2>
-
-                <p>
-                    Create a room or join a friend's game.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="online-actions">
-
-            <button
-                id="create-room"
-                class="primary-button"
-                type="button">
-
-                Create Game
-
-            </button>
-
-
-            <div class="join-room">
-
-                <input
-                    id="room-code"
-                    type="text"
-                    maxlength="8"
-                    placeholder="Enter room code"
-                    autocomplete="off">
-
-                <button
-                    id="join-room"
-                    class="secondary-button"
-                    type="button">
-
-                    Join Game
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div
-            class="room-info"
-            id="room-info"
-            hidden>
-
-            <span>
-                Room Code
-            </span>
-
-            <strong id="room-code-display">
-                ------
-            </strong>
-
-            <button
-                id="copy-room"
-                type="button">
-
-                Copy
-
-            </button>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =========================================
-         CHESS GAME
-    ========================================== -->
-
-    <section class="chess-layout">
-
-
-        <!-- GAME BOARD AREA -->
-
-        <div class="board-section">
-
-
-            <!-- BLACK PLAYER -->
-
-            <div class="player-bar black-player">
-
-                <div class="player-info">
-
-                    <div class="player-avatar">
-                        ♚
-                    </div>
-
-                    <div>
-
-                        <strong id="black-player-name">
-                            Black
-                        </strong>
-
-                        <small id="black-player-status">
-                            Waiting
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="captured-pieces"
-                    id="black-captured">
-                </div>
-
-
-                <div
-                    class="clock"
-                    id="black-clock">
-
-                    <span>
-                        10:00
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- CHESS BOARD -->
-
-            <div
-                class="board-wrapper">
-
-                <div
-                    id="chess-board"
-                    class="chess-board"
-                    aria-label="Chess board">
-                </div>
-
-            </div>
-
-
-
-            <!-- WHITE PLAYER -->
-
-            <div class="player-bar white-player">
-
-                <div class="player-info">
-
-                    <div class="player-avatar">
-                        ♔
-                    </div>
-
-                    <div>
-
-                        <strong id="white-player-name">
-                            White
-                        </strong>
-
-                        <small id="white-player-status">
-                            Your Turn
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="captured-pieces"
-                    id="white-captured">
-                </div>
-
-
-                <div
-                    class="clock active"
-                    id="white-clock">
-
-                    <span>
-                        10:00
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- GAME STATUS -->
-
-            <div
-                class="game-status"
-                id="game-status">
-
-                <span id="turn-indicator">
-                    White's Turn
-                </span>
-
-            </div>
-
-
-
-            <!-- CONTROLS -->
-
-            <div class="game-controls">
-
-                <button
-                    id="new-game"
-                    class="control-button primary-button"
-                    type="button">
-
-                    🔄 New Game
-
-                </button>
-
-
-                <button
-                    id="draw-game"
-                    class="control-button"
-                    type="button">
-
-                    🤝 Draw
-
-                </button>
-
-
-                <button
-                    id="resign-game"
-                    class="control-button danger-button"
-                    type="button">
-
-                    🏳️ Resign
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- =====================================
-             SIDEBAR
-        ====================================== -->
-
-        <aside class="game-sidebar">
-
-
-            <div class="sidebar-card">
-
-                <div class="sidebar-title">
-
-                    <h2>
-                        Move History
-                    </h2>
-
-                    <span id="move-count">
-                        0 moves
-                    </span>
-
-                </div>
-
-
-                <div
-                    id="move-history"
-                    class="move-history">
-
-                    <p class="empty-history">
-                        No moves yet
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="sidebar-card">
-
-                <h2>
-                    Game Information
-                </h2>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Mode
-                    </span>
-
-                    <strong id="current-mode">
-                        Computer
-                    </strong>
-
-                </div>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Difficulty
-                    </span>
-
-                    <strong id="current-difficulty">
-                        Medium
-                    </strong>
-
-                </div>
-
-
-                <div class="game-info-row">
-
-                    <span>
-                        Status
-                    </span>
-
-                    <strong id="current-status">
-                        Playing
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="sidebar-card">
-
-                <h2>
-                    How to Play
-                </h2>
-
-                <ul class="help-list">
-
-                    <li>
-                        White moves first.
-                    </li>
-
-                    <li>
-                        Select a piece to see available moves.
-                    </li>
-
-                    <li>
-                        Click a highlighted square to move.
-                    </li>
-
-                    <li>
-                        Capture your opponent's pieces.
-                    </li>
-
-                    <li>
-                        Checkmate the king to win.
-                    </li>
-
-                </ul>
-
-            </div>
-
-
-        </aside>
-
-    </section>
-
-
-
-    <!-- =========================================
-         SEO CONTENT
-    ========================================== -->
-
-    <section class="game-info-content">
+    <section class="about">
 
         <h2>
-            Play Chess Online for Free
+            About Prasun Games
         </h2>
 
-        <p>
-            Chess is a classic strategy game played between two
-            players. Each player starts with sixteen pieces,
-            including a king, queen, rooks, bishops, knights,
-            and pawns.
-        </p>
 
         <p>
-            The objective of chess is to checkmate your opponent's
-            king. White moves first, and players alternate turns
-            until the game ends.
-        </p>
-
-
-        <h2>
-            Chess Game Modes
-        </h2>
-
-        <p>
-            Play against the computer, play with another person
-            on the same device, or use online multiplayer to
-            challenge a friend. More chess features are being
-            added to Prasun Games.
+            Prasun Games provides free browser-based
+            games that are simple, fast, and accessible
+            on desktop and mobile devices.
+            Our Chess game is the first game on the
+            platform, with more games planned for the future.
         </p>
 
     </section>
@@ -704,20 +727,12 @@
 <footer class="site-footer">
 
     <p>
-        © 2026 Prasun Games. All rights reserved.
-    </p>
-
-    <p>
-        <a href="/">
-            Prasun Games
-        </a>
+        © 2026 Prasun Games.
+        All rights reserved.
     </p>
 
 </footer>
 
-
-
-<script src="script.js"></script>
 
 </body>
 
