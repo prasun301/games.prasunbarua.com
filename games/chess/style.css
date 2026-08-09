@@ -1,754 +1,298 @@
 /* =========================================================
-   PRASUN GAMES — PROFESSIONAL CHESS UI
+   PRASUN GAMES — PROFESSIONAL CHESS UI (REWRITTEN)
    ========================================================= */
 
 :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --surface-soft: #334155;
-    --surface-border: #475569;
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --border: #334155;
+  /* Color Palette */
+  --bg-main: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-soft: #334155;
+  --border-color: #334155;
+  
+  --text-primary: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  --brand-primary: #3b82f6;
+  --brand-hover: #2563eb;
+  
+  /* Board Colors */
+  --square-light: #eeeed2;
+  --square-dark: #769656;
+  
+  /* State Overlays */
+  --highlight-select: rgba(246, 224, 94, 0.8);
+  --move-dot: rgba(20, 85, 30, 0.45);
+  --capture-ring: rgba(239, 68, 68, 0.7);
+  --check-glow: #ef4444;
 
-    --primary: #3b82f6;
-    --primary-dark: #2563eb;
-    --primary-glow: rgba(59, 130, 246, 0.35);
-    
-    --accent: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-
-    /* Chess Board Color Themes */
-    --board-light: #eeeed2;
-    --board-dark: #769656;
-
-    /* Highlight States */
-    --selected: #f6e05e;
-    --move-hint: rgba(20, 85, 30, 0.4);
-    --capture-hint: rgba(239, 68, 68, 0.65);
-    --check-glow: #ef4444;
-
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
-    --shadow-lg: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
-
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 20px;
-    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* UI Metrics */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
 }
 
-/* Light Theme Alternative Override (Optional) */
-[data-theme="light"] {
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --surface-soft: #f1f5f9;
-    --surface-border: #e2e8f0;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --board-light: #f0d9b5;
-    --board-dark: #b58863;
-}
-
-
-/* =========================================================
-   RESET & BASE STYLES
-   ========================================================= */
-
+/* Base Reset */
 *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-
-/* =========================================================
-   HEADER & NAVIGATION
-   ========================================================= */
-
-.site-header {
-    width: 100%;
-    background: rgba(30, 41, 59, 0.85);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.header-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.brand {
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: var(--transition);
-}
-
-.brand:hover {
-    color: var(--primary);
-}
-
-.home-link {
-    color: var(--muted);
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    transition: var(--transition);
-}
-
-.home-link:hover {
-    color: var(--text);
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-
-/* =========================================================
-   MAIN LAYOUT & INTRO
-   ========================================================= */
-
+/* Main Layout Grid */
 .game-page {
-    width: 100%;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 28px 24px 60px;
-    flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  flex: 1;
 }
 
 .game-intro {
-    text-align: center;
-    max-width: 760px;
-    margin: 0 auto 28px;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .game-intro h1 {
-    font-size: clamp(2.2rem, 4vw, 3.2rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .game-intro p {
-    color: var(--muted);
-    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
-
-
-/* =========================================================
-   MODE SELECTOR TABS
-   ========================================================= */
-
-.mode-selector {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-
-.mode-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.mode-card:hover {
-    color: var(--text);
-    border-color: var(--surface-border);
-    background: var(--surface-soft);
-}
-
-.mode-card.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: 0 0 15px var(--primary-glow);
-}
-
-
-/* =========================================================
-   CHESS CONTAINER GRID
-   ========================================================= */
 
 .chess-container {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 28px;
-    align-items: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
 }
 
-
-/* =========================================================
-   GAME PANEL (MAIN BOARD AREA)
-   ========================================================= */
-
+/* Board Wrapper & Panel */
 .game-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
-
-/* =========================================================
-   PLAYER BARS & CLOCKS
-   ========================================================= */
-
-.player-bar {
-    width: 100%;
-    max-width: 620px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    margin: 8px 0;
-}
-
-.player-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.player-name {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text);
-}
-
-.captured-pieces {
-    font-size: 1.2rem;
-    min-height: 24px;
-    letter-spacing: -2px;
-    user-select: none;
-    opacity: 0.9;
-}
-
-.clock-timer {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace, monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: var(--radius-sm);
-    min-width: 75px;
-    text-align: center;
-}
-
-.clock-timer.active {
-    border-color: var(--warning);
-    color: var(--warning);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
-}
-
-
-/* =========================================================
-   STATUS INDICATOR
-   ========================================================= */
 
 .game-status {
-    width: 100%;
-    max-width: 620px;
-    text-align: center;
-    padding: 10px 16px;
-    margin-bottom: 12px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--text);
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg-surface-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 16px;
 }
 
-
-/* =========================================================
-   CHESS BOARD
-   ========================================================= */
-
+/* Chess Board Component */
 .chess-board {
-    width: 100%;
-    max-width: 620px;
-    aspect-ratio: 1 / 1;
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-    border: 4px solid var(--surface-soft);
-    position: relative;
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  border: 4px solid var(--bg-surface-soft);
+  touch-action: manipulation;
 }
 
+/* Squares */
 .square {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    transition: filter 0.1s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
 }
 
-.square.light {
-    background-color: var(--board-light);
-}
-
-.square.dark {
-    background-color: var(--board-dark);
-}
+.square.light { background-color: var(--square-light); }
+.square.dark { background-color: var(--square-dark); }
 
 .square:hover {
-    filter: brightness(1.08);
+  filter: brightness(1.05);
 }
 
-
-/* =========================================================
-   CHESS PIECES
-   ========================================================= */
-
+/* Chess Pieces (Handles Unicode & SVG Images) */
 .piece {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(2.2rem, 7.5vw, 4.2rem);
-    line-height: 1;
-    cursor: grab;
-    z-index: 3;
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2rem, 7vw, 3.8rem);
+  line-height: 1;
+  z-index: 3;
+  transition: transform 0.12s ease;
+  pointer-events: none; /* Allows click events to hit the underlying square */
 }
 
-.piece:active {
-    cursor: grabbing;
-    transform: scale(1.15);
+.piece img, .piece svg {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
 }
 
 .square:hover .piece {
-    transform: translateY(-2px) scale(1.04);
+  transform: scale(1.05);
 }
 
-
-/* =========================================================
-   SQUARE HIGHLIGHTS & STATES
-   ========================================================= */
-
-/* Selected Square */
+/* Board Overlays & Indicators */
 .square.selected {
-    background-color: var(--selected) !important;
+  background-color: var(--highlight-select) !important;
 }
 
-/* Legal Move Marker (Dot) */
+/* Move Dot Indicator */
 .square.legal-move::after {
-    content: "";
-    width: 26%;
-    height: 26%;
-    background: var(--move-hint);
-    border-radius: 50%;
-    position: absolute;
-    pointer-events: none;
-    z-index: 2;
+  content: "";
+  width: 28%;
+  height: 28%;
+  background: var(--move-dot);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
 }
 
-/* Legal Capture Marker (Ring) */
+/* Capture Ring Indicator */
 .square.legal-capture::after {
-    content: "";
-    position: absolute;
-    inset: 6%;
-    border: 5px solid var(--capture-hint);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 2;
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border: 4px solid var(--capture-ring);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
 }
 
-/* Check State */
-.square.check,
+/* Check Highlight */
 .square.in-check {
-    background: radial-gradient(circle, var(--check-glow) 0%, transparent 80%) !important;
-    animation: checkPulse 1.2s infinite alternate;
+  background-color: var(--check-glow) !important;
+  animation: pulseCheck 1s infinite alternate;
 }
 
-@keyframes checkPulse {
-    0% { filter: brightness(1); }
-    100% { filter: brightness(1.3); }
+@keyframes pulseCheck {
+  from { filter: brightness(0.9); }
+  to { filter: brightness(1.2); }
 }
 
-
-/* =========================================================
-   GAME CONTROLS BUTTONS
-   ========================================================= */
-
+/* Game Control Buttons */
 .game-controls {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    width: 100%;
-    max-width: 620px;
-    justify-content: center;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  justify-content: center;
 }
 
 .btn {
-    appearance: none;
-    border: 1px solid var(--border);
-    background: var(--surface-soft);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 700;
-    padding: 10px 20px;
-    min-height: 42px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: var(--transition);
+  appearance: none;
+  border: none;
+  background: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .btn:hover {
-    background: var(--surface-border);
-    transform: translateY(-1px);
-    color: white;
+  background: var(--brand-hover);
+  transform: translateY(-1px);
 }
 
-.btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
+.btn:active {
+  transform: translateY(0);
 }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    box-shadow: 0 4px 12px var(--primary-glow);
-}
-
-.btn-danger {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: var(--danger);
-    color: var(--danger);
-}
-
-.btn-danger:hover {
-    background: var(--danger);
-    color: white;
-}
-
-
-/* =========================================================
-   SIDEBAR & CARDS
-   ========================================================= */
-
+/* Sidebar & Move History */
 .game-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .sidebar-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
 }
 
-.sidebar-card h2, 
-.sidebar-card h3 {
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin-bottom: 14px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.sidebar-card h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
-
-/* Config & Controls Group */
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-
-.control-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--muted);
-}
-
-.control-group select, 
-.control-group input {
-    width: 100%;
-    padding: 10px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    outline: none;
-    transition: var(--transition);
-}
-
-.control-group select:focus, 
-.control-group input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-glow);
-}
-
-
-/* =========================================================
-   MOVE HISTORY TABLE
-   ========================================================= */
 
 .move-history {
-    height: 280px;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    padding: 4px;
-}
-
-.move-history::-webkit-scrollbar {
-    width: 6px;
-}
-
-.move-history::-webkit-scrollbar-thumb {
-    background: var(--surface-soft);
-    border-radius: 10px;
+  height: 260px;
+  overflow-y: auto;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px;
 }
 
 .move-row {
-    display: grid;
-    grid-template-columns: 48px 1fr 1fr;
-    padding: 6px 10px;
-    font-size: 0.88rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.move-row:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  padding: 6px;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .move-num {
-    color: var(--muted);
-    font-weight: 700;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
-.move-w, .move-b {
-    font-weight: 600;
-    color: var(--text);
+/* Responsive Scaling */
+@media (max-width: 860px) {
+  .chess-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-
-/* =========================================================
-   ONLINE PANEL STUB
-   ========================================================= */
-
-#online-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.room-display {
-    background: var(--bg);
+@media (max-width: 560px) {
+  .game-sidebar {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-panel {
     padding: 12px;
-    border-radius: var(--radius-sm);
-    text-align: center;
-    border: 1px dashed var(--primary);
-}
-
-.room-display span {
-    font-family: monospace;
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--primary);
-    letter-spacing: 2px;
-}
-
-
-/* =========================================================
-   GAME INFO SECTION
-   ========================================================= */
-
-.game-info {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    margin-top: 32px;
-}
-
-.game-info h2 {
-    font-size: 1.35rem;
-    font-weight: 800;
-    margin-bottom: 12px;
-}
-
-.game-info p {
-    color: var(--muted);
-    font-size: 0.95rem;
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.site-footer {
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    padding: 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.88rem;
-    margin-top: auto;
-}
-
-.site-footer a {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   RESPONSIVE LAYOUTS
-   ========================================================= */
-
-@media (max-width: 992px) {
-    .chess-container {
-        grid-template-columns: 1fr;
-    }
-
-    .game-sidebar {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .game-page {
-        padding: 16px 10px 40px;
-    }
-
-    .game-panel {
-        padding: 12px;
-    }
-
-    .game-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .chess-board {
-        border-width: 2px;
-    }
-
-    .player-bar {
-        padding: 8px 10px;
-    }
-
-    .player-name {
-        font-size: 0.85rem;
-    }
-
-    .clock-timer {
-        font-size: 0.95rem;
-        min-width: 60px;
-        padding: 2px 8px;
-    }
-
-    .btn {
-        padding: 8px 14px;
-        font-size: 0.82rem;
-    }
-}
-
-
-/* =========================================================
-   ACCESSIBILITY & REDUCED MOTION
-   ========================================================= */
-
-button:focus-visible, 
-a:focus-visible, 
-select:focus-visible, 
-input:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
+  }
 }
