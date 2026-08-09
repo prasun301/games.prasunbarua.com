@@ -1,15 +1,9 @@
-/* =========================================================
-   PRASUN GAMES — CHESS ENGINE & WORKER INTEGRATION
-   ========================================================= */
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Unicode Chess Piece Map
   const PIECE_SYMBOLS = {
     p: "♟", r: "♜", n: "♞", b: "♝", q: "♛", k: "♚",
     P: "♙", R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔"
   };
 
-  // Initial Board State (8x8 Grid)
   const INITIAL_BOARD = [
     ["r", "n", "b", "q", "k", "b", "n", "r"],
     ["p", "p", "p", "p", "p", "p", "p", "p"],
@@ -21,24 +15,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ["R", "N", "B", "Q", "K", "B", "N", "R"]
   ];
 
-  // Game State Variables
   let board = JSON.parse(JSON.stringify(INITIAL_BOARD));
-  let turn = "w"; // 'w' = Player (White), 'b' = AI (Black)
+  let turn = "w";
   let selectedSquare = null;
   let moveHistory = [];
   let boardHistory = [JSON.parse(JSON.stringify(INITIAL_BOARD))];
   let isThinking = false;
 
-  // DOM Elements
   const boardEl = document.getElementById("board");
   const statusEl = document.getElementById("status");
   const movesEl = document.getElementById("moves");
   const resetBtn = document.getElementById("reset-btn");
   const undoBtn = document.getElementById("undo-btn");
 
-  /* =========================================================
-     1. RENDER BOARD & UI
-     ========================================================= */
   function renderBoard() {
     if (!boardEl) return;
     boardEl.innerHTML = "";
@@ -47,19 +36,15 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let c = 0; c < 8; c++) {
         const square = document.createElement("div");
         const isLight = (r + c) % 2 === 0;
-        const squareName = coordsToSquare(r, c);
 
         square.className = `square ${isLight ? "light" : "dark"}`;
         square.dataset.row = r;
         square.dataset.col = c;
-        square.dataset.sq = squareName;
 
-        // Selection Highlight
         if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
           square.classList.add("selected");
         }
 
-        // Render Piece
         const piece = board[r][c];
         if (piece) {
           const pieceEl = document.createElement("div");
@@ -74,15 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* =========================================================
-     2. PLAYER INTERACTION & MOVES
-     ========================================================= */
   function handleSquareClick(r, c) {
     if (turn !== "w" || isThinking) return;
 
     const clickedPiece = board[r][c];
 
-    // Select White Piece
     if (clickedPiece && isWhite(clickedPiece)) {
       selectedSquare = { r, c };
       renderBoard();
@@ -90,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Execute Move if Source Square is Selected
     if (selectedSquare) {
       const from = selectedSquare;
       const to = { r, c };
@@ -100,7 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedSquare = null;
         renderBoard();
 
-        // Trigger AI Turn
         if (turn === "b") {
           triggerAIMove();
         }
@@ -113,60 +92,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function makeMove(from, to) {
     const piece = board[from.r][from.c];
-    const target = board[to.r][to.c];
     const uciMove = `${coordsToSquare(from.r, from.c)}${coordsToSquare(to.r, to.c)}`;
 
-    // Update Internal Board
     board[to.r][to.c] = piece;
     board[from.r][from.c] = null;
 
-    // Record Move
     moveHistory.push(uciMove);
     boardHistory.push(JSON.parse(JSON.stringify(board)));
 
-    // Switch Turn
     turn = turn === "w" ? "b" : "w";
 
     updateStatus();
     updateHistoryUI();
   }
 
- /* =========================================================
-     3. LOCAL AI MOVE GENERATION (OPTION A)
-     ========================================================= */
-  async function triggerAIMove() {
+  function triggerAIMove() {
     isThinking = true;
     updateStatus("AI is thinking...");
 
-    // 300ms natural delay before AI makes its move
     setTimeout(() => {
-      const moveMade = fallbackAIMove();
-
-      if (!moveMade) {
-        updateStatus("Game Over — AI has no legal moves!");
-      }
+      const moveMade = makeAIMove();
 
       isThinking = false;
       renderBoard();
-      if (moveMade) updateStatus();
+
+      if (moveMade) {
+        updateStatus();
+      } else {
+        updateStatus("Game Over — AI has no valid moves!");
+      }
     }, 300);
   }
 
-  // Scans all squares to guarantee Black plays a valid move
-  function fallbackAIMove() {
-    const blackMoves = [];
+  function makeAIMove() {
+    const validMoves = [];
 
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (board[r][c] && isBlack(board[r][c])) {
           const from = { r, c };
-
-          // Test every square on the board for a valid move
           for (let tr = 0; tr < 8; tr++) {
             for (let tc = 0; tc < 8; tc++) {
               const to = { r: tr, c: tc };
               if (isValidMove(from, to)) {
-                blackMoves.push({ from, to });
+                validMoves.push({ from, to });
               }
             }
           }
@@ -174,20 +143,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    if (blackMoves.length > 0) {
-      const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
-      makeMove(randomMove.from, randomMove.to);
+    if (validMoves.length > 0) {
+      const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+      makeMove(move.from, move.to);
       return true;
     }
 
-    return false; // No legal moves available
+    return false;
   }
 
-  /* =========================================================
-     4. HELPER UTILITIES & UI UPDATES
-     ========================================================= */
   function highlightMoves(r, c) {
-    // Basic target highlighting
     const squares = boardEl.querySelectorAll(".square");
     squares.forEach(sq => {
       const tr = parseInt(sq.dataset.row, 10);
@@ -208,7 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetPiece = board[to.r][to.c];
     const sourcePiece = board[from.r][from.c];
 
-    // Cannot capture own piece
     if (targetPiece && isWhite(sourcePiece) === isWhite(targetPiece)) {
       return false;
     }
@@ -226,36 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function coordsToSquare(r, c) {
     const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
     return `${files[c]}${8 - r}`;
-  }
-
-  function squareToCoords(sq) {
-    if (!sq || sq.length < 2) return null;
-    const files = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 };
-    const c = files[sq[0]];
-    const r = 8 - parseInt(sq[1], 10);
-    return (isNaN(r) || c === undefined) ? null : { r, c };
-  }
-
-  function generateFEN() {
-    let fen = "";
-    for (let r = 0; r < 8; r++) {
-      let empty = 0;
-      for (let c = 0; c < 8; c++) {
-        const piece = board[r][c];
-        if (!piece) {
-          empty++;
-        } else {
-          if (empty > 0) {
-            fen += empty;
-            empty = 0;
-          }
-          fen += piece;
-        }
-      }
-      if (empty > 0) fen += empty;
-      if (r < 7) fen += "/";
-    }
-    return `${fen} ${turn} - - 0 1`;
   }
 
   function updateStatus(overrideText) {
@@ -294,9 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
     movesEl.scrollTop = movesEl.scrollHeight;
   }
 
-  /* =========================================================
-     5. CONTROLS (RESET & UNDO)
-     ========================================================= */
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
       board = JSON.parse(JSON.stringify(INITIAL_BOARD));
@@ -313,7 +244,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (undoBtn) {
     undoBtn.addEventListener("click", () => {
-      // Undo 2 turns (Player + AI)
       if (boardHistory.length > 2 && !isThinking) {
         boardHistory.pop();
         boardHistory.pop();
@@ -330,7 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Initial Initialization
   renderBoard();
   updateStatus();
 });
