@@ -1,1 +1,272 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
+:root {
+  --bg: #07111f;
+  --surface: #111d2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #22c55e;
+  --accent-dark: #16a34a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(
+    circle at top,
+    #1b3150 0%,
+    #07111f 48%,
+    #020617 100%
+  );
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+}
+
+/* HEADER */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: rgba(7, 17, 31, 0.94);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-container {
+  width: min(1100px, 92%);
+  min-height: 68px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.header-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 650;
+  transition: color 0.2s ease;
+}
+
+.header-link:hover {
+  color: var(--text);
+}
+
+/* HERO */
+.hero {
+  width: min(950px, 92%);
+  margin: auto;
+  padding: 90px 0 70px;
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 7px 15px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin-bottom: 20px;
+  font-size: clamp(2.7rem, 7vw, 5rem);
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+}
+
+.hero h1 span {
+  color: var(--accent);
+}
+
+.hero p {
+  max-width: 700px;
+  margin: 0 auto 32px;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+
+.play-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  padding: 13px 25px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.18);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.play-button:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(34, 197, 94, 0.25);
+}
+
+/* GAMES SECTION */
+.games-section {
+  width: min(900px, 92%);
+  margin: auto;
+  padding-bottom: 80px;
+}
+
+.section-title {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.section-title h2 {
+  margin-bottom: 5px;
+  font-size: 1.8rem;
+}
+
+.section-title p {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.game-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: rgba(17, 29, 46, 0.92);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.25);
+}
+
+.game-icon {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8rem;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.game-content {
+  padding: 30px;
+  text-align: center;
+}
+
+.game-content h3 {
+  margin-bottom: 10px;
+  font-size: 1.7rem;
+}
+
+.game-content p {
+  max-width: 650px;
+  margin: 0 auto 24px;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+/* FEATURES */
+.features {
+  width: min(900px, 92%);
+  margin: 0 auto 80px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.feature {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(17, 29, 46, 0.65);
+  text-align: center;
+}
+
+.feature-icon {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+}
+
+.feature h3 {
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.feature p {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+/* ABOUT */
+.about {
+  width: min(800px, 92%);
+  margin: 0 auto 80px;
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(17, 29, 46, 0.65);
+}
+
+.about h2 {
+  margin-bottom: 12px;
+}
+
+.about p {
+  color: var(--muted);
+}
+
+/* FOOTER */
+.site-footer {
+  padding: 30px 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* MOBILE */
+@media (max-width: 650px) {
+  .hero {
+    padding: 60px 0 50px;
+  }
+
+  .hero h1 {
+    font-size: 2.7rem;
+  }
+
+  .game-icon {
+    min-height: 210px;
+    font-size: 6.5rem;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+  }
+
+  .game-content {
+    padding: 25px 20px;
+  }
+}
