@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://games.prasunbarua.com/sitemap.xml
