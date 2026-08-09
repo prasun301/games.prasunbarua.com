@@ -3,352 +3,1055 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Staunton Chess</title>
+  <title>Play Photorealistic 3D Chess | Prasun Games</title>
+  <meta name="description" content="Play official 3D Chess with realistic PBR carved wooden Staunton pieces, dynamic studio lighting, and AI.">
   
-  <!-- Core Engines -->
+  <!-- Chess Logic Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  
+  <!-- Three.js 3D Engine & OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    :root {
+      --bg: #07111f;
+      --surface: rgba(17, 29, 46, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+    }
+
     body {
       min-height: 100vh;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: #f8fafc;
-      background: #030712;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1e293b 0%, #07111f 60%, #020617 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow-x: hidden;
     }
-    .header {
+
+    /* HEADER */
+    .site-header {
       width: 100%;
-      height: 60px;
-      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 17, 31, 0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      width: min(1200px, 94%);
+      height: 64px;
+      margin: auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      border-bottom: 1px solid #1e293b;
     }
-    .app-container {
-      width: min(1200px, 96%);
-      margin: 20px auto;
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 20px;
-    }
-    @media (max-width: 850px) { .app-container { grid-template-columns: 1fr; } }
-    .stage {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 16px;
-      border: 1px solid #1e293b;
-    }
-    .status-bar {
+
+    .home-btn {
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      font-weight: bold;
-    }
-    #webglContainer {
-      width: 100%;
-      height: 520px;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 8px 16px;
       border-radius: 8px;
-      overflow: hidden;
-      background: #020617;
-      cursor: grab;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
     }
-    .panel {
-      background: #0f172a;
-      border-radius: 12px;
+
+    .home-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(-3px);
+    }
+
+    .game-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* MAIN CONTAINER */
+    .app-container {
+      width: min(1200px, 94%);
+      margin: 24px auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 950px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 3D STAGE & WEBGL CANVAS */
+    .board-stage {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      border: 1px solid #1e293b;
+      align-items: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     }
-    .btn {
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #334155;
+
+    .status-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .turn-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .turn-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f8fafc;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      transition: background 0.3s;
+    }
+
+    .turn-dot.black {
       background: #1e293b;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+      border: 1px solid #475569;
     }
-    .btn:hover { background: #334155; }
-    .btn.active { background: #22c55e; border-color: #22c55e; }
-    .history {
+
+    .webgl-container {
+      position: relative;
+      width: 100%;
+      height: 540px;
+      border-radius: 12px;
+      overflow: hidden;
       background: #020617;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: grab;
+    }
+
+    .webgl-container:active {
+      cursor: grabbing;
+    }
+
+    .camera-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      padding: 6px 12px;
       border-radius: 6px;
-      height: 150px;
-      overflow-y: auto;
-      padding: 10px;
-      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* CONTROL PANEL */
+    .control-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel-title {
       font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+    }
+
+    select.btn {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 36px;
+    }
+
+    .captured-box {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 44px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.2rem;
+    }
+
+    .move-history {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 130px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .move-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .move-num { color: #64748b; }
+
+    /* GAME OVER OVERLAY */
+    .game-over-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 17, 31, 0.92);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .game-over-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .game-over-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent);
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h3>👑 3D Chess Master</h3>
-  </div>
-
-  <div class="app-container">
-    <div class="stage">
-      <div class="status-bar">
-        <span id="statusText">White's Turn</span>
-        <span id="checkBadge" style="color: #ef4444; display:none;">CHECK!</span>
-      </div>
-      <div id="webglContainer"></div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="/" class="home-btn">
+        <span>←</span>
+        <span>Back to Home</span>
+      </a>
+      <div class="game-title">♟️ Real Wooden 3D Chess</div>
+      <div style="width: 110px;"></div>
     </div>
+  </header>
 
-    <div class="panel">
-      <button class="btn" id="resetBtn">🔄 New Game</button>
-      <button class="btn" id="undoBtn">↩️ Undo Move</button>
-      <div>
-        <label style="font-size: 0.8rem; color: #94a3b8;">Game Mode</label>
-        <select id="modeSelect" class="btn" style="width: 100%; margin-top: 4px;">
-          <option value="ai">🤖 vs AI Engine</option>
-          <option value="pvp">👥 2 Players (Local)</option>
+  <!-- MAIN APP -->
+  <main class="app-container">
+
+    <!-- 3D STAGE -->
+    <section class="board-stage">
+      
+      <!-- GAME OVER BANNER -->
+      <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-title" id="gameOverTitle">Checkmate!</div>
+        <p id="gameOverMsg" style="color: var(--muted);">White wins the game.</p>
+        <button class="btn active" id="modalRestartBtn" style="margin-top: 10px;">Play Again</button>
+      </div>
+
+      <div class="status-bar">
+        <div class="turn-indicator">
+          <div class="turn-dot" id="turnDot"></div>
+          <span id="statusText">White's Turn</span>
+        </div>
+        <div id="checkBadge" style="color: #ef4444; font-weight: 800; display: none;">CHECK!</div>
+      </div>
+
+      <!-- WEBGL CANVAS CONTAINER -->
+      <div class="webgl-container" id="webglContainer">
+        <div class="camera-hint">🖱️ Drag: Rotate Camera | Scroll: Zoom | Right Click: Pan</div>
+      </div>
+
+    </section>
+
+    <!-- CONTROL PANEL -->
+    <aside class="control-panel">
+
+      <div class="panel-section">
+        <div class="panel-title">Camera & Sound</div>
+        <div class="btn-group">
+          <button class="btn" id="resetCamBtn">🎥 Reset View</button>
+          <button class="btn active" id="toggleSoundBtn">🔊 Sound ON</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Game Mode & AI</div>
+        <select class="btn" id="modeSelect">
+          <option value="ai-easy">🤖 Play AI (Easy)</option>
+          <option value="ai-medium" selected>🤖 Play AI (Medium)</option>
+          <option value="ai-hard">🤖 Play AI (Hard)</option>
+          <option value="pass-play">👥 2 Players (Local)</option>
         </select>
       </div>
-      <div class="history" id="history"></div>
-    </div>
-  </div>
+
+      <div class="btn-group">
+        <button class="btn" id="undoBtn">↩️ Undo</button>
+        <button class="btn active" id="resetBtn">🔄 New Game</button>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Captured Pieces</div>
+        <div class="captured-box" id="capturedWhite"></div>
+        <div class="captured-box" id="capturedBlack"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Move History</div>
+        <div class="move-history" id="moveHistory"></div>
+      </div>
+
+    </aside>
+
+  </main>
 
   <script>
-    // --- 1. CHESS LOGIC ---
+    // --- AUDIO ENGINE ---
+    const AudioEngine = {
+      enabled: true,
+      ctx: null,
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      },
+      playMove() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+      },
+      playCapture() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(360, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.12);
+      },
+      playCheck() {
+        if (!this.enabled) return;
+        this.init();
+        [523.25, 659.25].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (idx * 0.08));
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + (idx * 0.08));
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (idx * 0.08) + 0.15);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + (idx * 0.08));
+          osc.stop(this.ctx.currentTime + (idx * 0.08) + 0.15);
+        });
+      }
+    };
+
+    // --- CHESS RULE ENGINE ---
     const game = new Chess();
 
-    // --- 2. THREE.JS INITIALIZATION ---
+    // DOM UI Elements
     const container = document.getElementById('webglContainer');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a);
+    const statusText = document.getElementById('statusText');
+    const turnDot = document.getElementById('turnDot');
+    const checkBadge = document.getElementById('checkBadge');
+    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+    const modeSelect = document.getElementById('modeSelect');
+    const undoBtn = document.getElementById('undoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const resetCamBtn = document.getElementById('resetCamBtn');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const gameOverTitle = document.getElementById('gameOverTitle');
+    const gameOverMsg = document.getElementById('gameOverMsg');
+    const modalRestartBtn = document.getElementById('modalRestartBtn');
 
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 10, 10);
+    // THREE.JS SETUP
+    let scene, camera, renderer, controls;
+    let squareMeshes = [];
+    let pieceMeshes = [];
+    let highlightMeshes = [];
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.shadowMap.enabled = true;
-    container.appendChild(renderer.domElement);
+    let selectedSquare = null;
+    let legalMovesForSelected = [];
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.target.set(0, 0, 0);
-
-    // --- 3. LIGHTING ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(8, 12, 8);
-    dirLight.castShadow = true;
-    scene.add(dirLight);
-
-    // --- 4. BOARD CREATION ---
+    const BOARD_SIZE = 8;
     const SQ_SIZE = 1.25;
-    const OFFSET = (8 * SQ_SIZE) / 2 - SQ_SIZE / 2;
-    const squareMeshes = {};
-    let pieceMeshes = {};
+    const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
 
-    const lightMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4 });
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+    // --- PROCEDURAL PBR WOOD TEXTURE GENERATORS ---
+    function generateWoodCanvasTexture(baseHex, ringHex, noiseIntensity = 0.08) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
 
-    // Board Base Frame
-    const baseGeo = new THREE.BoxGeometry(11, 0.4, 11);
-    const baseMat = new THREE.MeshStandardMaterial({ color: 0x020617 });
-    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-    baseMesh.position.y = -0.25;
-    scene.add(baseMesh);
+      ctx.fillStyle = baseHex;
+      ctx.fillRect(0, 0, 512, 512);
 
-    // Squares
-    const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.1, SQ_SIZE);
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const isLight = (r + c) % 2 === 0;
-        const mesh = new THREE.Mesh(sqGeo, (isLight ? lightMat : darkMat).clone());
-        const x = c * SQ_SIZE - OFFSET;
-        const z = r * SQ_SIZE - OFFSET;
-        mesh.position.set(x, 0, z);
-        mesh.receiveShadow = true;
-        
-        const sqName = String.fromCharCode(97 + c) + (8 - r);
-        mesh.userData = { sqName, r, c, isLight };
-        scene.add(mesh);
-        squareMeshes[sqName] = mesh;
+      // Radial wood grain rings
+      const centerX = 256 + Math.random() * 100;
+      const centerY = 256 + Math.random() * 100;
+
+      for (let r = 5; r < 400; r += 6 + Math.random() * 4) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+        ctx.strokeStyle = ringHex;
+        ctx.lineWidth = 1.5 + Math.random() * 2;
+        ctx.globalAlpha = 0.12 + Math.random() * 0.08;
+        ctx.stroke();
+      }
+
+      // Fine grain streaks
+      ctx.globalAlpha = noiseIntensity;
+      for (let i = 0; i < 5000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+        ctx.fillRect(x, y, 1, 3 + Math.random() * 8);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function generateBumpMap() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080'; ctx.fillRect(0,0,256,256);
+      
+      for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 256;
+        ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(x, y, 1, 4 + Math.random() * 6);
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // Shared PBR Textures
+    const lightWoodTex = generateWoodCanvasTexture('#f3e8d2', '#d4be98', 0.05);
+    const darkWoodTex  = generateWoodCanvasTexture('#26170d', '#130a05', 0.12);
+    const boardFrameTex = generateWoodCanvasTexture('#1c0d06', '#090301', 0.15);
+    const sharedBumpTex = generateBumpMap();
+
+    // PBR MATERIALS WITH CLEARCOAT REFLECTION
+    const whitePieceMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xf5ebd7,
+      map: lightWoodTex,
+      bumpMap: sharedBumpTex,
+      bumpScale: 0.015,
+      roughness: 0.25,
+      metalness: 0.05,
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.15
+    });
+
+    const blackPieceMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0x221711,
+      map: darkWoodTex,
+      bumpMap: sharedBumpTex,
+      bumpScale: 0.02,
+      roughness: 0.3,
+      metalness: 0.05,
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.2
+    });
+
+    const feltMaterial = new THREE.MeshStandardMaterial({
+      color: 0x064e3b, // Dark green felt bottom
+      roughness: 0.9
+    });
+
+    const lightSquareMat = new THREE.MeshStandardMaterial({
+      color: 0xe2d4ba,
+      map: lightWoodTex,
+      bumpMap: sharedBumpTex,
+      bumpScale: 0.008,
+      roughness: 0.35
+    });
+
+    const darkSquareMat = new THREE.MeshStandardMaterial({
+      color: 0x3d271d,
+      map: darkWoodTex,
+      bumpMap: sharedBumpTex,
+      bumpScale: 0.01,
+      roughness: 0.4
+    });
+
+    // INIT SCENE & STUDIO LIGHTING
+    function init3D() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x07111f);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      setInitialCamera();
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.05;
+      controls.minDistance = 6;
+      controls.maxDistance = 22;
+
+      // 3-Point Studio Lighting Setup
+      const ambientLight = new THREE.AmbientLight(0xfff8ed, 0.75);
+      scene.add(ambientLight);
+
+      // Key Light (Main Shadow Caster)
+      const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.2);
+      keyLight.position.set(9, 16, 9);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.bias = -0.0001;
+      scene.add(keyLight);
+
+      // Fill Light (Soft side light)
+      const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
+      fillLight.position.set(-10, 10, -10);
+      scene.add(fillLight);
+
+      // Rim Light (Highlight edges from back)
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      rimLight.position.set(0, 12, -12);
+      scene.add(rimLight);
+
+      build3DBoard();
+      setupRaycaster();
+      syncPiecesWithBoard();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function setInitialCamera() {
+      camera.position.set(0, 10.5, 10.5);
+      camera.lookAt(0, 0, 0);
+    }
+
+    // BUILD WOODEN BOARD & BORDER
+    function build3DBoard() {
+      // Mahogany Frame Base
+      const borderGeo = new THREE.BoxGeometry(11.6, 0.6, 11.6);
+      const borderMat = new THREE.MeshStandardMaterial({
+        color: 0x1a0c06,
+        map: boardFrameTex,
+        roughness: 0.3
+      });
+      const borderMesh = new THREE.Mesh(borderGeo, borderMat);
+      borderMesh.position.y = -0.31;
+      borderMesh.receiveShadow = true;
+      scene.add(borderMesh);
+
+      // Gold Trim Accent Line
+      const trimGeo = new THREE.BoxGeometry(10.1, 0.02, 10.1);
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
+      const trimMesh = new THREE.Mesh(trimGeo, trimMat);
+      trimMesh.position.y = 0.01;
+      scene.add(trimMesh);
+
+      // 8x8 Board Tiles
+      const sqGeo = new THREE.BoxGeometry(SQ_SIZE, 0.2, SQ_SIZE);
+
+      for (let r = 0; r < 8; r++) {
+        squareMeshes[r] = [];
+        for (let c = 0; c < 8; c++) {
+          const isLight = (r + c) % 2 === 0;
+          const mat = (isLight ? lightSquareMat : darkSquareMat).clone();
+          const sqMesh = new THREE.Mesh(sqGeo, mat);
+          
+          const x = c * SQ_SIZE - BOARD_OFFSET;
+          const z = r * SQ_SIZE - BOARD_OFFSET;
+          sqMesh.position.set(x, 0, z);
+          sqMesh.receiveShadow = true;
+          
+          const sqStr = String.fromCharCode(97 + c) + (8 - r);
+          sqMesh.userData = { sqStr, r, c, defaultMat: mat };
+
+          scene.add(sqMesh);
+          squareMeshes[r][c] = sqMesh;
+        }
       }
     }
 
-    // --- 5. SIMPLE FAIL-PROOF 3D PIECES ---
-    const whitePieceMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 });
-    const blackPieceMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
-
-    function createPieceMesh(type, color) {
+    // DETAILED HIGH-PRECISION STAUNTON GEOMETRY CREATOR
+    function createPiece3DMesh(type, color) {
       const group = new THREE.Group();
-      const mat = color === 'w' ? whitePieceMat : blackPieceMat;
-      let geo;
+      const mat = color === 'w' ? whitePieceMaterial : blackPieceMaterial;
 
-      switch(type) {
-        case 'p': // Pawn
-          geo = new THREE.CylinderGeometry(0.2, 0.35, 0.6, 16);
-          break;
-        case 'r': // Rook
-          geo = new THREE.BoxGeometry(0.6, 0.7, 0.6);
-          break;
-        case 'n': // Knight
-          geo = new THREE.ConeGeometry(0.35, 0.8, 16);
-          break;
-        case 'b': // Bishop
-          geo = new THREE.CylinderGeometry(0.1, 0.38, 0.9, 16);
-          break;
-        case 'q': // Queen
-          geo = new THREE.CylinderGeometry(0.25, 0.42, 1.1, 16);
-          break;
-        case 'k': // King
-          geo = new THREE.CylinderGeometry(0.3, 0.45, 1.3, 16);
-          break;
+      let geomPoints = [];
+      if (type === 'p') { // PAWN
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.44, 0), new THREE.Vector2(0.44, 0.08),
+          new THREE.Vector2(0.32, 0.16), new THREE.Vector2(0.2, 0.48), new THREE.Vector2(0.26, 0.54),
+          new THREE.Vector2(0.22, 0.6), new THREE.Vector2(0.28, 0.62), new THREE.Vector2(0, 0.9)
+        ];
+      } else if (type === 'r') { // ROOK (with crenellations)
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
+          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.32, 0.68), new THREE.Vector2(0.42, 0.75),
+          new THREE.Vector2(0.42, 1.05), new THREE.Vector2(0.32, 1.05), new THREE.Vector2(0.32, 0.92), new THREE.Vector2(0, 0.92)
+        ];
+      } else if (type === 'n') { // KNIGHT (Carved Horse Head)
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
+          new THREE.Vector2(0.35, 0.25), new THREE.Vector2(0.26, 0.55), new THREE.Vector2(0, 0.55)
+        ];
+        // Detailed Horse Head Shape
+        const headGeo = new THREE.CylinderGeometry(0.18, 0.32, 0.6, 16);
+        const headMesh = new THREE.Mesh(headGeo, mat);
+        headMesh.position.set(0, 0.78, 0.08);
+        headMesh.rotation.x = 0.35;
+        headMesh.castShadow = true;
+        group.add(headMesh);
+
+        // Snout
+        const snoutGeo = new THREE.BoxGeometry(0.28, 0.26, 0.35);
+        const snoutMesh = new THREE.Mesh(snoutGeo, mat);
+        snoutMesh.position.set(0, 0.72, 0.26);
+        snoutMesh.rotation.x = 0.2;
+        snoutMesh.castShadow = true;
+        group.add(snoutMesh);
+
+        // Ears
+        const earGeo = new THREE.ConeGeometry(0.08, 0.2, 8);
+        const earL = new THREE.Mesh(earGeo, mat);
+        const earR = new THREE.Mesh(earGeo, mat);
+        earL.position.set(-0.1, 1.05, -0.05);
+        earR.position.set(0.1, 1.05, -0.05);
+        group.add(earL); group.add(earR);
+      } else if (type === 'b') { // BISHOP
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.12),
+          new THREE.Vector2(0.35, 0.22), new THREE.Vector2(0.2, 0.65), new THREE.Vector2(0.3, 0.75),
+          new THREE.Vector2(0.14, 1.05), new THREE.Vector2(0, 1.2)
+        ];
+        const tipGeo = new THREE.SphereGeometry(0.08, 16, 16);
+        const tipMesh = new THREE.Mesh(tipGeo, mat);
+        tipMesh.position.y = 1.28;
+        group.add(tipMesh);
+      } else if (type === 'q') { // QUEEN
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
+          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.22, 0.75), new THREE.Vector2(0.4, 0.9),
+          new THREE.Vector2(0.38, 1.25), new THREE.Vector2(0, 1.25)
+        ];
+        const crownGeo = new THREE.SphereGeometry(0.1, 16, 16);
+        const crownMesh = new THREE.Mesh(crownGeo, mat);
+        crownMesh.position.y = 1.34;
+        group.add(crownMesh);
+      } else if (type === 'k') { // KING
+        geomPoints = [
+          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.12),
+          new THREE.Vector2(0.36, 0.22), new THREE.Vector2(0.24, 0.75), new THREE.Vector2(0.4, 0.9),
+          new THREE.Vector2(0.38, 1.3), new THREE.Vector2(0, 1.3)
+        ];
+        const crossV = new THREE.BoxGeometry(0.08, 0.28, 0.08);
+        const crossH = new THREE.BoxGeometry(0.24, 0.08, 0.08);
+        const cVMesh = new THREE.Mesh(crossV, mat);
+        const cHMesh = new THREE.Mesh(crossH, mat);
+        cVMesh.position.y = 1.46; cHMesh.position.y = 1.49;
+        group.add(cVMesh); group.add(cHMesh);
       }
 
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.castShadow = true;
-      mesh.position.y = geo.parameters.height / 2 || 0.4;
-      group.add(mesh);
+      // Lathe Body
+      const latheGeo = new THREE.LatheGeometry(geomPoints, 32);
+      const latheMesh = new THREE.Mesh(latheGeo, mat);
+      latheMesh.castShadow = true;
+      latheMesh.receiveShadow = true;
+      group.add(latheMesh);
+
+      // Felt Base Ring
+      const feltGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.02, 32);
+      const feltMesh = new THREE.Mesh(feltGeo, feltMaterial);
+      feltMesh.position.y = -0.01;
+      group.add(feltMesh);
+
+      group.userData = { type, color };
       return group;
     }
 
-    // --- 6. RENDER BOARD STATE ---
-    let selectedSquare = null;
-    let legalMoves = [];
+    // SYNC 3D PIECES WITH BOARD ENGINE
+    function syncPiecesWithBoard() {
+      pieceMeshes.forEach(p => scene.remove(p));
+      pieceMeshes = [];
 
-    function updateBoard() {
-      // Clear existing pieces
-      Object.values(pieceMeshes).forEach(p => scene.remove(p));
-      pieceMeshes = {};
-
-      const board = game.board();
+      const boardState = game.board();
 
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-          const piece = board[r][c];
-          const sqName = String.fromCharCode(97 + c) + (8 - r);
-          
-          // Reset square colors
-          const sqMesh = squareMeshes[sqName];
-          sqMesh.material.color.set(sqMesh.userData.isLight ? 0xe2e8f0 : 0x334155);
+          const pieceObj = boardState[r][c];
+          if (pieceObj) {
+            const mesh = createPiece3DMesh(pieceObj.type, pieceObj.color);
+            const x = c * SQ_SIZE - BOARD_OFFSET;
+            const z = r * SQ_SIZE - BOARD_OFFSET;
+            mesh.position.set(x, 0.1, z);
+            
+            if (pieceObj.color === 'b') mesh.rotation.y = Math.PI;
 
-          if (piece) {
-            const pMesh = createPieceMesh(piece.type, piece.color);
-            const x = c * SQ_SIZE - OFFSET;
-            const z = r * SQ_SIZE - OFFSET;
-            pMesh.position.set(x, 0.05, z);
-            scene.add(pMesh);
-            pieceMeshes[sqName] = pMesh;
+            mesh.userData.sqStr = String.fromCharCode(97 + c) + (8 - r);
+            scene.add(mesh);
+            pieceMeshes.push(mesh);
           }
         }
       }
 
-      // Highlight selected square
-      if (selectedSquare && squareMeshes[selectedSquare]) {
-        squareMeshes[selectedSquare].material.color.set(0x22c55e);
-      }
-
-      // Highlight legal target moves
-      legalMoves.forEach(m => {
-        if (squareMeshes[m.to]) {
-          squareMeshes[m.to].material.color.set(0x38bdf8);
-        }
-      });
-
-      // Update UI Text
-      document.getElementById('statusText').textContent = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
-      document.getElementById('checkBadge').style.display = game.in_check() ? 'inline' : 'none';
-
-      // Update Move History
-      const history = game.history();
-      document.getElementById('history').innerHTML = history.map((m, i) => `${i % 2 === 0 ? (i/2 + 1) + '.' : ''} ${m}`).join(' ');
+      updateHighlightsAndStatus();
     }
 
-    // --- 7. INTERACTION LOGIC ---
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
+    // RAYCASTING FOR TILE CLICKS
+    function setupRaycaster() {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
 
-    container.addEventListener('pointerdown', (e) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      container.addEventListener('pointerdown', (e) => {
+        if (game.game_over()) return;
 
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(Object.values(squareMeshes));
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-      if (intersects.length > 0) {
-        const clickedSq = intersects[0].object.userData.sqName;
-        handleClick(clickedSq);
-      }
-    });
+        raycaster.setFromCamera(mouse, camera);
 
-    function handleClick(sq) {
-      const piece = game.get(sq);
+        const allTiles = squareMeshes.flat();
+        const intersects = raycaster.intersectObjects(allTiles);
+
+        if (intersects.length > 0) {
+          const clickedSqStr = intersects[0].object.userData.sqStr;
+          handleSquareClick(clickedSqStr);
+        }
+      });
+    }
+
+    // GAME CLICK LOGIC
+    function handleSquareClick(sqStr) {
+      const pieceOnSq = game.get(sqStr);
+      const isCurrentTurnPiece = pieceOnSq && pieceOnSq.color === game.turn();
 
       if (selectedSquare) {
-        // Try executing move
-        const move = game.move({ from: selectedSquare, to: sq, promotion: 'q' });
-        if (move) {
+        const validMove = legalMovesForSelected.find(m => m.to === sqStr);
+        if (validMove) {
+          executeMove3D(validMove);
           selectedSquare = null;
-          legalMoves = [];
-          updateBoard();
-
-          // AI Move trigger
-          if (document.getElementById('modeSelect').value === 'ai' && !game.game_over() && game.turn() === 'b') {
-            setTimeout(makeAIMove, 300);
-          }
+          legalMovesForSelected = [];
           return;
         }
       }
 
-      // Select piece
-      if (piece && piece.color === game.turn()) {
-        selectedSquare = sq;
-        legalMoves = game.moves({ square: sq, verbose: true });
+      if (isCurrentTurnPiece) {
+        selectedSquare = sqStr;
+        legalMovesForSelected = game.moves({ square: sqStr, verbose: true });
       } else {
         selectedSquare = null;
-        legalMoves = [];
+        legalMovesForSelected = [];
       }
 
-      updateBoard();
+      updateHighlightsAndStatus();
     }
 
+    // EXECUTE MOVE
+    function executeMove3D(moveObj) {
+      const result = game.move({
+        from: moveObj.from,
+        to: moveObj.to,
+        promotion: 'q'
+      });
+
+      if (result) {
+        if (result.captured) AudioEngine.playCapture();
+        else AudioEngine.playMove();
+
+        if (game.in_check()) AudioEngine.playCheck();
+
+        syncPiecesWithBoard();
+
+        if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
+          setTimeout(makeAIMove, 350);
+        }
+      }
+    }
+
+    // MINIMAX AI
     function makeAIMove() {
-      const moves = game.moves();
+      if (game.game_over()) return;
+
+      const moves = game.moves({ verbose: true });
       if (moves.length === 0) return;
-      const randomMove = moves[Math.floor(Math.random() * moves.length)];
-      game.move(randomMove);
-      updateBoard();
+
+      const mode = modeSelect.value;
+      let chosenMove;
+
+      if (mode === 'ai-easy') {
+        chosenMove = moves[Math.floor(Math.random() * moves.length)];
+      } else if (mode === 'ai-medium') {
+        const capOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
+        chosenMove = capOrCheck.length > 0 ? capOrCheck[Math.floor(Math.random() * capOrCheck.length)] : moves[Math.floor(Math.random() * moves.length)];
+      } else {
+        let bestScore = -Infinity;
+        chosenMove = moves[0];
+        const pVals = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
+
+        moves.forEach(m => {
+          game.move(m);
+          let total = 0;
+          game.board().forEach(row => row.forEach(p => {
+            if (p) total += (p.color === 'b' ? pVals[p.type] : -pVals[p.type]);
+          }));
+          game.undo();
+
+          if (total > bestScore) {
+            bestScore = total;
+            chosenMove = m;
+          }
+        });
+      }
+
+      executeMove3D(chosenMove);
     }
 
-    // Buttons
-    document.getElementById('resetBtn').onclick = () => { game.reset(); selectedSquare = null; legalMoves = []; updateBoard(); };
-    document.getElementById('undoBtn').onclick = () => { game.undo(); if(document.getElementById('modeSelect').value === 'ai') game.undo(); selectedSquare = null; legalMoves = []; updateBoard(); };
+    // HIGHLIGHTS & OVERLAYS
+    function updateHighlightsAndStatus() {
+      highlightMeshes.forEach(h => scene.remove(h));
+      highlightMeshes = [];
 
-    // --- 8. ANIMATION LOOP ---
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const sqMesh = squareMeshes[r][c];
+          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xe2d4ba : 0x3d271d);
+        }
+      }
+
+      if (selectedSquare) {
+        const { r, c } = sqToCoords(selectedSquare);
+        squareMeshes[r][c].material.color.set(0x22c55e);
+      }
+
+      legalMovesForSelected.forEach(m => {
+        const { r, c } = sqToCoords(m.to);
+        const ringGeo = new THREE.RingGeometry(0.2, 0.36, 24);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI / 2;
+        ringMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.12, r * SQ_SIZE - BOARD_OFFSET);
+        scene.add(ringMesh);
+        highlightMeshes.push(ringMesh);
+      });
+
+      const turn = game.turn();
+      statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
+      turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
+      checkBadge.style.display = game.in_check() ? 'block' : 'none';
+
+      if (game.game_over()) {
+        gameOverOverlay.classList.add('show');
+        if (game.in_checkmate()) {
+          gameOverTitle.textContent = "Checkmate!";
+          gameOverMsg.textContent = `${turn === 'w' ? 'Black' : 'White'} wins the game!`;
+        } else {
+          gameOverTitle.textContent = "Draw!";
+          gameOverMsg.textContent = "Game drawn by stalemate or repetition.";
+        }
+      } else {
+        gameOverOverlay.classList.remove('show');
+      }
+
+      updateCapturedAndHistoryUI();
+    }
+
+    function sqToCoords(sqStr) {
+      return {
+        r: 8 - parseInt(sqStr[1]),
+        c: sqStr.charCodeAt(0) - 97
+      };
+    }
+
+    function updateCapturedAndHistoryUI() {
+      const UNICODE = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕' };
+      const counts = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
+
+      game.board().forEach(row => row.forEach(p => {
+        if (p && p.type !== 'k') counts[p.color][p.type]--;
+      }));
+
+      const capWhite = [], capBlack = [];
+      ['p','n','b','r','q'].forEach(t => {
+        for(let i=0; i<counts.w[t]; i++) capWhite.push(UNICODE['w' + t.toUpperCase()]);
+        for(let i=0; i<counts.b[t]; i++) capBlack.push(UNICODE[t]);
+      });
+
+      document.getElementById('capturedWhite').textContent = capWhite.join(' ');
+      document.getElementById('capturedBlack').textContent = capBlack.join(' ');
+
+      const historyEl = document.getElementById('moveHistory');
+      historyEl.innerHTML = '';
+      const history = game.history({ verbose: true });
+
+      for (let i = 0; i < history.length; i += 2) {
+        const row = document.createElement('div');
+        row.className = 'move-row';
+        row.innerHTML = `<span class="move-num">${Math.floor(i/2) + 1}.</span> <span>${history[i].san}</span> <span>${history[i+1] ? history[i+1].san : ''}</span>`;
+        historyEl.appendChild(row);
+      }
+      historyEl.scrollTop = historyEl.scrollHeight;
+    }
+
+    // ANIMATION & RESIZE LOOP
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
 
-    window.addEventListener('resize', () => {
+    function onWindowResize() {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    resetCamBtn.addEventListener('click', () => {
+      setInitialCamera();
+      controls.reset();
     });
 
-    // Start
-    updateBoard();
-    animate();
+    toggleSoundBtn.addEventListener('click', () => {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      toggleSoundBtn.classList.toggle('active', AudioEngine.enabled);
+      toggleSoundBtn.textContent = AudioEngine.enabled ? '🔊 Sound ON' : '🔇 Muted';
+    });
+
+    function startNewGame() {
+      game.reset();
+      selectedSquare = null;
+      legalMovesForSelected = [];
+      syncPiecesWithBoard();
+    }
+
+    resetBtn.addEventListener('click', startNewGame);
+    modalRestartBtn.addEventListener('click', startNewGame);
+
+    undoBtn.addEventListener('click', () => {
+      const steps = modeSelect.value.startsWith('ai') ? 2 : 1;
+      for (let i = 0; i < steps; i++) game.undo();
+      selectedSquare = null;
+      legalMovesForSelected = [];
+      syncPiecesWithBoard();
+    });
+
+    // START ENGINE
+    init3D();
   </script>
 </body>
 </html>
