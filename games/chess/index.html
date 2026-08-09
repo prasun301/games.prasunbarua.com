@@ -21,7 +21,7 @@
     }
     :root {
       --bg: #07111f;
-      --surface: rgba(17, 29, 46, 0.85);
+      --surface: rgba(17, 29, 46, 0.88);
       --border: rgba(255, 255, 255, 0.1);
       --text: #f8fafc;
       --muted: #94a3b8;
@@ -31,7 +31,7 @@
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at top, #16253d 0%, #0a111c 50%, #040810 100%);
+      background: radial-gradient(circle at top, #142238 0%, #080e1a 50%, #03060c 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -102,7 +102,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
     .status-bar {
       width: 100%;
@@ -111,7 +111,7 @@
       align-items: center;
       margin-bottom: 16px;
       padding: 12px 20px;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--border);
       border-radius: 12px;
     }
@@ -141,7 +141,7 @@
       height: 520px;
       border-radius: 12px;
       overflow: hidden;
-      background: #090e17;
+      background: #050811;
       border: 1px solid rgba(255,255,255,0.08);
       cursor: grab;
     }
@@ -152,7 +152,7 @@
       position: absolute;
       bottom: 12px;
       left: 12px;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       backdrop-filter: blur(4px);
       padding: 6px 12px;
       border-radius: 6px;
@@ -170,7 +170,7 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
     .panel-section {
       display: flex;
@@ -223,7 +223,7 @@
       padding-right: 36px;
     }
     .captured-box {
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
@@ -235,7 +235,7 @@
       font-size: 1.2rem;
     }
     .move-history {
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       border: 1px solid var(--border);
       border-radius: 12px;
       height: 130px;
@@ -257,7 +257,7 @@
     .game-over-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(7, 17, 31, 0.9);
+      background: rgba(7, 17, 31, 0.92);
       backdrop-filter: blur(8px);
       border-radius: 20px;
       z-index: 50;
@@ -398,9 +398,11 @@
         });
       }
     };
+    
     // --- CHESS RULE ENGINE ---
     const game = new Chess();
-    // DOM UI
+    
+    // DOM UI Elements
     const container = document.getElementById('webglContainer');
     const statusText = document.getElementById('statusText');
     const turnDot = document.getElementById('turnDot');
@@ -414,41 +416,79 @@
     const gameOverTitle = document.getElementById('gameOverTitle');
     const gameOverMsg = document.getElementById('gameOverMsg');
     const modalRestartBtn = document.getElementById('modalRestartBtn');
-    // --- THREE.JS PREMIUM 3D ENGINE ---
+    
+    // --- THREE.JS 3D ENGINE & CACHING ARCHITECTURE ---
     let scene, camera, renderer, controls;
-    let squareMeshes = []; // 8x8 grid of 3D tiles
-    let pieceMeshes = [];  // Array holding active 3D pieces
+    let squareMeshes = []; 
+    let pieceMeshes = [];  
     let highlightMeshes = [];
     let selectedSquare = null;
     let legalMovesForSelected = [];
+    
     const BOARD_SIZE = 8;
     const SQ_SIZE = 1.2;
     const BOARD_OFFSET = (BOARD_SIZE * SQ_SIZE) / 2 - (SQ_SIZE / 2);
     
-    // Luxury Polished Materials (Staunton Ivory & Ebony Wood)
+    // Procedural Wood Texture Generator for Stunning Realism
+    function createWoodTexture(isDark) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = isDark ? '#462716' : '#ebd8be';
+      ctx.fillRect(0, 0, 512, 512);
+      
+      // Organic wood grain curves
+      for (let i = 0; i < 70; i++) {
+        ctx.beginPath();
+        const y = Math.random() * 512;
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(170, y + (Math.random() * 50 - 25), 340, y + (Math.random() * 50 - 25), 512, y);
+        ctx.lineWidth = Math.random() * 7 + 2;
+        ctx.strokeStyle = isDark ? 'rgba(30, 15, 8, 0.35)' : 'rgba(210, 175, 130, 0.4)';
+        ctx.stroke();
+      }
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    const lightWoodTex = createWoodTexture(false);
+    const darkWoodTex = createWoodTexture(true);
+
+    // Premium Materials (Polished Ivory & Ebony with Physical Clearcoat)
     const whitePieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf5f2eb,
+      color: 0xf6f3ec,
       roughness: 0.18,
-      metalness: 0.05,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.15,
-      reflectivity: 0.9
+      metalness: 0.04,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.12,
+      reflectivity: 0.95
     });
+
     const blackPieceMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x241c17,
+      color: 0x1d1510,
       roughness: 0.22,
-      metalness: 0.1,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.15,
-      reflectivity: 0.8
+      metalness: 0.12,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.12,
+      reflectivity: 0.85
     });
-    const lightSquareMat = new THREE.MeshStandardMaterial({ color: 0xe3c19f, roughness: 0.35, metalness: 0.05 });
-    const darkSquareMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.35, metalness: 0.05 });
+
+    const lightSquareMat = new THREE.MeshStandardMaterial({ map: lightWoodTex, roughness: 0.3, metalness: 0.05 });
+    const darkSquareMat = new THREE.MeshStandardMaterial({ map: darkWoodTex, roughness: 0.3, metalness: 0.05 });
+
+    // GEOMETRY CACHES FOR MAXIMUM PERFORMANCE
+    const pieceGeometryCache = {};
+    const highlightGeometryCache = {};
 
     function init3D() {
       // Scene
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f1117);
+      scene.background = new THREE.Color(0x060a13);
       
       // Camera
       camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -467,15 +507,15 @@
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevents camera going under board
+      controls.maxPolarAngle = Math.PI / 2 - 0.03; 
       controls.minDistance = 6;
       controls.maxDistance = 22;
       
-      // Cinematic Studio Lighting Setup
-      const ambientLight = new THREE.AmbientLight(0xfff8ee, 0.7);
+      // Cinematic Studio Lighting
+      const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.65);
       scene.add(ambientLight);
       
-      const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+      const dirLight = new THREE.DirectionalLight(0xfff8ee, 1.3);
       dirLight.position.set(10, 16, 10);
       dirLight.castShadow = true;
       dirLight.shadow.mapSize.width = 4096;
@@ -497,19 +537,16 @@
       rimLight.position.set(0, 8, -12);
       scene.add(rimLight);
       
-      // Build 3D Luxury Board & Frame
+      // Build Board & Frame
       build3DBoard();
       
-      // Raycaster for 3D Tile Click Detection
+      // Raycaster for Tile Clicks
       setupRaycaster();
       
-      // Sync 3D Pieces with Engine
+      // Sync Pieces
       syncPiecesWithBoard();
       
-      // Window Resize Listener
       window.addEventListener('resize', onWindowResize);
-      
-      // Render Loop
       animate();
     }
     
@@ -518,22 +555,22 @@
       camera.lookAt(0, 0, 0);
     }
     
-    // BUILD 3D LUXURY WOODEN BOARD & FRAME
+    // BUILD LUXURY WOODEN BOARD & BEVELED FRAME
     function build3DBoard() {
       const frameGroup = new THREE.Group();
       
-      // Outer luxury mahogany/walnut wooden frame
-      const outerFrameGeo = new THREE.BoxGeometry(11.4, 0.65, 11.4);
-      const frameMat = new THREE.MeshStandardMaterial({ color: 0x331a0c, roughness: 0.35, metalness: 0.1 });
+      // Outer luxury wood frame with bevel appearance
+      const outerFrameGeo = new THREE.BoxGeometry(11.5, 0.7, 11.5);
+      const frameMat = new THREE.MeshStandardMaterial({ map: darkWoodTex, roughness: 0.3, metalness: 0.1 });
       const outerFrame = new THREE.Mesh(outerFrameGeo, frameMat);
-      outerFrame.position.y = -0.35;
+      outerFrame.position.y = -0.38;
       outerFrame.castShadow = true;
       outerFrame.receiveShadow = true;
       frameGroup.add(outerFrame);
 
-      // Inner board platform base
+      // Inner platform
       const baseGeo = new THREE.BoxGeometry(10.4, 0.2, 10.4);
-      const baseMat = new THREE.MeshStandardMaterial({ color: 0x221107, roughness: 0.5 });
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x1c1008, roughness: 0.5 });
       const baseMesh = new THREE.Mesh(baseGeo, baseMat);
       baseMesh.position.y = -0.06;
       baseMesh.receiveShadow = true;
@@ -541,7 +578,7 @@
 
       scene.add(frameGroup);
 
-      // 8x8 Board Tiles with exquisite finish
+      // 8x8 Board Tiles
       const sqGeo = new THREE.BoxGeometry(SQ_SIZE - 0.015, 0.08, SQ_SIZE - 0.015);
       for (let r = 0; r < 8; r++) {
         squareMeshes[r] = [];
@@ -564,105 +601,131 @@
       }
     }
     
-    // PREMIUM STAUNTON 3D PIECE GENERATOR (LatheGeometry segments increased to 48 for smoothness)
+    // GENUINE PREMIUM STAUNTON 3D PIECE GENERATOR WITH CACHING
     function createPiece3DMesh(type, color) {
       const group = new THREE.Group();
       const mat = color === 'w' ? whitePieceMaterial : blackPieceMaterial;
-      let geomPoints = [];
       
-      if (type === 'p') { // PAWN
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.44, 0), new THREE.Vector2(0.44, 0.06),
-          new THREE.Vector2(0.36, 0.1), new THREE.Vector2(0.24, 0.18), new THREE.Vector2(0.18, 0.45),
-          new THREE.Vector2(0.24, 0.52), new THREE.Vector2(0.16, 0.6), new THREE.Vector2(0.22, 0.65),
-          new THREE.Vector2(0, 0.85)
-        ];
-      } else if (type === 'r') { // ROOK
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
-          new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.3, 0.25), new THREE.Vector2(0.28, 0.65),
-          new THREE.Vector2(0.36, 0.72), new THREE.Vector2(0.4, 0.92), new THREE.Vector2(0, 0.92)
-        ];
-        // Rook Crenellations/Battlements Ring
-        const battGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.12, 16);
-        const battMesh = new THREE.Mesh(battGeo, mat);
-        battMesh.position.y = 0.98;
-        battMesh.castShadow = true;
-        group.add(battMesh);
-      } else if (type === 'n') { // KNIGHT (Sculpted Horse Silhouette using ExtrudeGeometry + Weighted Base)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
-          new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.28, 0.25), new THREE.Vector2(0.2, 0.48)
-        ];
-        
-        // Horse Head Profile Shape
-        const horseShape = new THREE.Shape();
-        horseShape.moveTo(-0.16, 0);
-        horseShape.lineTo(0.16, 0);
-        horseShape.lineTo(0.26, 0.32);
-        horseShape.lineTo(0.38, 0.62); // Muzzle
-        horseShape.lineTo(0.22, 0.78); // Forehead
-        horseShape.lineTo(0.04, 0.72); // Ears / Top
-        horseShape.lineTo(-0.16, 0.42); // Mane / Back of neck
-        horseShape.closePath();
-        
-        const extrudeSettings = { depth: 0.24, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
-        const horseGeo = new THREE.ExtrudeGeometry(horseShape, extrudeSettings);
+      if (!pieceGeometryCache[type]) {
+        let points = [];
+        if (type === 'p') { // PAWN
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.44, 0), new THREE.Vector2(0.44, 0.06),
+            new THREE.Vector2(0.36, 0.1), new THREE.Vector2(0.24, 0.18), new THREE.Vector2(0.18, 0.42),
+            new THREE.Vector2(0.26, 0.5), new THREE.Vector2(0.16, 0.58), new THREE.Vector2(0.22, 0.65),
+            new THREE.Vector2(0, 0.85)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        } else if (type === 'r') { // ROOK
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
+            new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.3, 0.25), new THREE.Vector2(0.28, 0.68),
+            new THREE.Vector2(0.38, 0.76), new THREE.Vector2(0.38, 0.92), new THREE.Vector2(0, 0.92)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        } else if (type === 'b') { // BISHOP
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
+            new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.28, 0.25), new THREE.Vector2(0.18, 0.6),
+            new THREE.Vector2(0.28, 0.72), new THREE.Vector2(0.14, 1.05), new THREE.Vector2(0, 1.18)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        } else if (type === 'q') { // QUEEN
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.06),
+            new THREE.Vector2(0.4, 0.12), new THREE.Vector2(0.3, 0.25), new THREE.Vector2(0.2, 0.7),
+            new THREE.Vector2(0.4, 0.88), new THREE.Vector2(0.34, 1.18), new THREE.Vector2(0, 1.18)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        } else if (type === 'k') { // KING
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.06),
+            new THREE.Vector2(0.42, 0.12), new THREE.Vector2(0.32, 0.25), new THREE.Vector2(0.22, 0.78),
+            new THREE.Vector2(0.4, 0.94), new THREE.Vector2(0.36, 1.28), new THREE.Vector2(0, 1.28)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        } else if (type === 'n') { // KNIGHT PEDESTAL BASE
+          points = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
+            new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.28, 0.25), new THREE.Vector2(0.2, 0.42)
+          ];
+          pieceGeometryCache[type] = new THREE.LatheGeometry(points, 48);
+        }
+      }
+      
+      // Base Lathe Mesh
+      if (pieceGeometryCache[type]) {
+        const baseMesh = new THREE.Mesh(pieceGeometryCache[type], mat);
+        baseMesh.castShadow = true;
+        baseMesh.receiveShadow = true;
+        group.add(baseMesh);
+      }
+      
+      // Specific Detailed Architectural Features
+      if (type === 'r') {
+        // Rook Crenellations/Teeth Ring
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const toothGeo = new THREE.BoxGeometry(0.12, 0.12, 0.08);
+          const toothMesh = new THREE.Mesh(toothGeo, mat);
+          toothMesh.position.set(Math.cos(angle) * 0.32, 0.96, Math.sin(angle) * 0.32);
+          toothMesh.castShadow = true;
+          group.add(toothMesh);
+        }
+      } else if (type === 'n') {
+        // High-Detail Sculpted 3D Knight Head & Mane
+        const neckGeo = new THREE.CylinderGeometry(0.18, 0.24, 0.35, 16);
+        const neckMesh = new THREE.Mesh(neckGeo, mat);
+        neckMesh.position.set(0, 0.52, 0);
+        neckMesh.castShadow = true;
+        group.add(neckMesh);
+
+        const headShape = new THREE.Shape();
+        headShape.moveTo(-0.16, 0);
+        headShape.lineTo(0.16, 0);
+        headShape.lineTo(0.28, 0.35);
+        headShape.lineTo(0.4, 0.65); // Muzzle
+        headShape.lineTo(0.24, 0.82); // Forehead
+        headShape.lineTo(0.06, 0.75); // Ears
+        headShape.lineTo(-0.18, 0.45); // Back of neck / mane
+        headShape.closePath();
+
+        const extrudeSettings = { depth: 0.28, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 0.06, bevelThickness: 0.06 };
+        const horseGeo = new THREE.ExtrudeGeometry(headShape, extrudeSettings);
         horseGeo.center();
         const horseMesh = new THREE.Mesh(horseGeo, mat);
-        horseMesh.position.set(0, 0.78, 0);
+        horseMesh.position.set(0, 0.82, 0.02);
         horseMesh.rotation.y = Math.PI / 2;
         horseMesh.castShadow = true;
         group.add(horseMesh);
-      } else if (type === 'b') { // BISHOP (With diagonal mitre slit and spherical finial)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.46, 0), new THREE.Vector2(0.46, 0.06),
-          new THREE.Vector2(0.38, 0.12), new THREE.Vector2(0.28, 0.25), new THREE.Vector2(0.18, 0.6),
-          new THREE.Vector2(0.28, 0.72), new THREE.Vector2(0.14, 1.05), new THREE.Vector2(0, 1.18)
-        ];
-        
-        // Bishop Mitre Diagonal Slit
-        const slitGeo = new THREE.BoxGeometry(0.04, 0.32, 0.26);
-        const slitMat = new THREE.MeshStandardMaterial({
-          color: color === 'w' ? 0xdcd6cd : 0x141a22,
-          roughness: 0.3
-        });
+      } else if (type === 'b') {
+        // Bishop Mitre Diagonal Slit & Spherical Finial
+        const slitGeo = new THREE.BoxGeometry(0.04, 0.35, 0.28);
+        const slitMat = new THREE.MeshStandardMaterial({ color: color === 'w' ? 0xdcd6cd : 0x141a22, roughness: 0.3 });
         const slitMesh = new THREE.Mesh(slitGeo, slitMat);
-        slitMesh.position.set(0.1, 0.96, 0);
+        slitMesh.position.set(0.12, 0.98, 0);
         slitMesh.rotation.z = -0.32;
         group.add(slitMesh);
 
-        // Spherical Finial Top
         const bTipGeo = new THREE.SphereGeometry(0.06, 16, 16);
         const bTipMesh = new THREE.Mesh(bTipGeo, mat);
         bTipMesh.position.y = 1.25;
+        bTipMesh.castShadow = true;
         group.add(bTipMesh);
-      } else if (type === 'q') { // QUEEN (With crown coronet points)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.48, 0), new THREE.Vector2(0.48, 0.06),
-          new THREE.Vector2(0.4, 0.12), new THREE.Vector2(0.3, 0.25), new THREE.Vector2(0.2, 0.7),
-          new THREE.Vector2(0.38, 0.85), new THREE.Vector2(0.34, 1.18), new THREE.Vector2(0, 1.18)
-        ];
-        
-        // Crown Coronet Spheres
-        for (let i = 0; i < 6; i++) {
-          const angle = (i / 6) * Math.PI * 2;
-          const cpGeo = new THREE.SphereGeometry(0.05, 12, 12);
+      } else if (type === 'q') {
+        // Queen Coronet Spikes
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          const cpGeo = new THREE.SphereGeometry(0.045, 12, 12);
           const cpMesh = new THREE.Mesh(cpGeo, mat);
-          cpMesh.position.set(Math.cos(angle) * 0.22, 1.25, Math.sin(angle) * 0.22);
+          cpMesh.position.set(Math.cos(angle) * 0.24, 1.25, Math.sin(angle) * 0.24);
           cpMesh.castShadow = true;
           group.add(cpMesh);
         }
-      } else if (type === 'k') { // KING (Tallest, with majestic crown and integrated cross)
-        geomPoints = [
-          new THREE.Vector2(0, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0.5, 0.06),
-          new THREE.Vector2(0.42, 0.12), new THREE.Vector2(0.32, 0.25), new THREE.Vector2(0.22, 0.75),
-          new THREE.Vector2(0.38, 0.9), new THREE.Vector2(0.36, 1.28), new THREE.Vector2(0, 1.28)
-        ];
-        
-        // Integrated Cross Top
-        const crossV = new THREE.BoxGeometry(0.08, 0.34, 0.08);
-        const crossH = new THREE.BoxGeometry(0.24, 0.08, 0.08);
+      } else if (type === 'k') {
+        // Integrated 3D Cross
+        const crossV = new THREE.BoxGeometry(0.08, 0.36, 0.08);
+        const crossH = new THREE.BoxGeometry(0.26, 0.08, 0.08);
         const cVMesh = new THREE.Mesh(crossV, mat);
         const cHMesh = new THREE.Mesh(crossH, mat);
         cVMesh.position.y = 1.45;
@@ -673,18 +736,12 @@
         group.add(cHMesh);
       }
       
-      const latheGeo = new THREE.LatheGeometry(geomPoints, 48);
-      const latheMesh = new THREE.Mesh(latheGeo, mat);
-      latheMesh.castShadow = true;
-      latheMesh.receiveShadow = true;
-      group.add(latheMesh);
       group.userData = { type, color };
       return group;
     }
     
     // SYNC 3D PIECES WITH CHESS.JS BOARD
     function syncPiecesWithBoard() {
-      // Clear existing 3D piece meshes
       pieceMeshes.forEach(p => scene.remove(p));
       pieceMeshes = [];
       const boardState = game.board();
@@ -697,7 +754,6 @@
             const z = r * SQ_SIZE - BOARD_OFFSET;
             mesh.position.set(x, 0.08, z);
             
-            // Orient Black pieces facing White
             if (pieceObj.color === 'b') mesh.rotation.y = Math.PI;
             mesh.userData.sqStr = String.fromCharCode(97 + c) + (8 - r);
             scene.add(mesh);
@@ -708,7 +764,7 @@
       updateHighlightsAndStatus();
     }
     
-    // RAYCASTING FOR 3D TILE SELECTION
+    // RAYCASTING FOR TILE CLICKS
     function setupRaycaster() {
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
@@ -718,7 +774,6 @@
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        // Check intersection with board tile meshes
         const allTiles = squareMeshes.flat();
         const intersects = raycaster.intersectObjects(allTiles);
         if (intersects.length > 0) {
@@ -763,7 +818,7 @@
         else AudioEngine.playMove();
         if (game.in_check()) AudioEngine.playCheck();
         syncPiecesWithBoard();
-        // AI trigger
+        
         if (!game.game_over() && modeSelect.value.startsWith('ai') && game.turn() === 'b') {
           setTimeout(makeAIMove, 350);
         }
@@ -783,7 +838,6 @@
         const capOrCheck = moves.filter(m => m.captured || m.san.includes('+'));
         chosenMove = capOrCheck.length > 0 ? capOrCheck[Math.floor(Math.random() * capOrCheck.length)] : moves[Math.floor(Math.random() * moves.length)];
       } else {
-        // Hard AI Depth 2 Evaluation
         let bestScore = -Infinity;
         chosenMove = moves[0];
         const pVals = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
@@ -803,40 +857,43 @@
       executeMove3D(chosenMove);
     }
     
-    // HIGHLIGHTS & OVERLAYS
+    // HIGHLIGHTS & STATUS WITH CACHED GEOMETRY
     function updateHighlightsAndStatus() {
-      // Clear 3D highlight meshes
       highlightMeshes.forEach(h => scene.remove(h));
       highlightMeshes = [];
-      // Reset tile materials
+      
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
           const sqMesh = squareMeshes[r][c];
-          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xe3c19f : 0x5c3a21);
+          sqMesh.material.color.set((r + c) % 2 === 0 ? 0xffffff : 0xffffff); // reset tint
         }
       }
-      // Highlight selected square
+      
       if (selectedSquare) {
         const { r, c } = sqToCoords(selectedSquare);
-        squareMeshes[r][c].material.color.set(0x22c55e);
+        squareMeshes[r][c].material.color.set(0x86efac);
       }
-      // Render 3D glowing rings on legal move destination squares
+      
+      // Cache highlight ring geometry
+      if (!highlightGeometryCache['ring']) {
+        highlightGeometryCache['ring'] = new THREE.RingGeometry(0.22, 0.36, 32);
+        highlightGeometryCache['mat'] = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+      }
+
       legalMovesForSelected.forEach(m => {
         const { r, c } = sqToCoords(m.to);
-        const ringGeo = new THREE.RingGeometry(0.2, 0.35, 32);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        const ringMesh = new THREE.Mesh(highlightGeometryCache['ring'], highlightGeometryCache['mat']);
         ringMesh.rotation.x = Math.PI / 2;
         ringMesh.position.set(c * SQ_SIZE - BOARD_OFFSET, 0.09, r * SQ_SIZE - BOARD_OFFSET);
         scene.add(ringMesh);
         highlightMeshes.push(ringMesh);
       });
-      // Update UI Status Bar
+      
       const turn = game.turn();
       statusText.textContent = turn === 'w' ? "White's Turn" : "Black's Turn";
       turnDot.className = `turn-dot ${turn === 'b' ? 'black' : ''}`;
       checkBadge.style.display = game.in_check() ? 'block' : 'none';
-      // Check Game Over Modal
+      
       if (game.game_over()) {
         gameOverOverlay.classList.add('show');
         if (game.in_checkmate()) {
@@ -860,7 +917,6 @@
     }
     
     function updateCapturedAndHistoryUI() {
-      // Captured Pieces
       const UNICODE = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', wP:'♙', wN:'♘', wB:'♗', wR:'♖', wQ:'♕' };
       const counts = { w: { p:8, n:2, b:2, r:2, q:1 }, b: { p:8, n:2, b:2, r:2, q:1 } };
       game.board().forEach(row => row.forEach(p => {
@@ -873,7 +929,7 @@
       });
       document.getElementById('capturedWhite').textContent = capWhite.join(' ');
       document.getElementById('capturedBlack').textContent = capBlack.join(' ');
-      // Move History
+      
       const historyEl = document.getElementById('moveHistory');
       historyEl.innerHTML = '';
       const history = game.history({ verbose: true });
@@ -886,7 +942,7 @@
       historyEl.scrollTop = historyEl.scrollHeight;
     }
     
-    // ANIMATION & RESIZE LOOP
+    // ANIMATION & RESIZE
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
