@@ -1179,3 +1179,51 @@ main {
         font-size: 0.6rem;
     }
 }
+
+/* =========================================================
+   INTERACTION FIXES
+========================================================= */
+
+.card {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: element;
+}
+
+.tableau,
+.tableau-column,
+.card-pile,
+.foundation-pile,
+.stock-pile,
+.waste-pile {
+    touch-action: manipulation;
+}
+
+.tableau-column {
+    min-height: 320px;
+}
+
+.card.dragging {
+    opacity: 0.75;
+}
+
+.card.selected {
+    z-index: 2000;
+}
+
+.tableau-empty {
+    cursor: pointer;
+}
+
+.stock-pile {
+    cursor: pointer;
+}
+
+.waste-pile {
+    cursor: pointer;
+}
+
+.foundation-pile {
+    cursor: pointer;
+}
