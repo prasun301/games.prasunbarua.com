@@ -10,6 +10,7 @@
     <meta name="keywords" content="free online checkers, play checkers in browser, play checkers against computer, checkers AI, classic checkers, American Checkers, English Draughts, no download checkers, Prasun Games">
     <meta name="author" content="Prasun Barua">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0b132b">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://games.prasunbarua.com/games/checkers/">
@@ -27,6 +28,9 @@
     <meta name="twitter:title" content="Play Free Checkers Online | Prasun Games">
     <meta name="twitter:description" content="Play free American Checkers in your browser against Computer or a friend. Mandatory jumps, smooth graphics, and touch controls.">
 
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -34,16 +38,17 @@
     <!-- Accessibility Skip Link -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <!-- Site Header / Brand Navigation -->
+    <!-- Site Header / Brand Navigation (Unified Branding) -->
     <header class="site-header">
         <div class="header-container">
-            <a href="https://games.prasunbarua.com/" class="brand-logo" aria-label="Prasun Games Homepage">
-                <span class="brand-title">PRASUN GAMES</span>
+            <a href="https://games.prasunbarua.com/" class="brand" aria-label="Prasun Games Homepage">
+                <span class="brand-icon" aria-hidden="true">🎮</span>
+                <span class="brand-title">Prasun Games</span>
             </a>
-            <nav class="site-nav" aria-label="Main Navigation">
-                <a href="https://games.prasunbarua.com/" class="nav-link">Home</a>
-                <a href="#how-to-play" class="nav-link">How to Play</a>
-                <a href="#faq" class="nav-link">FAQ</a>
+            <nav class="header-nav" aria-label="Main Navigation">
+                <a href="https://games.prasunbarua.com/" class="header-link">Home</a>
+                <a href="#how-to-play" class="header-link">How to Play</a>
+                <a href="#faq" class="header-link">FAQ</a>
             </nav>
         </div>
     </header>
@@ -132,7 +137,7 @@
             <!-- Checkers Board Frame & Grid -->
             <div class="board-container">
                 <div id="checkersBoard" class="checkers-board" role="grid" aria-label="8 by 8 Checkers Board">
-                    <!-- 64 Squares and initial 24 pieces generated dynamically by JavaScript -->
+                    <!-- Dynamic pieces rendered by app.js -->
                 </div>
             </div>
 
@@ -206,12 +211,12 @@
         </div>
     </div>
 
-    <!-- SEO Content & History Section -->
+    <!-- SEO Content Section -->
     <section class="seo-section">
         <div class="seo-container">
             <article id="how-to-play" class="seo-article">
                 <h2>Play Free American Checkers Online vs Computer</h2>
-                <p>Welcome to <strong>Checkers</strong> on <strong>Prasungames.com</strong>. Challenge our intelligent Minimax computer opponent or play locally with a friend in 2-player mode. Designed with high-performance CSS and JavaScript, this game runs smoothly across desktop, tablet, and mobile devices with zero downloads required.</p>
+                <p>Welcome to <strong>Checkers</strong> on <strong>Prasun Games</strong>. Challenge our intelligent Minimax computer opponent or play locally with a friend in 2-player mode. Designed with high-performance CSS and JavaScript, this game runs smoothly across desktop, tablet, and mobile devices with zero downloads required.</p>
 
                 <h2>Official Checkers Rules</h2>
                 <p>This edition implements standard <strong>American Checkers</strong> rules (also known as <em>English Draughts</em>):</p>
@@ -234,7 +239,7 @@
                 </ol>
             </article>
 
-            <!-- Frequently Asked Questions -->
+            <!-- FAQ Section -->
             <article id="faq" class="seo-article faq-section">
                 <h2>Frequently Asked Questions (FAQ)</h2>
                 
