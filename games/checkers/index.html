@@ -1,1 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="Play classic Checkers online for free. Challenge a friend in this responsive two-player Checkers game with mandatory captures, multiple jumps, kings, undo, hints, sound, and game statistics."
+  >
+
+  <meta
+    name="keywords"
+    content="checkers, checkers game, play checkers online, free checkers, classic checkers, two player checkers, online board game, Prasun Games"
+  >
+
+  <meta name="author" content="Prasun Barua">
+
+  <meta
+    name="robots"
+    content="index, follow, max-image-preview:large"
+  >
+
+  <meta name="theme-color" content="#0a0e18">
+
+  <title>Checkers Game — Play Classic Checkers Online | Prasun Games</title>
+
+  <!-- Canonical -->
+  <link
+    rel="canonical"
+    href="https://games.prasunbarua.com/checkers/"
+  >
+
+  <!-- Performance: Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Open Graph -->
+  <meta
+    property="og:type"
+    content="website"
+  >
+
+  <meta
+    property="og:title"
+    content="Checkers Game — Play Classic Checkers Online"
+  >
+
+  <meta
+    property="og:description"
+    content="Play classic two-player Checkers online for free. Enjoy mandatory captures, multiple jumps, kings, hints, undo, sound, and a responsive game board."
+  >
+
+  <meta
+    property="og:url"
+    content="https://games.prasunbarua.com/checkers/"
+  >
+
+  <meta
+    property="og:site_name"
+    content="Prasun Games"
+  >
+
+  <!-- Twitter / X -->
+  <meta
+    name="twitter:card"
+    content="summary"
+  >
+
+  <meta
+    name="twitter:title"
+    content="Checkers Game — Play Classic Checkers Online"
+  >
+
+  <meta
+    name="twitter:description"
+    content="Play classic Checkers online for free with a friend on desktop, tablet, or mobile."
+  >
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Checkers Game",
+    "description": "A free classic two-player Checkers game playable online on desktop and mobile devices.",
+    "url": "https://games.prasunbarua.com/checkers/",
+    "genre": [
+      "Board Game",
+      "Strategy Game",
+      "Checkers"
+    ],
+    "gamePlatform": [
+      "Web Browser",
+      "Mobile Web Browser"
+    ],
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "playMode": "MultiPlayer",
+    "author": {
+      "@type": "Person",
+      "name": "Prasun Barua"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Prasun Games",
+      "url": "https://games.prasunbarua.com/"
+    },
+    "isAccessibleForFree": true
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- ================================================================
+       ACCESSIBILITY
+       ================================================================ -->
+
+  <a
+    class="skip-link"
+    href="#game"
+  >
+    Skip to game
+  </a>
+
+
+  <!-- ================================================================
+       SITE HEADER
+       ================================================================ -->
+
+  <header class="site-header">
+
+    <div class="site-header-inner">
+
+      <a
+        class="brand"
+        href="https://games.prasunbarua.com/"
+        aria-label="Prasun Games home"
+      >
+        <span
+          class="brand-icon"
+          aria-hidden="true"
+        >♟</span>
+
+        <span class="brand-name">
+          Prasun Games
+        </span>
+      </a>
+
+
+      <nav
+        class="site-nav"
+        aria-label="Main navigation"
+      >
+
+        <a href="https://games.prasunbarua.com/">
+          Games
+        </a>
+
+        <a href="https://electrical.prasunbarua.com/">
+          Engineering
+        </a>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================================================================
+       PAGE INTRO
+       ================================================================ -->
+
+  <main id="main-content">
+
+    <section
+      class="page-intro"
+      aria-labelledby="page-title"
+    >
+
+      <div class="page-intro-inner">
+
+        <p class="eyebrow">
+          PRASUN GAMES
+        </p>
+
+        <h1 id="page-title">
+          Classic Checkers
+        </h1>
+
+        <p>
+          Play a classic two-player game of Checkers directly in your
+          browser. Capture your opponent's pieces, make multiple jumps,
+          reach the opposite side, and crown your pieces as kings.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==============================================================
+         GAME SECTION
+         ============================================================== -->
+
+    <section
+      id="game"
+      class="game-section"
+      aria-labelledby="game-heading"
+    >
+
+      <div class="solitaire-app checkers-app">
+
+        <h2
+          id="game-heading"
+          class="sr-only"
+        >
+          Checkers Game Board
+        </h2>
+
+
+        <!-- ==========================================================
+             TOOLBAR
+             ========================================================== -->
+
+        <div
+          class="toolbar"
+          role="toolbar"
+          aria-label="Checkers game controls"
+        >
+
+          <!-- Game information -->
+
+          <div class="toolbar-group toolbar-stats">
+
+            <div class="stat">
+              <span class="stat-label">
+                Turn
+              </span>
+
+              <span
+                class="stat-value"
+                id="turnValue"
+              >
+                Black
+              </span>
+            </div>
+
+
+            <div class="stat">
+              <span class="stat-label">
+                Moves
+              </span>
+
+              <span
+                class="stat-value"
+                id="movesValue"
+              >
+                0
+              </span>
+            </div>
+
+
+            <div class="stat">
+              <span class="stat-label">
+                Time
+              </span>
+
+              <span
+                class="stat-value"
+                id="timeValue"
+              >
+                00:00
+              </span>
+            </div>
+
+          </div>
+
+
+          <!-- Game controls -->
+
+          <div class="toolbar-group toolbar-actions">
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="newGameBtn"
+              aria-label="Start a new Checkers game"
+            >
+              New Game
+            </button>
+
+
+            <button
+              type="button"
+              class="btn"
+              id="undoBtn"
+              disabled
+              aria-label="Undo the last move"
+            >
+              Undo
+            </button>
+
+
+            <button
+              type="button"
+              class="btn"
+              id="hintBtn"
+              aria-label="Show a Checkers move hint"
+            >
+              Hint
+            </button>
+
+
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="soundBtn"
+              aria-pressed="true"
+              aria-label="Toggle game sound"
+            >
+              🔊 Sound On
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- ==========================================================
+             GAME STATUS
+             ========================================================== -->
+
+        <div
+          class="game-status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+
+          <span
+            class="turn-indicator"
+            id="turnIndicator"
+          >
+            <span
+              class="turn-piece turn-piece-black"
+              aria-hidden="true"
+            ></span>
+
+            <span id="turnText">
+              Black's turn
+            </span>
+          </span>
+
+          <span
+            class="capture-status"
+            id="captureStatus"
+            hidden
+          >
+            Capture required
+          </span>
+
+        </div>
+
+
+        <!-- ==========================================================
+             CHECKERS BOARD
+             ========================================================== -->
+
+        <div
+          class="board-shell"
+          id="boardShell"
+        >
+
+          <div
+            id="board"
+            class="checkers-board"
+            role="grid"
+            aria-label="8 by 8 Checkers board"
+            aria-rowcount="8"
+            aria-colcount="8"
+            tabindex="0"
+          >
+
+            <!--
+              The 64 board squares are intentionally generated by
+              app.js from the game state.
+
+              app.js will populate:
+
+              .square
+              .square.light
+              .square.dark
+              .square[data-row]
+              .square[data-col]
+
+              and the checker pieces.
+
+              Keeping board generation inside app.js means the game
+              state remains the single source of truth.
+            -->
+
+          </div>
+
+        </div>
+
+
+        <!-- ==========================================================
+             PLAYER INFORMATION
+             ========================================================== -->
+
+        <div class="player-panel">
+
+          <div
+            class="player-card player-black active"
+            id="blackPlayer"
+          >
+
+            <div class="player-piece-wrap">
+              <span
+                class="player-piece player-piece-black"
+                aria-hidden="true"
+              ></span>
+            </div>
+
+            <div class="player-details">
+
+              <span class="player-name">
+                Black
+              </span>
+
+              <span
+                class="player-count"
+                id="blackCount"
+              >
+                12 pieces
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="player-card player-red"
+            id="redPlayer"
+          >
+
+            <div class="player-piece-wrap">
+              <span
+                class="player-piece player-piece-red"
+                aria-hidden="true"
+              ></span>
+            </div>
+
+            <div class="player-details">
+
+              <span class="player-name">
+                Red
+              </span>
+
+              <span
+                class="player-count"
+                id="redCount"
+              >
+                12 pieces
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ==========================================================
+             GAME HELP / SHORTCUTS
+             ========================================================== -->
+
+        <div class="below-board">
+
+          <p class="game-tip">
+            <strong>How to play:</strong>
+            Select a piece and choose a highlighted diagonal square.
+            Captures are mandatory.
+          </p>
+
+          <p class="shortcuts-line">
+
+            <span>Shortcuts:</span>
+
+            <kbd>N</kbd>
+            New game
+
+            <kbd>Ctrl</kbd> +
+            <kbd>Z</kbd>
+            Undo
+
+            <kbd>H</kbd>
+            Hint
+
+            <kbd>Esc</kbd>
+            Cancel selection
+
+          </p>
+
+        </div>
+
+
+        <!-- ==========================================================
+             GAME STATISTICS
+             ========================================================== -->
+
+        <div
+          class="stats-line"
+          id="statsLine"
+          aria-live="polite"
+        >
+          Games 0 · Wins 0 · Win rate 0%
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================================
+         SEO / GAME INFORMATION
+         ================================================================ -->
+
+    <section
+      class="seo-content"
+      aria-labelledby="about-checkers"
+    >
+
+      <div class="seo-content-inner">
+
+        <h2 id="about-checkers">
+          Play Checkers Online
+        </h2>
+
+        <p>
+          Enjoy a classic game of Checkers with this free browser-based
+          version from Prasun Games. The game is designed for two players
+          sharing the same device, making it easy to play with a friend
+          on a desktop, tablet, or mobile phone.
+        </p>
+
+        <p>
+          Checkers is a strategy board game played on an 8×8 board.
+          Players move their pieces diagonally across the dark squares
+          and capture opposing pieces by jumping over them.
+        </p>
+
+
+        <h2>
+          Checkers Rules
+        </h2>
+
+        <p>
+          Each player begins with twelve pieces. Regular pieces move
+          diagonally forward by one square. When an opponent's piece is
+          directly beyond an available diagonal square, the piece can
+          jump over it and capture it.
+        </p>
+
+        <p>
+          Captures are mandatory in this version of the game. When
+          another capture is available immediately after a jump, the
+          same piece must continue jumping until no additional capture
+          is available.
+        </p>
+
+        <p>
+          A piece that reaches the opponent's back row is promoted to a
+          king. Kings can move and capture diagonally in both directions.
+        </p>
+
+
+        <h2>
+          How to Win at Checkers
+        </h2>
+
+        <p>
+          The objective is to capture all of your opponent's pieces or
+          leave them without a legal move. Good Checkers strategy
+          involves protecting your pieces, creating forced captures,
+          controlling the board, and planning multiple jumps several
+          moves ahead.
+        </p>
+
+
+        <h2>
+          Checkers Features
+        </h2>
+
+        <ul>
+
+          <li>
+            Classic 8×8 Checkers board
+          </li>
+
+          <li>
+            Local two-player gameplay
+          </li>
+
+          <li>
+            Mandatory captures
+          </li>
+
+          <li>
+            Multiple-jump captures
+          </li>
+
+          <li>
+            King promotion
+          </li>
+
+          <li>
+            Undo previous moves
+          </li>
+
+          <li>
+            Move hints
+          </li>
+
+          <li>
+            Game timer and move counter
+          </li>
+
+          <li>
+            Optional sound effects
+          </li>
+
+          <li>
+            Responsive desktop and mobile design
+          </li>
+
+          <li>
+            No account required
+          </li>
+
+        </ul>
+
+
+        <h2>
+          Free Checkers Game
+        </h2>
+
+        <p>
+          No installation or registration is required. Open the game,
+          choose your piece, and start playing. The game runs directly
+          in your web browser and is designed to work across modern
+          desktop and mobile browsers.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================================
+         RELATED GAMES
+         ================================================================ -->
+
+    <section
+      class="related-games"
+      aria-labelledby="related-games-title"
+    >
+
+      <div class="related-games-inner">
+
+        <h2 id="related-games-title">
+          More Games
+        </h2>
+
+        <div class="related-games-grid">
+
+          <a
+            class="related-card"
+            href="/solitaire/"
+            aria-label="Play Classic Solitaire"
+          >
+
+            <span
+              class="related-card-icon"
+              aria-hidden="true"
+            >
+              ♠
+            </span>
+
+            <span>
+              Classic Solitaire
+            </span>
+
+          </a>
+
+
+          <a
+            class="related-card"
+            href="/chess/"
+            aria-label="Play Chess"
+          >
+
+            <span
+              class="related-card-icon"
+              aria-hidden="true"
+            >
+              ♔
+            </span>
+
+            <span>
+              Chess
+            </span>
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================================================================
+       TOAST
+       ================================================================ -->
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
+
+  <!-- ================================================================
+       SCREEN READER LIVE REGION
+       ================================================================ -->
+
+  <div
+    id="liveRegion"
+    class="sr-only"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
+
+  <!-- ================================================================
+       WIN / GAME OVER MODAL
+       ================================================================ -->
+
+  <div
+    id="winModal"
+    class="win-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="winModalTitle"
+    aria-describedby="winModalDescription"
+    hidden
+  >
+
+    <div class="win-modal-card">
+
+      <button
+        type="button"
+        class="win-modal-close"
+        id="closeModalBtn"
+        aria-label="Close game result"
+      >
+        ×
+      </button>
+
+
+      <div
+        class="win-emoji"
+        aria-hidden="true"
+      >
+        🏆
+      </div>
+
+
+      <h2 id="winModalTitle">
+        You Win!
+      </h2>
+
+
+      <p id="winModalDescription">
+        Congratulations! You defeated your opponent.
+      </p>
+
+
+      <div class="win-stats">
+
+        <div>
+
+          <span class="win-stat-label">
+            Moves
+          </span>
+
+          <span
+            class="win-stat-value"
+            id="winMoves"
+          >
+            0
+          </span>
+
+        </div>
+
+
+        <div>
+
+          <span class="win-stat-label">
+            Time
+          </span>
+
+          <span
+            class="win-stat-value"
+            id="winTime"
+          >
+            00:00
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn btn-primary btn-large"
+        id="playAgainBtn"
+      >
+        Play Again
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================================================================
+       FOOTER
+       ================================================================ -->
+
+  <footer class="site-footer">
+
+    <div class="site-footer-inner">
+
+      <nav
+        class="footer-links"
+        aria-label="Footer navigation"
+      >
+
+        <a href="https://games.prasunbarua.com/">
+          Games
+        </a>
+
+        <a href="/solitaire/">
+          Solitaire
+        </a>
+
+        <a href="/chess/">
+          Chess
+        </a>
+
+        <a href="/checkers/">
+          Checkers
+        </a>
+
+      </nav>
+
+
+      <p class="footer-copy">
+        © 2026
+        <a href="https://www.prasunbarua.com/">
+          Prasun Barua
+        </a>.
+        Prasun Games.
+      </p>
+
+    </div>
+
+  </footer>
+
+
+  <!-- ================================================================
+       JAVASCRIPT
+       ================================================================ -->
+
+  <script src="app.js" defer></script>
+
+</body>
+</html>
