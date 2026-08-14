@@ -1,6 +1,6 @@
 /* ==========================================================================
    PRASUN GAMES — MINESWEEPER
-   Normal game-page styling matching the main Prasun Games website
+   Game-page styling matching the Prasun Games visual standard.
    ========================================================================== */
 
 :root {
@@ -10,6 +10,7 @@
 
     --surface: rgba(17, 29, 46, 0.75);
     --surface-hover: rgba(24, 40, 62, 0.85);
+    --surface-input: #0f1c2d;
 
     --border: rgba(255, 255, 255, 0.08);
     --border-hover: rgba(255, 255, 255, 0.20);
@@ -28,16 +29,7 @@
     --warning: #facc15;
     --cyan: #38bdf8;
 
-    --font-family:
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Oxygen,
-        Ubuntu,
-        Cantarell,
-        sans-serif;
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 
     --radius-sm: 8px;
     --radius-md: 14px;
@@ -47,7 +39,7 @@
     --transition-fast: 0.15s ease;
     --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Minesweeper board */
+    /* Minesweeper Board Dimensions */
     --cell-size: 34px;
     --cell-gap: 3px;
     --board-padding: 12px;
@@ -55,7 +47,7 @@
 
 
 /* ==========================================================================
-   RESET
+   RESET & BASE STYLES
    ========================================================================== */
 
 *,
@@ -77,34 +69,29 @@ body {
     min-height: 100vh;
     font-family: var(--font-family);
     color: var(--text);
-
-    background:
-        radial-gradient(
-            circle at top,
-            var(--bg-gradient-top) 0%,
-            var(--bg) 50%,
-            var(--bg-gradient-bottom) 100%
-        ) fixed;
-
+    background: radial-gradient(
+        circle at top,
+        var(--bg-gradient-top) 0%,
+        var(--bg) 50%,
+        var(--bg-gradient-bottom) 100%
+    ) fixed;
     display: flex;
     flex-direction: column;
-
     overflow-x: hidden;
-
     line-height: 1.6;
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 
 /* ==========================================================================
-   LINKS / BUTTONS / FOCUS
+   INTERACTIVE ELEMENTS & FOCUS STATES
    ========================================================================== */
 
 a {
     color: var(--accent);
     text-decoration: none;
+    transition: color var(--transition-fast);
 }
 
 a:hover {
@@ -134,14 +121,10 @@ button {
 
 .site-header {
     width: 100%;
-
     border-bottom: 1px solid var(--border);
-
     background: rgba(7, 17, 31, 0.85);
-
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-
     position: sticky;
     top: 0;
     z-index: 100;
@@ -150,9 +133,7 @@ button {
 .header-container {
     width: min(1200px, 92%);
     height: 72px;
-
     margin: 0 auto;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -161,18 +142,11 @@ button {
 .brand {
     font-size: 1.2rem;
     font-weight: 800;
-
     color: var(--text);
-
-    text-decoration: none;
-
     display: flex;
     align-items: center;
-
     gap: 10px;
-
     letter-spacing: -0.02em;
-
     transition: opacity var(--transition-fast);
 }
 
@@ -194,15 +168,9 @@ button {
 
 .header-nav a {
     color: var(--muted);
-
     font-size: 0.92rem;
     font-weight: 500;
-
-    position: relative;
-
     padding: 4px 0;
-
-    transition: color var(--transition-fast);
 }
 
 .header-nav a:hover {
@@ -211,28 +179,18 @@ button {
 
 
 /* ==========================================================================
-   MAIN
+   MAIN LAYOUT & BREADCRUMBS
    ========================================================================== */
 
 main {
     flex: 1;
-
     width: min(1200px, 92%);
-
     margin: 0 auto;
-
     padding: 40px 0 60px;
-
     display: flex;
     flex-direction: column;
-
     gap: 32px;
 }
-
-
-/* ==========================================================================
-   BREADCRUMB
-   ========================================================================== */
 
 .breadcrumb-nav {
     font-size: 0.85rem;
@@ -241,27 +199,21 @@ main {
 
 .breadcrumb-list {
     list-style: none;
-
     display: flex;
     align-items: center;
-
     gap: 8px;
-
     flex-wrap: wrap;
 }
 
 .breadcrumb-item {
     display: flex;
     align-items: center;
-
     gap: 8px;
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
     content: "›";
-
     color: var(--muted-dark);
-
     font-size: 1rem;
 }
 
@@ -280,154 +232,165 @@ main {
 
 
 /* ==========================================================================
-   HERO
+   HERO SECTION
    ========================================================================== */
 
 .hero {
     text-align: center;
-
     max-width: 760px;
-
     margin: 0 auto;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
-
     gap: 12px;
 }
 
 .hero h1 {
     font-size: clamp(2rem, 5vw, 3.25rem);
-
     font-weight: 900;
-
     letter-spacing: -0.03em;
-
     line-height: 1.15;
 }
 
 .hero-subtitle {
     color: var(--muted);
-
     font-size: 1.05rem;
-
     max-width: 650px;
 }
 
 
 /* ==========================================================================
-   GAME PANEL
+   GAME PANEL & CONTROLS
    ========================================================================== */
 
 .game-panel {
     width: fit-content;
     max-width: 100%;
-
     margin: 0 auto;
-
     background: var(--surface);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-lg);
-
     padding: 24px;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
-
     gap: 18px;
-
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-
-    box-shadow:
-        0 20px 40px -15px rgba(0, 0, 0, 0.5);
-
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 
-
-/* ==========================================================================
-   GAME CONTROLS
-   ========================================================================== */
-
 .game-controls {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: rgba(2, 6, 23, 0.55);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+}
 
+.controls-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 16px;
-
     flex-wrap: wrap;
-
-    background: rgba(2, 6, 23, 0.55);
-
-    border: 1px solid var(--border);
-
-    border-radius: var(--radius-md);
-
-    padding: 12px 14px;
 }
 
 .control-group {
     display: flex;
     align-items: center;
-
     gap: 10px;
 }
 
 .control-group label {
     color: var(--muted);
-
     font-size: 0.85rem;
-
     font-weight: 600;
 }
 
+/* Dropdown & Form Inputs */
 .select-input {
     appearance: none;
     -webkit-appearance: none;
-
-    background: #0f1c2d;
-
+    background: var(--surface-input);
     color: var(--text);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-sm);
-
     padding: 9px 34px 9px 12px;
-
     font-size: 0.9rem;
-
     font-weight: 600;
-
     cursor: pointer;
-
     background-image:
         linear-gradient(45deg, transparent 50%, #94a3b8 50%),
         linear-gradient(135deg, #94a3b8 50%, transparent 50%);
-
     background-position:
         calc(100% - 14px) 50%,
         calc(100% - 9px) 50%;
-
-    background-size:
-        5px 5px,
-        5px 5px;
-
+    background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
+    transition: border-color var(--transition-fast);
 }
 
 .select-input:hover {
     border-color: var(--accent);
+}
+
+/* Custom Difficulty Controls Container */
+.custom-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+}
+
+.custom-controls[hidden] {
+    display: none !important;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.input-group label {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.number-input,
+input[type="number"] {
+    background: var(--surface-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    width: 68px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.number-input:hover,
+input[type="number"]:hover {
+    border-color: var(--border-hover);
+}
+
+.number-input:focus,
+input[type="number"]:focus {
+    border-color: var(--focus-ring);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
 }
 
 .action-buttons {
@@ -443,24 +406,15 @@ main {
 
 .btn {
     display: inline-flex;
-
     align-items: center;
     justify-content: center;
-
     gap: 8px;
-
     padding: 9px 16px;
-
     border-radius: var(--radius-sm);
-
     font-size: 0.88rem;
-
     font-weight: 700;
-
     cursor: pointer;
-
     border: 1px solid transparent;
-
     transition:
         background var(--transition-fast),
         border-color var(--transition-fast),
@@ -474,145 +428,105 @@ main {
 
 .btn-primary {
     background: var(--accent);
-
     color: #ffffff;
-
     box-shadow: 0 4px 14px var(--accent-glow);
 }
 
 .btn-primary:hover {
     background: var(--accent-hover);
-
     color: #ffffff;
-
     box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.05);
-
     color: var(--text);
-
     border-color: var(--border);
 }
 
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
-
     border-color: var(--border-hover);
-
     color: var(--text);
 }
 
 .btn-toggle {
     background: rgba(255, 255, 255, 0.05);
-
     color: var(--muted);
-
     border-color: var(--border);
 }
 
 .btn-toggle:hover {
     background: rgba(255, 255, 255, 0.1);
-
     color: var(--text);
 }
 
 .btn-toggle.active,
 .btn-toggle[aria-pressed="true"] {
     background: rgba(250, 204, 21, 0.12);
-
     color: var(--warning);
-
     border-color: rgba(250, 204, 21, 0.35);
 }
 
 
 /* ==========================================================================
-   GAME HUD
+   HUD (HEADS-UP DISPLAY)
    ========================================================================== */
 
 .game-hud {
     width: 100%;
-
     display: grid;
-
     grid-template-columns: repeat(3, 1fr);
-
     gap: 12px;
-
     padding: 12px;
-
     background: rgba(2, 6, 23, 0.55);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-md);
 }
 
 .hud-item {
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
     justify-content: center;
 }
 
 .hud-label {
     color: var(--muted-dark);
-
     font-size: 0.68rem;
-
     font-weight: 700;
-
     text-transform: uppercase;
-
     letter-spacing: 0.08em;
 }
 
 .hud-value {
     color: var(--cyan);
-
     font-size: 1.35rem;
-
     font-weight: 800;
-
     font-variant-numeric: tabular-nums;
-
     line-height: 1.2;
 }
 
 #gameStatus {
     color: var(--text);
-
     font-size: 0.9rem;
-
     font-weight: 700;
-
     text-align: center;
 }
 
 
 /* ==========================================================================
-   MINESWEEPER BOARD
+   MINESWEEPER BOARD & CELL STYLING
    ========================================================================== */
 
 .board-viewport {
     width: 100%;
-
     overflow-x: auto;
-
     display: flex;
     justify-content: center;
-
     padding: 4px;
-
     scrollbar-width: thin;
-
-    scrollbar-color:
-        rgba(255, 255, 255, 0.2)
-        transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .board-viewport::-webkit-scrollbar {
@@ -621,76 +535,44 @@ main {
 
 .board-viewport::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
-
     border-radius: 999px;
 }
 
 .minesweeper-board {
     display: grid;
-
     gap: var(--cell-gap);
-
     width: max-content;
-
     padding: var(--board-padding);
-
     background: #020817;
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-md);
-
-    box-shadow:
-        inset 0 2px 10px rgba(0, 0, 0, 0.5);
-
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
     user-select: none;
     -webkit-user-select: none;
-
     touch-action: manipulation;
-
     margin: 0 auto;
 }
-
-
-/* ==========================================================================
-   CELLS
-   ========================================================================== */
 
 .cell {
     width: var(--cell-size);
     height: var(--cell-size);
-
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     padding: 0;
-
     border-radius: 5px;
-
     border: 1px solid rgba(255, 255, 255, 0.12);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.09),
-            rgba(255, 255, 255, 0.025)
-        );
-
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.09),
+        rgba(255, 255, 255, 0.025)
+    );
     color: var(--text);
-
     font-size: 1rem;
-
     font-weight: 800;
-
     line-height: 1;
-
     cursor: pointer;
-
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.25);
-
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     transition:
         background var(--transition-fast),
         border-color var(--transition-fast),
@@ -698,15 +580,12 @@ main {
 }
 
 .cell:hover:not(.cell-revealed) {
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.16),
-            rgba(255, 255, 255, 0.05)
-        );
-
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.16),
+        rgba(255, 255, 255, 0.05)
+    );
     border-color: rgba(255, 255, 255, 0.28);
-
     transform: translateY(-1px);
 }
 
@@ -714,128 +593,73 @@ main {
     transform: translateY(0);
 }
 
+.cell:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+    z-index: 2;
+}
 
-/* ==========================================================================
-   REVEALED CELLS
-   ========================================================================== */
-
+/* Revealed Cell States */
 .cell-revealed {
     background: rgba(2, 8, 23, 0.8);
-
     border-color: rgba(255, 255, 255, 0.04);
-
-    box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.45);
-
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
     cursor: default;
-
     transform: none !important;
 }
 
-
-/* ==========================================================================
-   FLAGS / MINES
-   ========================================================================== */
-
+/* Special States: Flags & Mines */
 .cell-flagged {
     color: var(--warning);
-
-    text-shadow:
-        0 0 8px rgba(250, 204, 21, 0.35);
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.35);
 }
 
 .cell-mine {
     background: rgba(239, 68, 68, 0.12);
-
     border-color: rgba(239, 68, 68, 0.25);
 }
 
 .cell-exploded {
     background: var(--danger) !important;
-
     border-color: #f87171 !important;
-
     color: #ffffff;
-
-    box-shadow:
-        0 0 16px rgba(239, 68, 68, 0.4);
-
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
     animation: pulseExplosion 0.4s ease;
 }
 
 .cell-wrong-flag {
     background: rgba(239, 68, 68, 0.15);
-
     border-color: var(--danger);
 }
 
-
-/* ==========================================================================
-   NUMBER COLORS
-   ========================================================================== */
-
-.cell-number-1 {
-    color: #60a5fa;
-}
-
-.cell-number-2 {
-    color: #34d399;
-}
-
-.cell-number-3 {
-    color: #f87171;
-}
-
-.cell-number-4 {
-    color: #a78bfa;
-}
-
-.cell-number-5 {
-    color: #fb7185;
-}
-
-.cell-number-6 {
-    color: #2dd4bf;
-}
-
-.cell-number-7 {
-    color: #e2e8f0;
-}
-
-.cell-number-8 {
-    color: #94a3b8;
-}
+/* Number Colors */
+.cell-number-1 { color: #60a5fa; }
+.cell-number-2 { color: #34d399; }
+.cell-number-3 { color: #f87171; }
+.cell-number-4 { color: #a78bfa; }
+.cell-number-5 { color: #fb7185; }
+.cell-number-6 { color: #2dd4bf; }
+.cell-number-7 { color: #e2e8f0; }
+.cell-number-8 { color: #94a3b8; }
 
 
 /* ==========================================================================
-   MOBILE CONTROLS
+   MOBILE CONTROLS & MODAL DIALOG
    ========================================================================== */
 
 .mobile-controls {
     display: none;
-
     width: 100%;
-
     justify-content: center;
 }
 
-
-/* ==========================================================================
-   MODAL
-   ========================================================================== */
-
 .game-modal {
     position: fixed;
-
     inset: 0;
-
     z-index: 1000;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     padding: 20px;
 }
 
@@ -845,93 +669,63 @@ main {
 
 .modal-overlay {
     position: absolute;
-
     inset: 0;
-
     background: rgba(2, 6, 23, 0.78);
-
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
 
 .modal-content {
     position: relative;
-
     z-index: 1;
-
     width: min(420px, 100%);
-
     padding: 32px;
-
     background: #0f1d30;
-
     border: 1px solid var(--border-hover);
-
     border-radius: var(--radius-lg);
-
-    box-shadow:
-        0 25px 50px -12px rgba(0, 0, 0, 0.7);
-
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     text-align: center;
-
     animation: modalPopIn 0.25s ease;
 }
 
 .modal-content h2 {
     font-size: 1.8rem;
-
     margin-bottom: 8px;
 }
 
 .modal-content p {
     color: var(--muted);
-
     font-size: 0.95rem;
-
     margin-bottom: 20px;
 }
 
 .modal-details {
     display: flex;
-
     justify-content: space-around;
-
     gap: 16px;
-
     padding: 16px;
-
     margin-bottom: 20px;
-
     background: rgba(2, 6, 23, 0.5);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-md);
 }
 
 .modal-details p {
     margin: 0;
-
     font-size: 0.82rem;
-
     color: var(--muted-dark);
 }
 
 .modal-details strong {
     display: block;
-
     margin-top: 3px;
-
     color: var(--cyan);
-
     font-size: 1.25rem;
-
     font-weight: 800;
 }
 
 .modal-actions {
     display: flex;
-
     gap: 12px;
 }
 
@@ -941,42 +735,31 @@ main {
 
 
 /* ==========================================================================
-   SEO / INFORMATION SECTION
+   INFORMATION & SEO CONTENT
    ========================================================================== */
 
 .info-section {
     width: 100%;
     max-width: 900px;
-
     margin: 0 auto;
-
     padding: 32px;
-
     background: var(--surface);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-lg);
-
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
 
 .info-section h2 {
     font-size: 1.4rem;
-
     margin-bottom: 18px;
-
     padding-bottom: 10px;
-
     border-bottom: 1px solid var(--border);
 }
 
 .info-content {
     color: var(--muted);
-
     font-size: 0.95rem;
-
     line-height: 1.75;
 }
 
@@ -986,27 +769,20 @@ main {
 
 .info-content ul {
     list-style: none;
-
     padding: 0;
 }
 
 .info-content li {
     position: relative;
-
     padding-left: 22px;
-
     margin-bottom: 10px;
 }
 
 .info-content li::before {
     content: "•";
-
     position: absolute;
-
     left: 5px;
-
     color: var(--accent);
-
     font-weight: 800;
 }
 
@@ -1017,34 +793,26 @@ main {
 
 .table-wrapper {
     width: 100%;
-
     overflow-x: auto;
-
     margin-top: 18px;
 }
 
 .difficulty-table {
     width: 100%;
-
     border-collapse: collapse;
-
     font-size: 0.9rem;
 }
 
 .difficulty-table th,
 .difficulty-table td {
     padding: 12px 14px;
-
     border-bottom: 1px solid var(--border);
-
     text-align: left;
 }
 
 .difficulty-table th {
     color: var(--text);
-
     background: rgba(255, 255, 255, 0.03);
-
     font-weight: 700;
 }
 
@@ -1054,40 +822,31 @@ main {
 
 
 /* ==========================================================================
-   RELATED GAMES
+   RELATED GAMES & ADS
    ========================================================================== */
 
 .related-games {
     width: 100%;
     max-width: 900px;
-
     margin: 0 auto;
 }
 
 .related-games h2 {
     font-size: 1.4rem;
-
     margin-bottom: 18px;
 }
 
 .games-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(240px, 1fr));
-
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px;
 }
 
 .game-card {
     background: var(--surface);
-
     border: 1px solid var(--border);
-
     border-radius: var(--radius-md);
-
     padding: 24px;
-
     transition:
         transform var(--transition-base),
         border-color var(--transition-base),
@@ -1096,55 +855,36 @@ main {
 
 .game-card:hover {
     transform: translateY(-3px);
-
     border-color: var(--border-hover);
-
     background: var(--surface-hover);
 }
 
 .game-card h3 {
     font-size: 1.1rem;
-
     margin-bottom: 8px;
 }
 
 .game-card p {
     color: var(--muted);
-
     font-size: 0.88rem;
-
     margin-bottom: 14px;
 }
 
 .card-link {
     color: var(--accent);
-
     font-size: 0.88rem;
-
     font-weight: 700;
 }
 
-
-/* ==========================================================================
-   ADS
-   ========================================================================== */
-
 .ad-container {
     width: 100%;
-
     min-height: 90px;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     margin: 8px 0;
-
     background: rgba(255, 255, 255, 0.015);
-
     border: 1px dashed rgba(255, 255, 255, 0.08);
-
     border-radius: var(--radius-md);
 }
 
@@ -1155,49 +895,34 @@ main {
 
 .site-footer {
     width: 100%;
-
     border-top: 1px solid var(--border);
-
     background: rgba(7, 17, 31, 0.95);
-
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-
     padding: 36px 0;
-
     margin-top: auto;
 }
 
 .footer-container {
     width: min(1200px, 92%);
-
     margin: 0 auto;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
-
     gap: 20px;
-
     text-align: center;
 }
 
 .footer-nav {
     display: flex;
-
     flex-wrap: wrap;
-
     justify-content: center;
-
     gap: 24px;
 }
 
 .footer-nav a {
     color: var(--muted);
-
     font-size: 0.88rem;
-
     transition: color var(--transition-fast);
 }
 
@@ -1207,7 +932,6 @@ main {
 
 .copyright {
     color: var(--muted-dark);
-
     font-size: 0.85rem;
 }
 
@@ -1217,17 +941,9 @@ main {
    ========================================================================== */
 
 @keyframes pulseExplosion {
-    0% {
-        transform: scale(0.85);
-    }
-
-    50% {
-        transform: scale(1.08);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(0.85); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 @keyframes modalPopIn {
@@ -1235,7 +951,6 @@ main {
         opacity: 0;
         transform: scale(0.95) translateY(8px);
     }
-
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -1244,11 +959,10 @@ main {
 
 
 /* ==========================================================================
-   TABLET
+   MEDIA QUERIES (TABLET & MOBILE)
    ========================================================================== */
 
 @media (max-width: 768px) {
-
     :root {
         --cell-size: 30px;
         --cell-gap: 3px;
@@ -1269,9 +983,7 @@ main {
 
     main {
         width: min(92%, 1200px);
-
         padding: 28px 0 48px;
-
         gap: 24px;
     }
 
@@ -1289,16 +1001,17 @@ main {
 
     .game-panel {
         width: 100%;
-
         padding: 18px 12px;
-
         border-radius: var(--radius-md);
     }
 
-    .game-controls {
+    .controls-row {
         flex-direction: column;
-
         align-items: stretch;
+    }
+
+    .custom-controls {
+        justify-content: space-between;
     }
 
     .control-group {
@@ -1315,7 +1028,6 @@ main {
 
     .game-hud {
         gap: 8px;
-
         padding: 10px;
     }
 
@@ -1332,13 +1044,7 @@ main {
     }
 }
 
-
-/* ==========================================================================
-   SMALL MOBILE
-   ========================================================================== */
-
 @media (max-width: 480px) {
-
     :root {
         --cell-size: 27px;
         --cell-gap: 2px;
@@ -1379,7 +1085,6 @@ main {
 
     .game-hud {
         grid-template-columns: repeat(3, 1fr);
-
         padding: 8px 5px;
     }
 
@@ -1391,13 +1096,22 @@ main {
         font-size: 1.05rem;
     }
 
+    .custom-controls {
+        gap: 8px;
+    }
+
+    .number-input,
+    input[type="number"] {
+        width: 58px;
+        padding: 5px 6px;
+    }
+
     .modal-content {
         padding: 24px 18px;
     }
 
     .modal-details {
         flex-direction: column;
-
         gap: 8px;
     }
 
@@ -1408,11 +1122,10 @@ main {
 
 
 /* ==========================================================================
-   REDUCED MOTION
+   ACCESSIBILITY: REDUCED MOTION
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-
     *,
     *::before,
     *::after {
