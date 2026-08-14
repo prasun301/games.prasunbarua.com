@@ -1,606 +1,1869 @@
 /* =========================================================================
    PRASUN GAMES — SOLITAIRE — style.css
-   Design tokens
-   - Site: deep navy (#0a0e18) with glassy panels
-   - Board: hand-tuned green felt with woven texture + vignette (signature)
-   - Accent: emerald green, with a restrained warm gold used only for winning
-   - Type: Sora (display / UI chrome) + Inter (body / SEO copy)
+   FINAL CORRECTED VERSION
+
+   Designed to work with the rebuilt Klondike Solitaire app.js.
+
+   Important:
+   - JavaScript controls card "top" positions.
+   - CSS does NOT override card top positions when selected.
+   - Dragging uses position: fixed + transform from app.js.
+   - Tableau remains horizontally scrollable on small screens.
+   - Pile containers remain stable drop targets.
+   ========================================================================= */
+
+
+/* =========================================================================
+   DESIGN TOKENS
    ========================================================================= */
 
 :root {
-  /* Site */
+
+  /* ----------------------------- Site ----------------------------------- */
+
   --site-bg: #0a0e18;
   --site-bg-alt: #0d1322;
+
   --panel-bg: rgba(255, 255, 255, 0.045);
   --panel-border: rgba(255, 255, 255, 0.09);
   --panel-blur: 14px;
 
-  /* Text */
+
+  /* ----------------------------- Text ----------------------------------- */
+
   --text-primary: #e9edf6;
   --text-muted: #90a0ba;
   --text-faint: #5c6b85;
 
-  /* Brand / accent */
+
+  /* --------------------------- Brand ------------------------------------ */
+
   --accent: #2dd48a;
   --accent-strong: #1fb877;
   --accent-soft: rgba(45, 212, 138, 0.16);
   --accent-ring: rgba(45, 212, 138, 0.55);
+
   --danger: #f2586b;
   --danger-soft: rgba(242, 88, 107, 0.18);
+
   --gold: #f2c66d;
 
-  /* Felt table */
+
+  /* ----------------------------- Felt ----------------------------------- */
+
   --felt-1: #0e3a26;
   --felt-2: #124a2f;
   --felt-3: #0a2d1d;
 
-  /* Cards */
+
+  /* ----------------------------- Cards ---------------------------------- */
+
   --card-white: #fbfbf9;
   --card-border: rgba(20, 30, 25, 0.14);
+
   --card-red: #c62438;
   --card-black: #1c2430;
+
   --card-back-1: #1a6b46;
   --card-back-2: #0f4a30;
+
+
+  /* ----------------------- Responsive cards ----------------------------- */
+
+  /*
+     Width is intentionally based on viewport width.
+
+     The board itself can become horizontally scrollable on smaller
+     screens, which prevents the 7-column tableau from becoming unusable.
+  */
 
   --card-width: clamp(44px, 9.4vw, 96px);
   --card-height: calc(var(--card-width) * 1.42);
   --card-radius: calc(var(--card-width) * 0.11);
 
-  /* Fonts */
-  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  /* ----------------------------- Fonts ---------------------------------- */
+
+  --font-display:
+    "Sora",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+
+  --font-body:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+
 
   color-scheme: dark;
 }
 
-/* ------------------------------- Reset ---------------------------------- */
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
+/* =========================================================================
+   RESET / BASE
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
   background: var(--site-bg);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(45, 212, 138, 0.035),
+      transparent 40%
+    ),
+    var(--site-bg);
+
   color: var(--text-primary);
+
   font-family: var(--font-body);
   line-height: 1.55;
+
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-img { max-width: 100%; display: block; }
-a { color: inherit; }
-ul { padding-left: 1.2em; }
-button { font-family: inherit; }
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+ul {
+  padding-left: 1.2em;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================================
+   ACCESSIBILITY
+   ========================================================================= */
 
 .sr-only {
   position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
   overflow: hidden;
+
   clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+
   white-space: nowrap;
   border: 0;
 }
 
 .skip-link {
   position: absolute;
-  left: 8px; top: -60px;
+
+  left: 8px;
+  top: -60px;
+
   background: var(--accent);
   color: #06231a;
+
   padding: 10px 16px;
+
   border-radius: 8px;
+
   font-weight: 600;
+
   z-index: 1000;
+
   transition: top 0.15s ease;
 }
-.skip-link:focus { top: 8px; }
+
+.skip-link:focus {
+  top: 8px;
+}
 
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-/* ------------------------------- Header ---------------------------------- */
+
+/* =========================================================================
+   HEADER
+   ========================================================================= */
 
 .site-header {
-  background: var(--site-bg-alt);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   position: sticky;
   top: 0;
+
   z-index: 50;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 19, 34, 0.98),
+      rgba(13, 19, 34, 0.94)
+    );
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
+
 .site-header-inner {
+  width: 100%;
   max-width: 1200px;
+
   margin: 0 auto;
+
   padding: 14px 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 16px;
 }
+
 .brand {
   display: flex;
   align-items: center;
+
   gap: 10px;
+
+  color: var(--text-primary);
+
   text-decoration: none;
+
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.15rem;
-  color: var(--text-primary);
+
+  white-space: nowrap;
 }
-.brand-icon { font-size: 1.3rem; }
-.site-nav { display: flex; gap: 22px; }
+
+.brand-icon {
+  font-size: 1.3rem;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+
+  gap: 22px;
+}
+
 .site-nav a {
-  text-decoration: none;
   color: var(--text-muted);
+
+  text-decoration: none;
+
   font-weight: 500;
   font-size: 0.95rem;
-  transition: color 0.15s ease;
+
+  transition:
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
-.site-nav a:hover { color: var(--accent); }
 
-/* -------------------------------- Intro ----------------------------------- */
+.site-nav a:hover {
+  color: var(--accent);
+}
 
-.page-intro { padding: 34px 20px 10px; }
-.page-intro-inner { max-width: 1200px; margin: 0 auto; }
+
+/* =========================================================================
+   PAGE INTRO
+   ========================================================================= */
+
+.page-intro {
+  padding: 34px 20px 10px;
+}
+
+.page-intro-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .page-intro h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
   margin: 0 0 8px;
-  letter-spacing: -0.01em;
+
+  font-family: var(--font-display);
+
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+
+  line-height: 1.15;
+
+  letter-spacing: -0.02em;
 }
+
 .page-intro p {
-  color: var(--text-muted);
-  margin: 0;
   max-width: 60ch;
+
+  margin: 0;
+
+  color: var(--text-muted);
 }
 
-/* -------------------------------- Toolbar ---------------------------------- */
 
-.game-section { padding: 18px 20px 40px; }
+/* =========================================================================
+   GAME SECTION / APP WRAPPER
+   ========================================================================= */
+
+.game-section {
+  padding: 18px 20px 40px;
+}
 
 .solitaire-app {
+  width: 100%;
   max-width: 1180px;
+
   margin: 0 auto;
+
   display: flex;
   flex-direction: column;
+
   gap: 14px;
 }
+
+
+/* =========================================================================
+   TOOLBAR
+   ========================================================================= */
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
+
   align-items: center;
   justify-content: space-between;
+
   gap: 14px;
+
   padding: 14px 18px;
+
   border-radius: 16px;
+
   background: var(--panel-bg);
+
   border: 1px solid var(--panel-border);
+
   backdrop-filter: blur(var(--panel-blur));
   -webkit-backdrop-filter: blur(var(--panel-blur));
 }
-.toolbar-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.toolbar-stats { gap: 20px; }
 
-.stat { display: flex; flex-direction: column; align-items: flex-start; min-width: 58px; }
-.stat-label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
+.toolbar-group {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
 }
+
+.toolbar-stats {
+  gap: 20px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================================
+   STATISTICS
+   ========================================================================= */
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  min-width: 58px;
+}
+
+.stat-label {
+  color: var(--text-faint);
+
+  font-size: 0.68rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
 .stat-value {
   font-family: var(--font-display);
+
   font-weight: 700;
+
   font-size: 1.15rem;
+
   font-variant-numeric: tabular-nums;
+
+  line-height: 1.2;
 }
+
+
+/* =========================================================================
+   BUTTONS
+   ========================================================================= */
 
 .btn {
   appearance: none;
+
   border: 1px solid rgba(255, 255, 255, 0.12);
+
   background: rgba(255, 255, 255, 0.04);
+
   color: var(--text-primary);
+
   padding: 9px 15px;
+
   border-radius: 10px;
+
   font-size: 0.88rem;
   font-weight: 600;
+
+  line-height: 1.2;
+
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+
+  white-space: nowrap;
+
+  transition:
+    transform 0.12s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease,
+    filter 0.15s ease;
 }
-.btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); transform: translateY(-1px); }
-.btn:active:not(:disabled) { transform: translateY(0); }
-.btn:disabled { opacity: 0.38; cursor: not-allowed; }
-.btn-ghost { background: transparent; }
+
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+
+  border-color: rgba(255, 255, 255, 0.18);
+
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.38;
+
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
 .btn-primary {
-  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  background:
+    linear-gradient(
+      180deg,
+      var(--accent),
+      var(--accent-strong)
+    );
+
   border-color: transparent;
+
   color: #06231a;
 }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.06); }
-.btn-large { padding: 12px 26px; font-size: 1rem; }
 
-/* --------------------------------- Board ----------------------------------- */
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-large {
+  padding: 12px 26px;
+
+  font-size: 1rem;
+}
+
+
+/* =========================================================================
+   SOLITAIRE BOARD
+   ========================================================================= */
 
 .board {
   position: relative;
+
+  width: 100%;
+
   border-radius: 22px;
+
   padding: clamp(14px, 2.4vw, 26px);
+
   border: 1px solid rgba(0, 0, 0, 0.35);
+
   background:
-    radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.07), transparent 55%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.028) 0 2px, transparent 2px 7px),
-    linear-gradient(165deg, var(--felt-2) 0%, var(--felt-1) 55%, var(--felt-3) 100%);
-  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.55), inset 0 0 2px rgba(255, 255, 255, 0.08), 0 22px 50px rgba(0, 0, 0, 0.45);
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(255, 255, 255, 0.07),
+      transparent 55%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.028) 0 2px,
+      transparent 2px 7px
+    ),
+    linear-gradient(
+      165deg,
+      var(--felt-2) 0%,
+      var(--felt-1) 55%,
+      var(--felt-3) 100%
+    );
+
+  box-shadow:
+    inset 0 0 90px rgba(0, 0, 0, 0.55),
+    inset 0 0 2px rgba(255, 255, 255, 0.08),
+    0 22px 50px rgba(0, 0, 0, 0.45);
+
+  /*
+     The JS uses pointer events for dragging.
+
+     pan-y allows natural vertical page movement on touch while
+     horizontal overflow is handled by the board itself.
+  */
   overflow-x: auto;
+  overflow-y: hidden;
+
   touch-action: pan-y;
+
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    rgba(255, 255, 255, 0.18)
+    transparent;
 }
+
+.board::-webkit-scrollbar {
+  height: 7px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+
+  border-radius: 999px;
+}
+
+
+/* =========================================================================
+   TOP ROW
+   ========================================================================= */
 
 .board-top-row {
   display: flex;
   align-items: flex-start;
+
   justify-content: space-between;
+
   gap: 14px;
+
   margin-bottom: clamp(14px, 2.4vw, 24px);
+
   min-width: max-content;
 }
 
-.stock-waste-group { display: flex; gap: calc(var(--card-width) * 0.16); }
-.foundations { display: flex; gap: calc(var(--card-width) * 0.16); }
+.stock-waste-group {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: calc(var(--card-width) * 0.16);
+}
+
+.foundations {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: calc(var(--card-width) * 0.16);
+}
+
+
+/* =========================================================================
+   TABLEAU
+   ========================================================================= */
 
 .tableau {
   display: flex;
+
+  align-items: flex-start;
+
   gap: calc(var(--card-width) * 0.16);
+
   min-width: max-content;
+
+  /*
+     Important for horizontal scrolling:
+     the tableau itself must not shrink.
+  */
+  width: max-content;
 }
 
 .column {
   position: relative;
+
+  flex: 0 0 var(--card-width);
+
   width: var(--card-width);
+
   height: clamp(300px, 42vh, 460px);
+
+  min-height: 300px;
 }
 
-/* ---------------------------------- Piles ----------------------------------- */
+
+/* =========================================================================
+   PILES
+   ========================================================================= */
 
 .pile {
   position: relative;
+
+  flex: 0 0 var(--card-width);
+
   width: var(--card-width);
+
   height: var(--card-height);
+
+  min-width: var(--card-width);
+  min-height: var(--card-height);
 }
+
+
+/*
+   JavaScript uses [data-location] elements as drop targets.
+
+   Make sure the pile itself receives pointer events even when the
+   child card is under the pointer.
+*/
+
+[data-location] {
+  position: relative;
+}
+
+
+/* =========================================================================
+   EMPTY SLOTS
+   ========================================================================= */
 
 .empty-slot {
   position: absolute;
+
   inset: 0;
-  border: 2px dashed rgba(255, 255, 255, 0.22);
-  border-radius: var(--card-radius);
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
+  border: 2px dashed rgba(255, 255, 255, 0.22);
+
+  border-radius: var(--card-radius);
+
   color: rgba(255, 255, 255, 0.3);
+
   font-family: var(--font-display);
+
   font-weight: 700;
+
   font-size: calc(var(--card-width) * 0.34);
+
   user-select: none;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+  pointer-events: none;
+
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
-.empty-slot.foundation-empty { border-style: solid; border-color: rgba(255, 255, 255, 0.15); }
-.empty-slot.foundation-empty.red { color: rgba(198, 36, 56, 0.45); }
-.empty-slot.foundation-empty.black { color: rgba(255, 255, 255, 0.28); }
-.empty-slot.stock-empty { border-style: solid; cursor: pointer; }
-.recycle-icon { font-size: calc(var(--card-width) * 0.4); color: rgba(255, 255, 255, 0.55); }
-.empty-slot.waste-empty { border: none; }
-.empty-slot.tableau-empty { font-size: calc(var(--card-width) * 0.4); }
 
-.pile.stock { cursor: pointer; }
+.empty-slot.foundation-empty {
+  border-style: solid;
 
-/* ---------------------------------- Cards ------------------------------------ */
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.empty-slot.foundation-empty.red {
+  color: rgba(198, 36, 56, 0.45);
+}
+
+.empty-slot.foundation-empty.black {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.empty-slot.stock-empty {
+  border-style: solid;
+
+  cursor: pointer;
+
+  pointer-events: none;
+}
+
+.empty-slot.waste-empty {
+  border: none;
+}
+
+.empty-slot.tableau-empty {
+  font-size: calc(var(--card-width) * 0.4);
+}
+
+.recycle-icon {
+  font-size: calc(var(--card-width) * 0.4);
+
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.pile.stock {
+  cursor: pointer;
+}
+
+
+/* =========================================================================
+   CARDS
+   ========================================================================= */
 
 .card {
   position: absolute;
+
   left: 0;
+
   width: var(--card-width);
   height: var(--card-height);
+
   border-radius: var(--card-radius);
+
   background: var(--card-white);
+
   border: 1px solid var(--card-border);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28), 0 1px 1px rgba(0, 0, 0, 0.18);
+
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.28),
+    0 1px 1px rgba(0, 0, 0, 0.18);
+
   user-select: none;
+
+  /*
+     Important for the JS pointer-drag system.
+  */
   touch-action: none;
-  transition: box-shadow 0.15s ease, top 0.16s ease;
+
   cursor: grab;
+
+  overflow: hidden;
+
+  /*
+     JavaScript controls top positions.
+     CSS must NOT transition or override top while dragging.
+  */
+  transition:
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+
+  -webkit-user-select: none;
 }
-.card.face-down { cursor: pointer; }
+
+.card.face-down {
+  cursor: pointer;
+}
+
 .card.dragging {
   cursor: grabbing;
-  box-shadow: 0 20px 34px rgba(0, 0, 0, 0.5);
+
+  box-shadow:
+    0 20px 34px rgba(0, 0, 0, 0.5),
+    0 5px 12px rgba(0, 0, 0, 0.25);
+
   filter: brightness(1.03);
-  transition: none;
+
+  /*
+     app.js sets position, top, left and transform.
+     Do not fight those values here.
+  */
+  transition: none !important;
+
+  pointer-events: none;
 }
+
+
+/* =========================================================================
+   SELECTED CARD
+
+   IMPORTANT:
+   Do NOT set `top` here.
+
+   app.js calculates the exact top position for every card.
+   The previous CSS used:
+
+       top: calc(...)
+
+   which could override the JS-generated stack position and make
+   selected cards jump.
+   ========================================================================= */
+
 .card.selected {
-  box-shadow: 0 0 0 3px var(--accent-ring), 0 10px 18px rgba(0, 0, 0, 0.4);
-  top: calc(var(--dynamic-offset, 0px) - 6px) !important;
+  box-shadow:
+    0 0 0 3px var(--accent-ring),
+    0 10px 18px rgba(0, 0, 0, 0.4);
+
+  /*
+     Only visually lift the card.
+
+     The JavaScript remains the source of truth for `top`.
+  */
   transform: translateY(-6px);
+
+  z-index: 100 !important;
 }
+
+
+/*
+   If a selected card is being dragged, app.js controls transform.
+   Therefore don't apply the selection transform during dragging.
+*/
+
+.card.selected.dragging {
+  transform: none;
+}
+
+
+/* =========================================================================
+   CARD FACE
+   ========================================================================= */
 
 .card-face {
   position: relative;
+
+  display: block;
+
   width: 100%;
   height: 100%;
-  display: block;
 }
-.card.red .card-face { color: var(--card-red); }
-.card.black .card-face { color: var(--card-black); }
+
+.card.red .card-face {
+  color: var(--card-red);
+}
+
+.card.black .card-face {
+  color: var(--card-black);
+}
+
+
+/* =========================================================================
+   CARD CORNERS
+   ========================================================================= */
 
 .card-corner {
   position: absolute;
+
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
+
   line-height: 1;
+
   font-weight: 700;
+
   font-family: var(--font-display);
+
+  z-index: 2;
 }
-.card-corner.top-left { top: 6%; left: 8%; }
-.card-corner.bottom-right { bottom: 6%; right: 8%; transform: rotate(180deg); }
-.c-rank { font-size: calc(var(--card-width) * 0.2); }
-.c-suit { font-size: calc(var(--card-width) * 0.17); margin-top: 1px; }
+
+.card-corner.top-left {
+  top: 6%;
+  left: 8%;
+}
+
+.card-corner.bottom-right {
+  right: 8%;
+  bottom: 6%;
+
+  transform: rotate(180deg);
+}
+
+.c-rank {
+  font-size: calc(var(--card-width) * 0.2);
+}
+
+.c-suit {
+  margin-top: 1px;
+
+  font-size: calc(var(--card-width) * 0.17);
+}
+
+
+/* =========================================================================
+   CARD CENTER PIP
+   ========================================================================= */
 
 .card-pip {
   position: absolute;
+
   inset: 0;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   font-size: calc(var(--card-width) * 0.46);
+
   opacity: 0.92;
+
+  z-index: 1;
 }
+
+
+/* =========================================================================
+   CARD BACK
+   ========================================================================= */
 
 .card-back {
   position: absolute;
+
   inset: 3%;
+
   border-radius: calc(var(--card-radius) * 0.7);
+
   background:
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0 4px, transparent 4px 9px),
-    linear-gradient(155deg, var(--card-back-1), var(--card-back-2));
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0 4px,
+      transparent 4px 9px
+    ),
+    linear-gradient(
+      155deg,
+      var(--card-back-1),
+      var(--card-back-2)
+    );
+
   border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.06);
+
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.06);
 }
 
 .stock-card {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28), -2px 2px 0 -1px rgba(0, 0, 0, 0.12), -4px 4px 0 -2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.28),
+    -2px 2px 0 -1px rgba(0, 0, 0, 0.12),
+    -4px 4px 0 -2px rgba(0, 0, 0, 0.1),
+    0 1px 1px rgba(0, 0, 0, 0.18);
 }
 
-/* ------------------------------ Drop feedback -------------------------------- */
 
-.drop-valid { box-shadow: 0 0 0 3px var(--accent-ring) inset; border-radius: var(--card-radius); }
-.drop-invalid { box-shadow: 0 0 0 3px rgba(242, 88, 107, 0.6) inset; border-radius: var(--card-radius); }
+/* =========================================================================
+   DROP FEEDBACK
+   ========================================================================= */
 
-.invalid-flash { animation: flashRed 0.35s ease; border-radius: var(--card-radius); }
+.drop-valid {
+  box-shadow:
+    0 0 0 3px var(--accent-ring) inset;
+
+  border-radius: var(--card-radius);
+}
+
+.drop-invalid {
+  box-shadow:
+    0 0 0 3px rgba(242, 88, 107, 0.6) inset;
+
+  border-radius: var(--card-radius);
+}
+
+
+/* =========================================================================
+   INVALID MOVE FLASH
+   ========================================================================= */
+
+.invalid-flash {
+  animation: flashRed 0.35s ease;
+
+  border-radius: var(--card-radius);
+}
+
 @keyframes flashRed {
-  0%, 100% { box-shadow: none; }
-  40% { box-shadow: 0 0 0 3px var(--danger) inset; }
+
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  40% {
+    box-shadow:
+      0 0 0 3px var(--danger) inset;
+  }
 }
 
-.invalid-shake { animation: shakeX 0.3s ease; }
+
+/* =========================================================================
+   INVALID MOVE SHAKE
+   ========================================================================= */
+
+.invalid-shake {
+  animation: shakeX 0.3s ease;
+}
+
 @keyframes shakeX {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-7px); }
-  75% { transform: translateX(7px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-7px);
+  }
+
+  75% {
+    transform: translateX(7px);
+  }
 }
 
-.hint-glow { animation: hintPulse 1.4s ease; border-radius: var(--card-radius); }
+
+/*
+   If a selected card is shaken, keep the selection lift while
+   allowing the shake animation to work.
+*/
+
+.card.selected.invalid-shake {
+  animation:
+    shakeSelected 0.3s ease;
+}
+
+@keyframes shakeSelected {
+
+  0%,
+  100% {
+    transform: translateY(-6px) translateX(0);
+  }
+
+  25% {
+    transform: translateY(-6px) translateX(-7px);
+  }
+
+  75% {
+    transform: translateY(-6px) translateX(7px);
+  }
+}
+
+
+/* =========================================================================
+   HINT
+   ========================================================================= */
+
+.hint-glow {
+  animation: hintPulse 1.4s ease;
+
+  border-radius: var(--card-radius);
+}
+
 @keyframes hintPulse {
-  0%, 100% { box-shadow: none; }
-  50% { box-shadow: 0 0 0 4px var(--gold) inset, 0 0 18px rgba(242, 198, 109, 0.5); }
+
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 4px var(--gold) inset,
+      0 0 18px rgba(242, 198, 109, 0.5);
+  }
 }
 
-.card.just-flipped { animation: flipIn 0.32s ease; }
+
+/* =========================================================================
+   CARD FLIP
+   ========================================================================= */
+
+.card.just-flipped {
+  animation: flipIn 0.32s ease;
+}
+
 @keyframes flipIn {
-  0% { transform: rotateY(85deg) scale(0.9); }
-  60% { transform: rotateY(0deg) scale(1.05); }
-  100% { transform: rotateY(0) scale(1); }
+
+  0% {
+    transform:
+      rotateY(85deg)
+      scale(0.9);
+  }
+
+  60% {
+    transform:
+      rotateY(0deg)
+      scale(1.05);
+  }
+
+  100% {
+    transform:
+      rotateY(0deg)
+      scale(1);
+  }
 }
 
-.card.just-moved { animation: popIn 0.16s ease-out; }
+
+/* =========================================================================
+   CARD MOVE
+   ========================================================================= */
+
+.card.just-moved {
+  animation: popIn 0.16s ease-out;
+}
+
 @keyframes popIn {
-  0% { transform: scale(0.88); opacity: 0.65; }
-  100% { transform: scale(1); opacity: 1; }
+
+  0% {
+    transform:
+      scale(0.88);
+
+    opacity: 0.65;
+  }
+
+  100% {
+    transform:
+      scale(1);
+
+    opacity: 1;
+  }
 }
 
-/* --------------------------------- Below board -------------------------------- */
+
+/* =========================================================================
+   BELOW BOARD
+   ========================================================================= */
 
 .below-board {
   display: flex;
+
   flex-wrap: wrap;
+
   justify-content: space-between;
+
   gap: 8px;
+
   padding: 0 4px;
+
   color: var(--text-faint);
+
   font-size: 0.82rem;
 }
+
 .shortcuts-line kbd {
   background: rgba(255, 255, 255, 0.08);
+
   border: 1px solid rgba(255, 255, 255, 0.15);
+
   border-radius: 4px;
+
   padding: 1px 5px;
+
   font-size: 0.78rem;
+
   font-family: var(--font-body);
 }
 
-/* ----------------------------------- Toast ------------------------------------- */
+
+/* =========================================================================
+   TOAST
+   ========================================================================= */
 
 .toast {
   position: fixed;
+
   left: 50%;
   bottom: 26px;
-  transform: translate(-50%, 16px);
-  background: rgba(15, 20, 32, 0.92);
-  border: 1px solid var(--panel-border);
-  color: var(--text-primary);
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 0.88rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 200;
-  backdrop-filter: blur(10px);
-}
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------------------------------- Win modal ----------------------------------- */
+  transform:
+    translate(-50%, 16px);
+
+  background: rgba(15, 20, 32, 0.92);
+
+  border: 1px solid var(--panel-border);
+
+  color: var(--text-primary);
+
+  padding: 10px 18px;
+
+  border-radius: 999px;
+
+  font-size: 0.88rem;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+
+  z-index: 200;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  white-space: nowrap;
+
+  max-width: calc(100vw - 30px);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toast.show {
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+}
+
+
+/* =========================================================================
+   WIN MODAL
+   ========================================================================= */
 
 .win-modal {
   position: fixed;
+
   inset: 0;
+
   z-index: 500;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
-  background: rgba(4, 6, 12, 0.66);
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transition: opacity 0.22s ease;
+
   padding: 20px;
+
+  background: rgba(4, 6, 12, 0.66);
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  opacity: 0;
+
+  transition: opacity 0.22s ease;
 }
-.win-modal.show { opacity: 1; }
-.win-modal[hidden] { display: none; }
+
+.win-modal.show {
+  opacity: 1;
+}
+
+.win-modal[hidden] {
+  display: none;
+}
 
 .win-modal-card {
   position: relative;
-  background: linear-gradient(180deg, var(--site-bg-alt), var(--site-bg));
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  padding: 38px 34px 30px;
-  text-align: center;
-  max-width: 380px;
+
   width: 100%;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
-  transform: scale(0.92) translateY(10px);
-  transition: transform 0.22s ease;
+  max-width: 380px;
+
+  padding: 38px 34px 30px;
+
+  text-align: center;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--site-bg-alt),
+      var(--site-bg)
+    );
+
+  border: 1px solid var(--panel-border);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.55);
+
+  transform:
+    scale(0.92)
+    translateY(10px);
+
+  transition:
+    transform 0.22s ease;
 }
-.win-modal.show .win-modal-card { transform: scale(1) translateY(0); }
+
+.win-modal.show .win-modal-card {
+  transform:
+    scale(1)
+    translateY(0);
+}
 
 .win-modal-close {
   position: absolute;
-  top: 12px; right: 14px;
+
+  top: 12px;
+  right: 14px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
   background: none;
+
   border: none;
+
   color: var(--text-muted);
+
   font-size: 1.4rem;
+
   cursor: pointer;
+
   line-height: 1;
+
+  border-radius: 8px;
 }
-.win-emoji { font-size: 2.6rem; margin-bottom: 6px; }
+
+.win-modal-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+
+  color: var(--text-primary);
+}
+
+.win-emoji {
+  font-size: 2.6rem;
+
+  margin-bottom: 6px;
+}
+
 .win-modal-card h2 {
-  font-family: var(--font-display);
   margin: 0 0 6px;
+
+  font-family: var(--font-display);
+
   font-size: 1.5rem;
+
+  line-height: 1.2;
 }
-.win-modal-card p { color: var(--text-muted); margin: 0 0 20px; }
+
+.win-modal-card p {
+  margin: 0 0 20px;
+
+  color: var(--text-muted);
+}
+
+
+/* =========================================================================
+   WIN STATS
+   ========================================================================= */
 
 .win-stats {
   display: flex;
+
+  align-items: center;
   justify-content: center;
+
   gap: 30px;
+
   margin-bottom: 24px;
 }
-.win-stats > div { display: flex; flex-direction: column; gap: 2px; }
-.win-stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); }
-.win-stat-value { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--gold); }
 
-/* ---------------------------------- SEO content ---------------------------------- */
+.win-stats > div {
+  display: flex;
 
-.seo-content, .related-games {
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.win-stat-label {
+  color: var(--text-faint);
+
+  font-size: 0.7rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+.win-stat-value {
+  color: var(--gold);
+
+  font-family: var(--font-display);
+
+  font-weight: 700;
+
+  font-size: 1.3rem;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================================================
+   SEO CONTENT
+   ========================================================================= */
+
+.seo-content,
+.related-games {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+
   padding: 40px 20px;
 }
-.seo-content-inner, .related-games-inner {
+
+.seo-content-inner,
+.related-games-inner {
   max-width: 900px;
+
   margin: 0 auto;
 }
+
 .seo-content h2 {
+  margin:
+    1.6em 0 0.5em;
+
   font-family: var(--font-display);
+
   font-size: 1.25rem;
-  margin: 1.6em 0 0.5em;
+
+  line-height: 1.3;
 }
-.seo-content h2:first-child { margin-top: 0; }
-.seo-content p, .seo-content li { color: var(--text-muted); }
+
+.seo-content h2:first-child {
+  margin-top: 0;
+}
+
+.seo-content p,
+.seo-content li {
+  color: var(--text-muted);
+}
+
+
+/* =========================================================================
+   RELATED GAMES
+   ========================================================================= */
 
 .related-games-grid {
   display: flex;
-  gap: 14px;
+
   flex-wrap: wrap;
+
+  gap: 14px;
 }
+
 .related-card {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 20px;
-  border-radius: 14px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  text-decoration: none;
-  color: var(--text-primary);
-  font-weight: 600;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-.related-card:hover { transform: translateY(-2px); border-color: var(--accent-ring); }
-.related-card-icon { font-size: 1.3rem; }
 
-/* ----------------------------------- Footer -------------------------------------- */
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 14px 20px;
+
+  border-radius: 14px;
+
+  background: var(--panel-bg);
+
+  border: 1px solid var(--panel-border);
+
+  color: var(--text-primary);
+
+  text-decoration: none;
+
+  font-weight: 600;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.related-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--accent-ring);
+
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.related-card-icon {
+  font-size: 1.3rem;
+}
+
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
 
 .site-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+
   background: var(--site-bg-alt);
+
   padding: 26px 20px 34px;
 }
+
 .site-footer-inner {
   max-width: 1200px;
+
   margin: 0 auto;
+
   display: flex;
+
   flex-direction: column;
-  gap: 14px;
+
   align-items: center;
+
+  gap: 14px;
+
   text-align: center;
 }
-.footer-links { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
-.footer-links a { text-decoration: none; color: var(--text-muted); font-size: 0.9rem; }
-.footer-links a:hover { color: var(--accent); }
-.footer-copy { color: var(--text-faint); font-size: 0.82rem; margin: 0; }
-.footer-copy a { color: var(--text-muted); text-decoration: underline; }
 
-/* ------------------------------- Responsive tuning ---------------------------------- */
+.footer-links {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  justify-content: center;
+
+  gap: 18px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+
+  text-decoration: none;
+
+  font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
+}
+
+.footer-copy {
+  margin: 0;
+
+  color: var(--text-faint);
+
+  font-size: 0.82rem;
+}
+
+.footer-copy a {
+  color: var(--text-muted);
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================================
+   RESPONSIVE — TABLET
+   ========================================================================= */
 
 @media (max-width: 1024px) {
-  .board-top-row { flex-wrap: wrap; }
+
+  .board-top-row {
+    flex-wrap: wrap;
+  }
+
 }
+
+
+/* =========================================================================
+   RESPONSIVE — 768px
+   ========================================================================= */
 
 @media (max-width: 768px) {
-  .page-intro { padding: 22px 16px 4px; }
-  .game-section { padding: 14px 16px 32px; }
-  .toolbar { padding: 12px 14px; gap: 10px; }
-  .toolbar-actions { gap: 8px; }
-  .btn { padding: 8px 12px; font-size: 0.82rem; }
+
+  .site-header-inner {
+    padding:
+      12px 16px;
+  }
+
+  .page-intro {
+    padding:
+      22px 16px 4px;
+  }
+
+  .game-section {
+    padding:
+      14px 16px 32px;
+  }
+
+  .toolbar {
+    padding:
+      12px 14px;
+
+    gap: 10px;
+  }
+
+  .toolbar-actions {
+    gap: 8px;
+  }
+
+  .btn {
+    padding:
+      8px 12px;
+
+    font-size: 0.82rem;
+  }
+
+  /*
+     Slightly smaller board padding gives more usable space.
+  */
+
+  .board {
+    padding:
+      14px;
+  }
+
 }
+
+
+/* =========================================================================
+   RESPONSIVE — 600px
+   ========================================================================= */
 
 @media (max-width: 600px) {
-  .toolbar { justify-content: center; }
-  .toolbar-stats { order: 1; width: 100%; justify-content: center; }
-  .toolbar-actions { order: 2; width: 100%; justify-content: center; }
-  .below-board { justify-content: center; text-align: center; }
-  .win-stats { gap: 20px; }
+
+  .site-header-inner {
+    gap: 10px;
+  }
+
+  .site-nav {
+    gap: 12px;
+  }
+
+  .toolbar {
+    justify-content: center;
+  }
+
+  .toolbar-stats {
+    order: 1;
+
+    width: 100%;
+
+    justify-content: center;
+  }
+
+  .toolbar-actions {
+    order: 2;
+
+    width: 100%;
+
+    justify-content: center;
+  }
+
+  .below-board {
+    justify-content: center;
+
+    text-align: center;
+  }
+
+  .win-stats {
+    gap: 20px;
+  }
+
+  .win-modal {
+    padding: 14px;
+  }
+
+  .win-modal-card {
+    padding:
+      34px 22px 26px;
+  }
+
 }
+
+
+/* =========================================================================
+   RESPONSIVE — 480px
+   ========================================================================= */
 
 @media (max-width: 480px) {
-  .site-nav { gap: 14px; }
-  .brand-name { font-size: 1rem; }
-  .shortcuts-line { display: none; }
+
+  .brand-name {
+    font-size: 1rem;
+  }
+
+  .brand {
+    gap: 7px;
+  }
+
+  .site-nav {
+    gap: 14px;
+  }
+
+  .site-nav a {
+    font-size: 0.82rem;
+  }
+
+  .shortcuts-line {
+    display: none;
+  }
+
+  /*
+     Keep the toolbar usable even when buttons wrap.
+  */
+
+  .toolbar-actions {
+    width: 100%;
+  }
+
+  .toolbar-actions .btn {
+    flex: 1 1 auto;
+  }
+
 }
+
+
+/* =========================================================================
+   RESPONSIVE — VERY SMALL PHONES
+   ========================================================================= */
 
 @media (max-width: 390px) {
-  .card-corner.top-left { top: 4%; left: 6%; }
-  .card-corner.bottom-right { bottom: 4%; right: 6%; }
+
+  :root {
+    --card-width: clamp(42px, 11vw, 76px);
+  }
+
+  .site-header-inner {
+    padding:
+      10px 12px;
+  }
+
+  .site-nav {
+    gap: 10px;
+  }
+
+  .site-nav a {
+    font-size: 0.78rem;
+  }
+
+  .page-intro {
+    padding:
+      18px 12px 4px;
+  }
+
+  .game-section {
+    padding:
+      12px 12px 28px;
+  }
+
+  .board {
+    padding:
+      12px;
+  }
+
+  .card-corner.top-left {
+    top: 4%;
+    left: 6%;
+  }
+
+  .card-corner.bottom-right {
+    right: 6%;
+    bottom: 4%;
+  }
+
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+
+/* =========================================================================
+   LANDSCAPE PHONE
+   ========================================================================= */
+
+@media (max-height: 520px) and (orientation: landscape) {
+
+  .site-header-inner {
+    padding:
+      8px 16px;
+  }
+
+  .page-intro {
+    padding:
+      14px 16px 4px;
+  }
+
+  .page-intro h1 {
+    font-size: 1.45rem;
+  }
+
+  .game-section {
+    padding:
+      10px 16px 24px;
+  }
+
+  .column {
+    height: 330px;
+  }
+
 }
+
+
+/* =========================================================================
+   REDUCED MOTION
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.001ms !important;
+
+    scroll-behavior: auto !important;
+  }
+
+}
+
+
+/* =========================================================================
+   END
+   ========================================================================= */
