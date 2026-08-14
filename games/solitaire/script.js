@@ -2,15 +2,16 @@
 
 /* =========================================================================
    PRASUN GAMES — CLASSIC KLONDIKE SOLITAIRE
-   Corrected / polished rebuild.
 
-   Single source of truth: the `state` object.
+   Final corrected rebuild.
 
-   The DOM is rebuilt from `state` on every render() call.
-   DOM elements never drive game logic.
-
-   Click, tap, drag and touch interactions funnel through the same
-   move-validation and move-execution pipeline.
+   Architecture:
+   - `state` is the single source of truth.
+   - DOM is rebuilt from `state` by render().
+   - All normal moves pass through executeMove().
+   - Click/tap and drag/drop use the same legality functions.
+   - Auto-complete uses a cancellable generation token.
+   - Undo restores complete game snapshots.
    ========================================================================= */
 
 
@@ -70,14 +71,17 @@ const RANK_ARIA = [
 ];
 
 const MAX_HISTORY = 100;
+
 const DRAG_THRESHOLD = 6;
 
 const SOUND_KEY = "prasunSolitaireSoundEnabled";
 const STATS_KEY = "prasunSolitaireStats";
 
+const AUTO_COMPLETE_DELAY = 110;
+
 
 /* =========================================================================
-   CARD HELPERS
+   HELPERS
    ========================================================================= */
 
 function isRed(card) {
@@ -89,7 +93,7 @@ function isRed(card) {
 
 
 /* =========================================================================
-   GAME STATE
+   STATE
    ========================================================================= */
 
 const state = {
@@ -134,16 +138,23 @@ const state = {
 };
 
 
+/* =========================================================================
+   RUNTIME VARIABLES
+   ========================================================================= */
+
 let timerHandle = null;
 
 let dragState = null;
 
+/*
+   Every time a new game starts, Undo happens, or auto-complete is cancelled,
+   this generation changes.
+
+   Any old auto-complete callback carrying an old generation becomes invalid.
+*/
+let autoCompleteGeneration = 0;
+
 const cardElements = new Map();
-
-
-/* =========================================================================
-   STATISTICS
-   ========================================================================= */
 
 const stats = {
   gamesPlayed: 0,
@@ -158,12 +169,12 @@ const stats = {
 function createDeck() {
   const deck = [];
 
-  for (let s = 0; s < 4; s++) {
-    for (let r = 1; r <= 13; r++) {
+  for (let suit = 0; suit < 4; suit++) {
+    for (let rank = 1; rank <= 13; rank++) {
       deck.push({
-        id: "c-" + s + "-" + r,
-        suit: s,
-        rank: r,
+        id: "c-" + suit + "-" + rank,
+        suit: suit,
+        rank: rank,
         faceUp: false
       });
     }
@@ -192,15 +203,12 @@ function dealGame() {
   let idx = 0;
 
   /*
-    Klondike tableau:
+     Standard Klondike tableau:
 
-    Column 1 = 1 card
-    Column 2 = 2 cards
-    ...
-    Column 7 = 7 cards
-
-    Total tableau cards = 28
-    Remaining stock = 24
+     Column 1 = 1 card
+     Column 2 = 2 cards
+     ...
+     Column 7 = 7 cards
   */
 
   for (let c = 0; c < 7; c++) {
@@ -212,6 +220,10 @@ function dealGame() {
       state.tableau[c].push(card);
     }
   }
+
+  /*
+     52 total cards - 28 tableau cards = 24 stock cards.
+  */
 
   state.stock = deck.slice(idx);
 
@@ -226,15 +238,23 @@ function dealGame() {
    ========================================================================= */
 
 function getRunStart(col) {
-  if (col.length === 0) {
+  if (!col || col.length === 0) {
     return 0;
   }
 
   let i = col.length - 1;
 
+  /*
+     If the top card is face-down, nothing in this column is movable.
+  */
+
   if (!col[i].faceUp) {
     return col.length;
   }
+
+  /*
+     Walk backwards through a valid alternating-color descending sequence.
+  */
 
   while (i > 0) {
     const cur = col[i];
@@ -256,33 +276,40 @@ function getRunStart(col) {
 
 
 function canMoveToTableau(cards, colIndex) {
-  const col = state.tableau[colIndex];
-
-  if (!cards || cards.length === 0) {
+  if (
+    !cards ||
+    cards.length === 0 ||
+    colIndex < 0 ||
+    colIndex >= state.tableau.length
+  ) {
     return false;
   }
+
+  const col = state.tableau[colIndex];
 
   const first = cards[0];
 
   /*
-    Empty tableau columns can only receive a King.
+     Empty tableau columns accept Kings only.
   */
+
   if (col.length === 0) {
     return first.rank === 13;
   }
 
   const top = col[col.length - 1];
 
-  /*
-    Destination must have a face-up top card.
-  */
   if (!top.faceUp) {
     return false;
   }
 
   /*
-    Alternating colors and descending rank.
+     Tableau rule:
+
+     - alternating colors
+     - descending rank
   */
+
   return (
     isRed(first) !== isRed(top) &&
     first.rank === top.rank - 1
@@ -295,6 +322,17 @@ function canMoveToFoundation(card, suitIndex) {
     return false;
   }
 
+  if (
+    suitIndex < 0 ||
+    suitIndex >= state.foundations.length
+  ) {
+    return false;
+  }
+
+  /*
+     A card can only go to its own suit foundation.
+  */
+
   if (card.suit !== suitIndex) {
     return false;
   }
@@ -302,11 +340,16 @@ function canMoveToFoundation(card, suitIndex) {
   const pile = state.foundations[suitIndex];
 
   /*
-    Empty foundation starts with Ace.
+     Empty foundation accepts Ace.
   */
+
   if (pile.length === 0) {
     return card.rank === 1;
   }
+
+  /*
+     Foundation must proceed sequentially.
+  */
 
   return (
     card.rank ===
@@ -316,18 +359,19 @@ function canMoveToFoundation(card, suitIndex) {
 
 
 function isLegalMoveCards(cards, destination, sel) {
-  if (!cards || cards.length === 0) {
-    return false;
-  }
-
-  if (!destination) {
+  if (
+    !cards ||
+    cards.length === 0 ||
+    !destination
+  ) {
     return false;
   }
 
   if (destination.type === "tableau") {
     /*
-      Prevent moving a tableau sequence onto itself.
+       Prevent dropping a tableau stack onto its own column.
     */
+
     if (
       sel &&
       sel.source === "tableau" &&
@@ -344,8 +388,9 @@ function isLegalMoveCards(cards, destination, sel) {
 
   if (destination.type === "foundation") {
     /*
-      Foundations only accept one card at a time.
+       Only one card can enter a foundation.
     */
+
     if (cards.length !== 1) {
       return false;
     }
@@ -361,7 +406,7 @@ function isLegalMoveCards(cards, destination, sel) {
 
 
 /* =========================================================================
-   SELECTION / CARD LOCATION
+   CARD LOCATION / SELECTION
    ========================================================================= */
 
 function getSelectedCards(sel) {
@@ -374,17 +419,25 @@ function getSelectedCards(sel) {
   }
 
   if (sel.source === "waste") {
-    return state.waste.length
-      ? [state.waste[state.waste.length - 1]]
-      : [];
+    if (state.waste.length === 0) {
+      return [];
+    }
+
+    return [
+      state.waste[state.waste.length - 1]
+    ];
   }
 
   if (sel.source === "foundation") {
     const pile = state.foundations[sel.suit];
 
-    return pile.length
-      ? [pile[pile.length - 1]]
-      : [];
+    if (!pile || pile.length === 0) {
+      return [];
+    }
+
+    return [
+      pile[pile.length - 1]
+    ];
   }
 
   return [];
@@ -392,12 +445,9 @@ function getSelectedCards(sel) {
 
 
 function findCardLocation(cardId) {
-  /*
-    Search tableau.
-  */
   for (let c = 0; c < 7; c++) {
     const idx = state.tableau[c].findIndex(
-      card => card.id === cardId
+      (x) => x.id === cardId
     );
 
     if (idx !== -1) {
@@ -409,33 +459,27 @@ function findCardLocation(cardId) {
     }
   }
 
-  /*
-    Search waste.
-  */
-  const wIdx = state.waste.findIndex(
-    card => card.id === cardId
+  const wasteIndex = state.waste.findIndex(
+    (x) => x.id === cardId
   );
 
-  if (wIdx !== -1) {
+  if (wasteIndex !== -1) {
     return {
       source: "waste",
-      index: wIdx
+      index: wasteIndex
     };
   }
 
-  /*
-    Search foundations.
-  */
   for (let s = 0; s < 4; s++) {
-    const fIdx = state.foundations[s].findIndex(
-      card => card.id === cardId
+    const idx = state.foundations[s].findIndex(
+      (x) => x.id === cardId
     );
 
-    if (fIdx !== -1) {
+    if (idx !== -1) {
       return {
         source: "foundation",
         suit: s,
-        index: fIdx
+        index: idx
       };
     }
   }
@@ -476,32 +520,26 @@ function isSameSelection(a, b) {
    HISTORY / UNDO
    ========================================================================= */
 
-/*
-  Deep clone helper.
-*/
-function deepClone(x) {
+function deepClone(value) {
   if (typeof structuredClone === "function") {
-    return structuredClone(x);
+    return structuredClone(value);
   }
 
-  return JSON.parse(JSON.stringify(x));
+  return JSON.parse(
+    JSON.stringify(value)
+  );
 }
 
 
-/*
-  IMPORTANT:
-  Timer seconds are intentionally NOT included in history.
-
-  Undo should restore the board/game position, but it should not make
-  the elapsed timer run backward.
-*/
 function snapshotState() {
   return {
     tableau: deepClone(state.tableau),
     stock: deepClone(state.stock),
     waste: deepClone(state.waste),
     foundations: deepClone(state.foundations),
+
     moves: state.moves,
+    seconds: state.seconds,
     started: state.started,
     won: state.won
   };
@@ -509,7 +547,9 @@ function snapshotState() {
 
 
 function pushHistory() {
-  state.history.push(snapshotState());
+  state.history.push(
+    snapshotState()
+  );
 
   if (state.history.length > MAX_HISTORY) {
     state.history.shift();
@@ -518,12 +558,26 @@ function pushHistory() {
 
 
 /*
-  Undo one action.
+   Cancel any currently running auto-complete sequence.
+
+   Incrementing the generation invalidates all old timeout callbacks.
 */
+
+function cancelAutoComplete() {
+  autoCompleteGeneration++;
+}
+
+
 function undo() {
   if (state.history.length === 0) {
     return;
   }
+
+  /*
+     An Undo operation must invalidate auto-complete callbacks.
+  */
+
+  cancelAutoComplete();
 
   const snap = state.history.pop();
 
@@ -535,11 +589,7 @@ function undo() {
   state.foundations = snap.foundations;
 
   state.moves = snap.moves;
-
-  /*
-    Timer value is intentionally preserved.
-  */
-
+  state.seconds = snap.seconds;
   state.started = snap.started;
   state.won = snap.won;
 
@@ -547,34 +597,16 @@ function undo() {
   state.justFlippedId = null;
   state.lastMovedIds = [];
 
-  /*
-    If a winning state is undone, remove that win from statistics.
-    This prevents one game from being counted multiple times if the
-    player wins, undoes, and wins again.
-  */
   if (wasWon && !state.won) {
-    stats.gamesWon = Math.max(
-      0,
-      stats.gamesWon - 1
-    );
-
-    saveStats();
-
     hideWinModal();
-
-    updateStatsDisplay();
   }
 
-  /*
-    Correct timer behavior after restoring the previous state.
-  */
-  if (!state.started || state.won) {
+  if (state.won) {
     stopTimer();
-  } else if (!timerHandle) {
-    timerHandle = setInterval(
-      tick,
-      1000
-    );
+  } else if (state.started) {
+    ensureTimerStarted();
+  } else {
+    stopTimer();
   }
 
   playSound("click");
@@ -590,6 +622,10 @@ function undo() {
    ========================================================================= */
 
 function tick() {
+  if (!state.started || state.won) {
+    return;
+  }
+
   state.seconds++;
 
   updateTimeDisplay();
@@ -636,28 +672,51 @@ function formatTime(totalSeconds) {
    ========================================================================= */
 
 function executeMove(sel, destination) {
-  const cards = getSelectedCards(sel);
-
-  if (!cards.length) {
+  if (!sel || !destination) {
     return;
   }
+
+  const cards = getSelectedCards(sel);
+
+  if (cards.length === 0) {
+    return;
+  }
+
+  if (
+    !isLegalMoveCards(
+      cards,
+      destination,
+      sel
+    )
+  ) {
+    return;
+  }
+
+  /*
+     A normal move invalidates any pending auto-complete sequence.
+  */
+
+  cancelAutoComplete();
 
   pushHistory();
 
   /*
-    Remove cards from source.
+     Remove cards from source.
   */
+
   if (sel.source === "tableau") {
     state.tableau[sel.col].splice(
       sel.index,
       cards.length
     );
 
-    const col = state.tableau[sel.col];
+    const col =
+      state.tableau[sel.col];
 
     /*
-      Automatically turn the newly exposed card face-up.
+       Flip the newly exposed card.
     */
+
     if (
       col.length &&
       !col[col.length - 1].faceUp
@@ -667,38 +726,43 @@ function executeMove(sel, destination) {
       state.justFlippedId =
         col[col.length - 1].id;
     }
-  } else if (sel.source === "waste") {
+  }
+
+  else if (sel.source === "waste") {
     state.waste.pop();
-  } else if (sel.source === "foundation") {
-    state.foundations[sel.suit].pop();
+  }
+
+  else if (sel.source === "foundation") {
+    state.foundations[
+      sel.suit
+    ].pop();
   }
 
   /*
-    Add cards to destination.
+     Add cards to destination.
   */
+
   if (destination.type === "tableau") {
-    state.tableau[destination.col].push.apply(
-      state.tableau[destination.col],
-      cards
-    );
-  } else {
-    state.foundations[destination.suit].push.apply(
-      state.foundations[destination.suit],
-      cards
-    );
+    state.tableau[
+      destination.col
+    ].push(...cards);
   }
 
-  state.lastMovedIds = cards.map(
-    card => card.id
-  );
+  else if (
+    destination.type === "foundation"
+  ) {
+    state.foundations[
+      destination.suit
+    ].push(...cards);
+  }
+
+  state.lastMovedIds =
+    cards.map((c) => c.id);
 
   state.moves++;
 
   ensureTimerStarted();
 
-  /*
-    Sound.
-  */
   playSound(
     destination.type === "foundation"
       ? "foundation"
@@ -706,10 +770,9 @@ function executeMove(sel, destination) {
   );
 
   if (state.justFlippedId) {
-    setTimeout(
-      () => playSound("flip"),
-      110
-    );
+    setTimeout(() => {
+      playSound("flip");
+    }, 110);
   }
 
   state.selection = null;
@@ -737,12 +800,16 @@ function executeMove(sel, destination) {
 
 function handleStockClick() {
   /*
-    Draw from stock.
+     Drawing a card.
   */
+
   if (state.stock.length > 0) {
+    cancelAutoComplete();
+
     pushHistory();
 
-    const card = state.stock.pop();
+    const card =
+      state.stock.pop();
 
     card.faceUp = true;
 
@@ -767,16 +834,24 @@ function handleStockClick() {
   }
 
   /*
-    Recycle waste back into stock.
+     Recycle waste back into stock.
+
+     This implementation uses unlimited recycling,
+     which is valid for Draw-1 Klondike.
   */
+
   if (state.waste.length > 0) {
+    cancelAutoComplete();
+
     pushHistory();
 
     const recycled =
-      state.waste.slice().reverse();
+      state.waste
+        .slice()
+        .reverse();
 
     recycled.forEach(
-      card => {
+      (card) => {
         card.faceUp = false;
       }
     );
@@ -822,6 +897,8 @@ function checkWin() {
 
     stopTimer();
 
+    cancelAutoComplete();
+
     playSound("win");
 
     stats.gamesWon++;
@@ -835,20 +912,23 @@ function checkWin() {
     announce(
       "Congratulations, you won the game."
     );
+
+    return true;
   }
+
+  return false;
 }
 
 
 /* =========================================================================
-   HINT SYSTEM
+   HINT
    ========================================================================= */
 
 function findHint() {
   /*
-    -------------------------------------------------------------
-    1. Waste -> Foundation
-    -------------------------------------------------------------
+     1. Waste -> foundation
   */
+
   if (state.waste.length) {
     const card =
       state.waste[
@@ -865,7 +945,6 @@ function findHint() {
         from: {
           type: "waste"
         },
-
         to: {
           type: "foundation",
           suit: card.suit
@@ -874,91 +953,43 @@ function findHint() {
     }
   }
 
-
   /*
-    -------------------------------------------------------------
-    2. Tableau -> Foundation
-    -------------------------------------------------------------
+     2. Tableau -> foundation
   */
+
   for (let c = 0; c < 7; c++) {
-    const col = state.tableau[c];
+    const col =
+      state.tableau[c];
 
-    if (!col.length) {
-      continue;
-    }
+    if (col.length) {
+      const top =
+        col[col.length - 1];
 
-    const top =
-      col[col.length - 1];
-
-    if (
-      top.faceUp &&
-      canMoveToFoundation(
-        top,
-        top.suit
-      )
-    ) {
-      return {
-        from: {
-          type: "tableau",
-          col: c
-        },
-
-        to: {
-          type: "foundation",
-          suit: top.suit
-        }
-      };
-    }
-  }
-
-
-  /*
-    -------------------------------------------------------------
-    3. Foundation -> Tableau
-
-    This is important because the game permits moving a top
-    foundation card back onto the tableau.
-    -------------------------------------------------------------
-  */
-  for (let s = 0; s < 4; s++) {
-    const pile =
-      state.foundations[s];
-
-    if (!pile.length) {
-      continue;
-    }
-
-    const card =
-      pile[pile.length - 1];
-
-    for (let t = 0; t < 7; t++) {
       if (
-        canMoveToTableau(
-          [card],
-          t
+        top.faceUp &&
+        canMoveToFoundation(
+          top,
+          top.suit
         )
       ) {
         return {
           from: {
-            type: "foundation",
-            suit: s
-          },
-
-          to: {
             type: "tableau",
-            col: t
+            col: c
+          },
+          to: {
+            type: "foundation",
+            suit: top.suit
           }
         };
       }
     }
   }
 
-
   /*
-    -------------------------------------------------------------
-    4. Waste -> Tableau
-    -------------------------------------------------------------
+     3. Waste -> tableau
   */
+
   if (state.waste.length) {
     const card =
       state.waste[
@@ -976,7 +1007,6 @@ function findHint() {
           from: {
             type: "waste"
           },
-
           to: {
             type: "tableau",
             col: t
@@ -986,14 +1016,22 @@ function findHint() {
     }
   }
 
-
   /*
-    -------------------------------------------------------------
-    5. Tableau -> Tableau
-    -------------------------------------------------------------
+     4. Tableau sequence -> tableau
+     
+     IMPORTANT:
+     There is NO artificial restriction here.
+     If canMoveToTableau() says it is legal,
+     the hint is valid.
   */
+
   for (let c = 0; c < 7; c++) {
-    const col = state.tableau[c];
+    const col =
+      state.tableau[c];
+
+    if (!col.length) {
+      continue;
+    }
 
     const runStart =
       getRunStart(col);
@@ -1004,23 +1042,26 @@ function findHint() {
       continue;
     }
 
-    const seq =
+    const sequence =
       col.slice(runStart);
 
     for (let t = 0; t < 7; t++) {
+      if (t === c) {
+        continue;
+      }
+
       if (
-        t !== c &&
         canMoveToTableau(
-          seq,
+          sequence,
           t
         )
       ) {
         return {
           from: {
             type: "tableau",
-            col: c
+            col: c,
+            index: runStart
           },
-
           to: {
             type: "tableau",
             col: t
@@ -1030,12 +1071,10 @@ function findHint() {
     }
   }
 
-
   /*
-    -------------------------------------------------------------
-    6. If stock/waste still has cards, suggest drawing.
-    -------------------------------------------------------------
+     5. If stock remains, drawing is a useful hint.
   */
+
   if (
     state.stock.length ||
     state.waste.length
@@ -1044,7 +1083,6 @@ function findHint() {
       from: {
         type: "stock"
       },
-
       to: null
     };
   }
@@ -1054,7 +1092,8 @@ function findHint() {
 
 
 function showHint() {
-  const hint = findHint();
+  const hint =
+    findHint();
 
   if (!hint) {
     toast(
@@ -1095,21 +1134,21 @@ function showHint() {
 
 
 /* =========================================================================
-   AUTO COMPLETE
+   AUTO-COMPLETE
    ========================================================================= */
 
 /*
-  Simulates whether the remaining tableau cards can all safely move
-  to the foundations.
+   Simulate whether all remaining tableau cards can legally
+   be moved directly to their foundations.
 
-  IMPORTANT:
-  The simulation now correctly flips a newly exposed face-down card
-  after a tableau card is removed.
+   Auto-complete is only available when:
+   - stock is empty
+   - waste is empty
+   - every remaining card is face-up
+   - foundation sequence can absorb all cards
 */
+
 function simulateAutoComplete() {
-  /*
-    Auto Complete only operates once stock and waste are empty.
-  */
   if (
     state.stock.length ||
     state.waste.length
@@ -1119,14 +1158,11 @@ function simulateAutoComplete() {
     };
   }
 
-  /*
-    Make an isolated lightweight copy.
-  */
   const tab =
     state.tableau.map(
-      col =>
+      (col) =>
         col.map(
-          card => ({
+          (card) => ({
             suit: card.suit,
             rank: card.rank,
             faceUp: card.faceUp
@@ -1154,7 +1190,8 @@ function simulateAutoComplete() {
     guard++;
 
     for (let c = 0; c < 7; c++) {
-      const col = tab[c];
+      const col =
+        tab[c];
 
       if (!col.length) {
         continue;
@@ -1178,21 +1215,22 @@ function simulateAutoComplete() {
       if (
         top.rank === need
       ) {
-        /*
-          Remove top card.
-        */
         pile.push(
           col.pop()
         );
 
         /*
-          Correctly flip newly exposed card.
+           When a face-down card becomes
+           exposed during simulation, flip it.
         */
-        if (
-          col.length &&
-          !col[col.length - 1].faceUp
-        ) {
-          col[col.length - 1].faceUp = true;
+
+        if (col.length) {
+          const exposed =
+            col[col.length - 1];
+
+          if (!exposed.faceUp) {
+            exposed.faceUp = true;
+          }
         }
 
         progress = true;
@@ -1208,7 +1246,8 @@ function simulateAutoComplete() {
     );
 
   return {
-    possible: total === 52
+    possible:
+      total === 52
   };
 }
 
@@ -1218,19 +1257,52 @@ function isAutoCompleteAvailable() {
     return false;
   }
 
-  return simulateAutoComplete().possible;
+  return simulateAutoComplete()
+    .possible;
 }
 
 
 function runAutoComplete() {
-  if (!isAutoCompleteAvailable()) {
+  if (
+    !isAutoCompleteAvailable()
+  ) {
     return;
   }
+
+  /*
+     Start a fresh auto-complete generation.
+  */
+
+  cancelAutoComplete();
+
+  const generation =
+    autoCompleteGeneration;
 
   playSound("click");
 
   function step() {
+    /*
+       Stop immediately if this auto-complete
+       sequence is no longer current.
+    */
+
+    if (
+      generation !==
+      autoCompleteGeneration
+    ) {
+      return;
+    }
+
+    if (state.won) {
+      return;
+    }
+
     let moved = false;
+
+    /*
+       Find a tableau card that can move
+       directly to its foundation.
+    */
 
     for (let c = 0; c < 7; c++) {
       const col =
@@ -1250,18 +1322,25 @@ function runAutoComplete() {
           top.suit
         )
       ) {
+        /*
+           Every auto-complete card move is
+           individually undoable.
+        */
+
         pushHistory();
 
         col.pop();
 
         /*
-          Flip newly exposed card.
+           Flip newly exposed card.
         */
+
         if (
           col.length &&
           !col[col.length - 1].faceUp
         ) {
-          col[col.length - 1].faceUp = true;
+          col[col.length - 1].faceUp =
+            true;
 
           state.justFlippedId =
             col[col.length - 1].id;
@@ -1283,27 +1362,35 @@ function runAutoComplete() {
 
         render();
 
-        /*
-          FIX:
-          Auto Complete must use the same win detection as
-          normal moves.
-        */
-        checkWin();
-
         moved = true;
+
+        /*
+           IMPORTANT:
+           Check win immediately after
+           every auto-complete move.
+        */
+
+        if (checkWin()) {
+          return;
+        }
 
         break;
       }
     }
 
-    if (state.won) {
-      return;
-    }
+    /*
+       Continue only if another card was moved.
+    */
 
-    if (moved) {
+    if (
+      moved &&
+      generation ===
+        autoCompleteGeneration &&
+      !state.won
+    ) {
       setTimeout(
         step,
-        110
+        AUTO_COMPLETE_DELAY
       );
     }
   }
@@ -1503,11 +1590,11 @@ const SoundManager = {
     vol
   ) {
     freqs.forEach(
-      (f, i) => {
+      (freq, index) => {
         this._tone(
           ctx,
-          t0 + i * 0.02,
-          f,
+          t0 + index * 0.02,
+          freq,
           0.2,
           vol,
           "sine"
@@ -1528,11 +1615,11 @@ const SoundManager = {
     ];
 
     notes.forEach(
-      (f, i) => {
+      (freq, index) => {
         this._tone(
           ctx,
-          t0 + i * 0.11,
-          f,
+          t0 + index * 0.11,
+          freq,
           0.26,
           0.09,
           "sine"
@@ -1549,21 +1636,19 @@ function playSound(name) {
 
 
 function loadSoundPref() {
-  let saved = null;
-
   try {
-    saved =
+    const saved =
       localStorage.getItem(
         SOUND_KEY
       );
-  } catch (e) {
-    saved = null;
-  }
 
-  state.soundEnabled =
-    saved === null
-      ? true
-      : saved === "1";
+    state.soundEnabled =
+      saved === null
+        ? true
+        : saved === "1";
+  } catch (e) {
+    state.soundEnabled = true;
+  }
 
   SoundManager.enabled =
     state.soundEnabled;
@@ -1585,9 +1670,7 @@ function toggleSound() {
         : "0"
     );
   } catch (e) {
-    /*
-      localStorage unavailable.
-    */
+    /* localStorage unavailable */
   }
 
   updateSoundButton();
@@ -1611,20 +1694,30 @@ function loadStats() {
         STATS_KEY
       );
 
-    if (raw) {
-      const parsed =
-        JSON.parse(raw);
-
-      stats.gamesPlayed =
-        Number(parsed.gamesPlayed) || 0;
-
-      stats.gamesWon =
-        Number(parsed.gamesWon) || 0;
+    if (!raw) {
+      return;
     }
+
+    const parsed =
+      JSON.parse(raw);
+
+    stats.gamesPlayed =
+      Number.isFinite(
+        Number(parsed.gamesPlayed)
+      )
+        ? Number(parsed.gamesPlayed)
+        : 0;
+
+    stats.gamesWon =
+      Number.isFinite(
+        Number(parsed.gamesWon)
+      )
+        ? Number(parsed.gamesWon)
+        : 0;
+
   } catch (e) {
-    /*
-      Ignore corrupt/missing storage.
-    */
+    stats.gamesPlayed = 0;
+    stats.gamesWon = 0;
   }
 }
 
@@ -1636,9 +1729,7 @@ function saveStats() {
       JSON.stringify(stats)
     );
   } catch (e) {
-    /*
-      localStorage unavailable.
-    */
+    /* localStorage unavailable */
   }
 }
 
@@ -1670,7 +1761,6 @@ let closeModalBtn;
 
 let statsEl;
 let liveRegion;
-
 let toastEl;
 let toastTimer;
 
@@ -1801,18 +1891,14 @@ function cardAriaLabel(card) {
 
 function createCardElement(card) {
   const el =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
   const classes = [
     "card"
   ];
 
   if (!card.faceUp) {
-    classes.push(
-      "face-down"
-    );
+    classes.push("face-down");
   }
 
   if (card.faceUp) {
@@ -1869,27 +1955,28 @@ function createCardElement(card) {
 
     el.innerHTML =
       '<span class="card-face">' +
-        '<span class="card-corner top-left">' +
-          '<span class="c-rank">' +
-            label +
-          "</span>" +
-          '<span class="c-suit">' +
-            symbol +
-          "</span>" +
-        "</span>" +
 
-        '<span class="card-pip">' +
-          symbol +
-        "</span>" +
+      '<span class="card-corner top-left">' +
+      '<span class="c-rank">' +
+      label +
+      "</span>" +
+      '<span class="c-suit">' +
+      symbol +
+      "</span>" +
+      "</span>" +
 
-        '<span class="card-corner bottom-right">' +
-          '<span class="c-rank">' +
-            label +
-          "</span>" +
-          '<span class="c-suit">' +
-            symbol +
-          "</span>" +
-        "</span>" +
+      '<span class="card-pip">' +
+      symbol +
+      "</span>" +
+
+      '<span class="card-corner bottom-right">' +
+      '<span class="c-rank">' +
+      label +
+      "</span>" +
+      '<span class="c-suit">' +
+      symbol +
+      "</span>" +
+      "</span>" +
 
       "</span>";
   } else {
@@ -1915,9 +2002,7 @@ function createEmptyTableauSlot(
   colIndex
 ) {
   const el =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
   el.className =
     "empty-slot tableau-empty";
@@ -1940,9 +2025,7 @@ function createEmptyFoundationSlot(
   suitIndex
 ) {
   const el =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
   const colorClass =
     (
@@ -1958,7 +2041,7 @@ function createEmptyFoundationSlot(
 
   el.innerHTML =
     '<span class="empty-hint">' +
-      SUIT_SYMBOLS[suitIndex] +
+    SUIT_SYMBOLS[suitIndex] +
     "</span>";
 
   el.setAttribute(
@@ -2009,7 +2092,7 @@ function computeGaps(
   let faceUpCount = 0;
 
   col.forEach(
-    card => {
+    (card) => {
       if (card.faceUp) {
         faceUpCount++;
       } else {
@@ -2019,8 +2102,10 @@ function computeGaps(
   );
 
   /*
-    Last face-up card does not need an additional trailing gap.
+     The last face-up card doesn't need
+     a trailing gap.
   */
+
   if (faceUpCount > 0) {
     faceUpCount -= 1;
   }
@@ -2075,7 +2160,16 @@ function renderTableau() {
     const colEl =
       tableauColumns[c];
 
+    if (!colEl) {
+      continue;
+    }
+
     colEl.innerHTML = "";
+
+    /*
+       The data-location attributes are expected
+       to already exist in the HTML.
+    */
 
     const col =
       state.tableau[c];
@@ -2126,6 +2220,10 @@ function renderTableau() {
 
 
 function renderWaste() {
+  if (!wasteEl) {
+    return;
+  }
+
   wasteEl.innerHTML = "";
 
   if (state.waste.length === 0) {
@@ -2159,6 +2257,10 @@ function renderWaste() {
 
 
 function renderStock() {
+  if (!stockEl) {
+    return;
+  }
+
   stockEl.innerHTML = "";
 
   if (state.stock.length === 0) {
@@ -2216,6 +2318,10 @@ function renderFoundations() {
     const pileEl =
       foundationPiles[s];
 
+    if (!pileEl) {
+      continue;
+    }
+
     pileEl.innerHTML = "";
 
     const pile =
@@ -2227,7 +2333,9 @@ function renderFoundations() {
       );
     } else {
       const top =
-        pile[pile.length - 1];
+        pile[
+          pile.length - 1
+        ];
 
       pileEl.appendChild(
         createCardElement(top)
@@ -2248,7 +2356,7 @@ function applySelectionHighlight() {
     );
 
   cards.forEach(
-    card => {
+    (card) => {
       const el =
         cardElements.get(
           card.id
@@ -2312,9 +2420,9 @@ function updateStatsDisplay() {
   statsEl.textContent =
     "Games " +
     stats.gamesPlayed +
-    " \u00b7 Wins " +
+    " · Wins " +
     stats.gamesWon +
-    " \u00b7 Win rate " +
+    " · Win rate " +
     winRate +
     "%";
 }
@@ -2376,6 +2484,10 @@ function toast(message) {
 
 
 function pileElement(target) {
+  if (!target) {
+    return null;
+  }
+
   if (target.type === "tableau") {
     return tableauColumns[
       target.col
@@ -2458,7 +2570,7 @@ function shakeSelection() {
   getSelectedCards(
     state.selection
   ).forEach(
-    card => {
+    (card) => {
       const el =
         cardElements.get(
           card.id
@@ -2499,8 +2611,9 @@ function render() {
   updateHUD();
 
   /*
-    These visual-state arrays only apply to one render.
+     Animation flags are only needed for one render.
   */
+
   state.justFlippedId = null;
 
   state.lastMovedIds = [];
@@ -2562,6 +2675,20 @@ function hideWinModal() {
    ========================================================================= */
 
 function newGame() {
+  /*
+     IMPORTANT:
+     Any previous auto-complete animation
+     must be invalidated before replacing state.
+  */
+
+  cancelAutoComplete();
+
+  /*
+     Clear active drag.
+  */
+
+  dragState = null;
+
   stopTimer();
 
   state.tableau = [
@@ -2625,6 +2752,7 @@ function resolveTargetInfo(
   rawTarget
 ) {
   const cardEl =
+    rawTarget &&
     rawTarget.closest
       ? rawTarget.closest(
           ".card"
@@ -2632,6 +2760,7 @@ function resolveTargetInfo(
       : null;
 
   const locEl =
+    rawTarget &&
     rawTarget.closest
       ? rawTarget.closest(
           "[data-location]"
@@ -2687,9 +2816,11 @@ function getPickupSelection(
   }
 
   /*
-    Tableau:
-    Only cards belonging to the valid face-up run can be picked.
+     Tableau:
+     Only cards from the valid movable run
+     can be selected.
   */
+
   if (
     loc.source === "tableau"
   ) {
@@ -2702,7 +2833,8 @@ function getPickupSelection(
       getRunStart(col);
 
     if (
-      loc.index < runStart
+      loc.index <
+      runStart
     ) {
       return null;
     }
@@ -2711,9 +2843,10 @@ function getPickupSelection(
   }
 
   /*
-    Waste:
-    Only top card can be picked.
+     Waste:
+     Only top waste card is selectable.
   */
+
   if (
     loc.source === "waste"
   ) {
@@ -2728,9 +2861,10 @@ function getPickupSelection(
   }
 
   /*
-    Foundation:
-    Only top card can be picked.
+     Foundation:
+     Only top foundation card is selectable.
   */
+
   if (
     loc.source === "foundation"
   ) {
@@ -2754,8 +2888,9 @@ function handleActivate(
   targetInfo
 ) {
   /*
-    Stock click.
+     Stock click.
   */
+
   if (
     targetInfo.location ===
     "stock"
@@ -2774,7 +2909,9 @@ function handleActivate(
       type: "tableau",
       col: targetInfo.col
     };
-  } else if (
+  }
+
+  else if (
     targetInfo.location ===
     "foundation"
   ) {
@@ -2790,12 +2927,15 @@ function handleActivate(
     );
 
   /*
-    Existing selection.
+     If a card is already selected,
+     try to move it first.
   */
+
   if (state.selection) {
     /*
-      Clicking selected cards deselects them.
+       Clicking the same card again deselects it.
     */
+
     if (
       isSameSelection(
         state.selection,
@@ -2810,8 +2950,9 @@ function handleActivate(
     }
 
     /*
-      Try moving selected cards to destination.
+       Try legal destination.
     */
+
     if (destination) {
       const cards =
         getSelectedCards(
@@ -2836,8 +2977,10 @@ function handleActivate(
     }
 
     /*
-      Clicking another selectable card changes selection.
+       If another selectable card was clicked,
+       select that card instead.
     */
+
     if (clickedSelectable) {
       state.selection =
         clickedSelectable;
@@ -2850,8 +2993,9 @@ function handleActivate(
     }
 
     /*
-      Genuine invalid attempt.
+       Invalid attempt.
     */
+
     shakeSelection();
 
     if (destination) {
@@ -2866,8 +3010,9 @@ function handleActivate(
   }
 
   /*
-    No existing selection.
+     Nothing selected yet.
   */
+
   if (clickedSelectable) {
     state.selection =
       clickedSelectable;
@@ -2887,15 +3032,31 @@ function beginDragVisuals(ds) {
   ds.group =
     ds.cardIds
       .map(
-        id =>
+        (id) =>
           cardElements.get(id)
       )
       .filter(Boolean);
 
+  ds.originalStyles = [];
+
   ds.group.forEach(
-    (el, i) => {
+    (el, index) => {
       const rect =
         el.getBoundingClientRect();
+
+      ds.originalStyles.push({
+        el: el,
+        position: el.style.position,
+        left: el.style.left,
+        top: el.style.top,
+        width: el.style.width,
+        height: el.style.height,
+        margin: el.style.margin,
+        zIndex: el.style.zIndex,
+        pointerEvents:
+          el.style.pointerEvents,
+        transform: el.style.transform
+      });
 
       el.style.position =
         "fixed";
@@ -2912,11 +3073,10 @@ function beginDragVisuals(ds) {
       el.style.height =
         rect.height + "px";
 
-      el.style.margin =
-        "0";
+      el.style.margin = "0";
 
       el.style.zIndex =
-        String(900 + i);
+        String(900 + index);
 
       el.style.pointerEvents =
         "none";
@@ -2935,7 +3095,7 @@ function updateDragVisualsPosition(
   dy
 ) {
   ds.group.forEach(
-    el => {
+    (el) => {
       el.style.transform =
         "translate(" +
         dx +
@@ -2959,6 +3119,60 @@ function clearDropHighlight(ds) {
 
     ds.lastHighlighted =
       null;
+  }
+}
+
+
+function restoreDragVisuals(ds) {
+  if (!ds || !ds.group) {
+    return;
+  }
+
+  /*
+     Since render() normally replaces
+     these elements, this function is
+     primarily defensive.
+  */
+
+  if (ds.originalStyles) {
+    ds.originalStyles.forEach(
+      (item) => {
+        if (!item.el) {
+          return;
+        }
+
+        item.el.style.position =
+          item.position;
+
+        item.el.style.left =
+          item.left;
+
+        item.el.style.top =
+          item.top;
+
+        item.el.style.width =
+          item.width;
+
+        item.el.style.height =
+          item.height;
+
+        item.el.style.margin =
+          item.margin;
+
+        item.el.style.zIndex =
+          item.zIndex;
+
+        item.el.style.pointerEvents =
+          item.pointerEvents;
+
+        item.el.style.transform =
+          item.transform;
+
+        item.el.classList.remove(
+          "dragging"
+        );
+      }
+    );
   }
 }
 
@@ -3091,8 +3305,9 @@ function findDropTarget(
 
 function onBoardPointerDown(e) {
   /*
-    Only primary/left pointer.
+     Only primary mouse/touch pointer.
   */
+
   if (
     e.button !== undefined &&
     e.button !== 0
@@ -3124,20 +3339,26 @@ function onBoardPointerDown(e) {
 
     moved: false,
 
-    targetInfo,
+    targetInfo:
+      targetInfo,
 
     pickup:
       getPickupSelection(
         targetInfo
-      )
+      ),
+
+    group: []
   };
 
-  if (dragState.pickup) {
+  if (
+    dragState.pickup
+  ) {
     dragState.cardIds =
       getSelectedCards(
         dragState.pickup
       ).map(
-        card => card.id
+        (card) =>
+          card.id
       );
 
     try {
@@ -3145,9 +3366,7 @@ function onBoardPointerDown(e) {
         e.pointerId
       );
     } catch (err) {
-      /*
-        Some elements/browsers may not support pointer capture.
-      */
+      /* Safe to ignore */
     }
   }
 }
@@ -3172,7 +3391,10 @@ function onPointerMove(e) {
 
   if (!dragState.moved) {
     if (
-      Math.hypot(dx, dy) <
+      Math.hypot(
+        dx,
+        dy
+      ) <
       DRAG_THRESHOLD
     ) {
       return;
@@ -3180,7 +3402,9 @@ function onPointerMove(e) {
 
     dragState.moved = true;
 
-    if (dragState.pickup) {
+    if (
+      dragState.pickup
+    ) {
       beginDragVisuals(
         dragState
       );
@@ -3222,9 +3446,6 @@ function onPointerUp(e) {
 
   dragState = null;
 
-  /*
-    Actual drag.
-  */
   if (
     ds.moved &&
     ds.pickup
@@ -3254,35 +3475,30 @@ function onPointerUp(e) {
         ds.pickup,
         dest
       );
-    } else {
-      playSound("error");
 
-      if (dest) {
-        flashInvalidTarget(
-          dest
-        );
-      }
+      return;
+    }
 
-      ds.group.forEach(
-        el => {
-          el.classList.add(
-            "invalid-shake"
-          );
-        }
-      );
+    /*
+       Invalid drag.
+       Restore the board from state.
+    */
 
-      setTimeout(
-        () => render(),
-        260
+    playSound("error");
+
+    if (dest) {
+      flashInvalidTarget(
+        dest
       );
     }
+
+    restoreDragVisuals(ds);
+
+    render();
 
     return;
   }
 
-  /*
-    Normal click/tap.
-  */
   if (!ds.moved) {
     handleActivate(
       ds.targetInfo
@@ -3296,14 +3512,21 @@ function onPointerCancel() {
     return;
   }
 
+  const ds =
+    dragState;
+
   dragState = null;
+
+  clearDropHighlight(ds);
+
+  restoreDragVisuals(ds);
 
   render();
 }
 
 
 /* =========================================================================
-   STOCK KEYBOARD ACCESS
+   STOCK KEYBOARD
    ========================================================================= */
 
 function onStockKeydown(e) {
@@ -3338,10 +3561,12 @@ function onKeyDown(e) {
   }
 
   /*
-    Ctrl/Cmd + Z
+     Undo
   */
+
   if (
-    (e.ctrlKey || e.metaKey) &&
+    (e.ctrlKey ||
+      e.metaKey) &&
     (
       e.key === "z" ||
       e.key === "Z"
@@ -3355,8 +3580,9 @@ function onKeyDown(e) {
   }
 
   /*
-    Escape = deselect.
+     Escape = deselect
   */
+
   if (
     e.key === "Escape"
   ) {
@@ -3370,8 +3596,9 @@ function onKeyDown(e) {
   }
 
   /*
-    N = new game.
+     N = new game
   */
+
   if (
     e.key === "n" ||
     e.key === "N"
@@ -3382,8 +3609,9 @@ function onKeyDown(e) {
   }
 
   /*
-    S = sound.
+     S = sound
   */
+
   if (
     e.key === "s" ||
     e.key === "S"
@@ -3394,8 +3622,9 @@ function onKeyDown(e) {
   }
 
   /*
-    H = hint.
+     H = hint
   */
+
   if (
     e.key === "h" ||
     e.key === "H"
@@ -3412,13 +3641,12 @@ function onKeyDown(e) {
    ========================================================================= */
 
 function wireEvents() {
-  /*
-    Board pointer pipeline.
-  */
-  boardEl.addEventListener(
-    "pointerdown",
-    onBoardPointerDown
-  );
+  if (boardEl) {
+    boardEl.addEventListener(
+      "pointerdown",
+      onBoardPointerDown
+    );
+  }
 
   document.addEventListener(
     "pointermove",
@@ -3438,28 +3666,26 @@ function wireEvents() {
     onPointerCancel
   );
 
+  if (stockEl) {
+    stockEl.addEventListener(
+      "keydown",
+      onStockKeydown
+    );
+  }
 
-  /*
-    Stock keyboard access.
-  */
-  stockEl.addEventListener(
-    "keydown",
-    onStockKeydown
-  );
+  if (newGameBtn) {
+    newGameBtn.addEventListener(
+      "click",
+      newGame
+    );
+  }
 
-
-  /*
-    Toolbar.
-  */
-  newGameBtn.addEventListener(
-    "click",
-    newGame
-  );
-
-  undoBtn.addEventListener(
-    "click",
-    undo
-  );
+  if (undoBtn) {
+    undoBtn.addEventListener(
+      "click",
+      undo
+    );
+  }
 
   if (autoBtn) {
     autoBtn.addEventListener(
@@ -3475,19 +3701,19 @@ function wireEvents() {
     );
   }
 
-  soundBtn.addEventListener(
-    "click",
-    toggleSound
-  );
+  if (soundBtn) {
+    soundBtn.addEventListener(
+      "click",
+      toggleSound
+    );
+  }
 
-
-  /*
-    Win modal.
-  */
-  playAgainBtn.addEventListener(
-    "click",
-    newGame
-  );
+  if (playAgainBtn) {
+    playAgainBtn.addEventListener(
+      "click",
+      newGame
+    );
+  }
 
   if (closeModalBtn) {
     closeModalBtn.addEventListener(
@@ -3496,19 +3722,11 @@ function wireEvents() {
     );
   }
 
-
-  /*
-    Keyboard shortcuts.
-  */
   document.addEventListener(
     "keydown",
     onKeyDown
   );
 
-
-  /*
-    Responsive tableau recalculation.
-  */
   let resizeTimer = null;
 
   window.addEventListener(
@@ -3535,6 +3753,26 @@ function wireEvents() {
 function init() {
   cacheDom();
 
+  /*
+     Basic DOM validation.
+     The game can still initialize even if optional controls
+     are missing.
+  */
+
+  if (
+    !boardEl ||
+    tableauColumns.length !== 7 ||
+    foundationPiles.length !== 4 ||
+    !stockEl ||
+    !wasteEl
+  ) {
+    console.error(
+      "Prasun Games Solitaire: required DOM elements are missing."
+    );
+
+    return;
+  }
+
   loadSoundPref();
 
   loadStats();
@@ -3548,21 +3786,14 @@ function init() {
   newGame();
 
   /*
-    newGame() renders the board and plays the initial click sound.
-    The new game itself has not started yet, so make sure the timer
-    remains stopped until the first actual game action.
+     newGame() intentionally leaves the timer stopped.
   */
-  state.started = false;
 
-  stopTimer();
+  state.started = false;
 
   updateTimeDisplay();
 }
 
-
-/* =========================================================================
-   DOM READY
-   ========================================================================= */
 
 if (
   document.readyState ===
