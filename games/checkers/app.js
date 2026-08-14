@@ -2,33 +2,24 @@
 
 /* =========================================================================
    PRASUN GAMES — CHECKERS
+   Professional Local 2-Player American Checkers
    =========================================================================
-
-   Professional local 2-player Checkers engine
-
-   Features
-   -------------------------------------------------------------------------
-   • Standard 8 × 8 American Checkers
+   Features:
+   • 8 × 8 board
    • Local 2-player gameplay
    • Mandatory captures
-   • Multi-jump captures
+   • Multiple jumps
    • King promotion
-   • Kings move in both directions
+   • Kings move both directions
    • Win detection
-   • Stalemate / no-legal-move detection
+   • Stalemate detection
    • Undo
    • New Game
    • Move counter
-   • Piece counters
    • Turn indicator
-   • Last-move highlighting
-   • Valid-move highlighting
-   • Keyboard accessibility
-   • Escape to deselect
-   • N = New Game
-   • Ctrl/Cmd + Z = Undo
-   • Single source of truth: state
-   • DOM never controls game logic
+   • Keyboard support
+   • Responsive rendering
+   • No external libraries
    ========================================================================= */
 
 
@@ -50,39 +41,22 @@ const MAX_HISTORY = 200;
 
 
 /* =========================================================================
-   DIRECTIONS
-   ========================================================================= */
-
-const DIAGONAL_DIRECTIONS = [
-    [-1, -1],
-    [-1, 1],
-    [1, -1],
-    [1, 1]
-];
-
-
-/* =========================================================================
    GAME STATE
    ========================================================================= */
 
 const state = {
-
     board: [],
-
     currentPlayer: PLAYER_RED,
 
     selected: null,
-
     forcedPiece: null,
 
     winner: null,
-
     gameOver: false,
 
     moves: 0,
 
     redPieces: 12,
-
     blackPieces: 12,
 
     history: [],
@@ -90,7 +64,6 @@ const state = {
     started: false,
 
     lastMove: null
-
 };
 
 
@@ -120,23 +93,22 @@ function init() {
     cacheDOM();
 
     if (!boardElement) {
-
         console.error(
             "Prasun Games Checkers: #checkersBoard was not found."
         );
-
         return;
     }
+
+    setupBoardContainer();
 
     wireEvents();
 
     newGame();
-
 }
 
 
 /* =========================================================================
-   CACHE DOM
+   DOM CACHE
    ========================================================================= */
 
 function cacheDOM() {
@@ -164,12 +136,56 @@ function cacheDOM() {
 
     undoButton =
         document.getElementById("undoBtn");
-
 }
 
 
 /* =========================================================================
-   EVENT WIRING
+   BOARD CONTAINER
+   ========================================================================= */
+
+function setupBoardContainer() {
+
+    /*
+     * These properties guarantee that the board is actually rendered
+     * as an 8 × 8 grid even if the external CSS has a problem.
+     */
+
+    boardElement.style.display = "grid";
+    boardElement.style.gridTemplateColumns =
+        "repeat(8, minmax(0, 1fr))";
+
+    boardElement.style.gridTemplateRows =
+        "repeat(8, minmax(0, 1fr))";
+
+    boardElement.style.aspectRatio = "1 / 1";
+
+    boardElement.style.width = "100%";
+
+    boardElement.style.maxWidth = "720px";
+
+    boardElement.style.margin =
+        "0 auto";
+
+    boardElement.style.position =
+        "relative";
+
+    boardElement.style.overflow =
+        "hidden";
+
+    boardElement.setAttribute(
+        "role",
+        "grid"
+    );
+
+    boardElement.setAttribute(
+        "aria-label",
+        "Checkers game board"
+    );
+}
+
+
+/* =========================================================================
+   EVENTS
    ========================================================================= */
 
 function wireEvents() {
@@ -190,7 +206,6 @@ function wireEvents() {
             "click",
             newGame
         );
-
     }
 
     if (undoButton) {
@@ -199,14 +214,12 @@ function wireEvents() {
             "click",
             undo
         );
-
     }
 
     document.addEventListener(
         "keydown",
         handleGlobalKeydown
     );
-
 }
 
 
@@ -217,30 +230,18 @@ function wireEvents() {
 function createEmptyBoard() {
 
     return Array.from(
-        {
-            length: BOARD_SIZE
-        },
+        { length: BOARD_SIZE },
         () =>
             Array(BOARD_SIZE).fill(EMPTY)
     );
-
 }
 
 
-/* =========================================================================
-   PIECE CREATION
-   ========================================================================= */
-
-function createPiece(player, row, col) {
+function createPiece(player) {
 
     return {
-
         id:
             player +
-            "-" +
-            row +
-            "-" +
-            col +
             "-" +
             Date.now() +
             "-" +
@@ -251,15 +252,9 @@ function createPiece(player, row, col) {
         player,
 
         type: PIECE_MAN
-
     };
-
 }
 
-
-/* =========================================================================
-   INITIAL POSITION
-   ========================================================================= */
 
 function createInitialPosition() {
 
@@ -268,16 +263,11 @@ function createInitialPosition() {
 
 
     /*
-       BLACK
+     * BLACK
+     * Top three rows.
+     */
 
-       Black starts at the top of the board.
-    */
-
-    for (
-        let row = 0;
-        row < 3;
-        row++
-    ) {
+    for (let row = 0; row < 3; row++) {
 
         for (
             let col = 0;
@@ -294,29 +284,19 @@ function createInitialPosition() {
 
                 board[row][col] =
                     createPiece(
-                        PLAYER_BLACK,
-                        row,
-                        col
+                        PLAYER_BLACK
                     );
-
             }
-
         }
-
     }
 
 
     /*
-       RED
+     * RED
+     * Bottom three rows.
+     */
 
-       Red starts at the bottom.
-    */
-
-    for (
-        let row = 5;
-        row < BOARD_SIZE;
-        row++
-    ) {
+    for (let row = 5; row < 8; row++) {
 
         for (
             let col = 0;
@@ -333,20 +313,14 @@ function createInitialPosition() {
 
                 board[row][col] =
                     createPiece(
-                        PLAYER_RED,
-                        row,
-                        col
+                        PLAYER_RED
                     );
-
             }
-
         }
-
     }
 
 
     return board;
-
 }
 
 
@@ -362,7 +336,6 @@ function isInsideBoard(row, col) {
         col >= 0 &&
         col < BOARD_SIZE
     );
-
 }
 
 
@@ -371,7 +344,6 @@ function isDarkSquare(row, col) {
     return (
         (row + col) % 2 === 1
     );
-
 }
 
 
@@ -383,13 +355,10 @@ function getPiece(row, col) {
             col
         )
     ) {
-
         return null;
-
     }
 
     return state.board[row][col];
-
 }
 
 
@@ -400,9 +369,8 @@ function isEmpty(row, col) {
             row,
             col
         ) &&
-        state.board[row][col] === EMPTY
+        !state.board[row][col]
     );
-
 }
 
 
@@ -411,32 +379,31 @@ function opponentOf(player) {
     return player === PLAYER_RED
         ? PLAYER_BLACK
         : PLAYER_RED;
-
 }
 
 
 /* =========================================================================
-   DIRECTION LOGIC
+   DIRECTIONS
    ========================================================================= */
 
 function getMoveDirections(piece) {
-
-    /*
-       Kings can move in both directions.
-    */
 
     if (
         piece.type === PIECE_KING
     ) {
 
-        return DIAGONAL_DIRECTIONS;
-
+        return [
+            [-1, -1],
+            [-1, 1],
+            [1, -1],
+            [1, 1]
+        ];
     }
 
 
     /*
-       Red moves upward.
-    */
+     * RED moves upward.
+     */
 
     if (
         piece.player === PLAYER_RED
@@ -446,65 +413,44 @@ function getMoveDirections(piece) {
             [-1, -1],
             [-1, 1]
         ];
-
     }
 
 
     /*
-       Black moves downward.
-    */
+     * BLACK moves downward.
+     */
 
     return [
         [1, -1],
         [1, 1]
     ];
-
 }
 
 
 /* =========================================================================
-   SIMPLE MOVE GENERATION
+   SIMPLE MOVES
    ========================================================================= */
 
-function getSimpleMoves(
-    row,
-    col,
-    playerOverride = null
-) {
+function getSimpleMoves(row, col) {
 
     const piece =
-        getPiece(
-            row,
-            col
-        );
+        getPiece(row, col);
 
     if (!piece) {
-
         return [];
-
     }
-
-
-    const player =
-        playerOverride ||
-        state.currentPlayer;
-
 
     if (
-        piece.player !== player
+        piece.player !==
+        state.currentPlayer
     ) {
-
         return [];
-
     }
-
 
     const moves = [];
 
     const directions =
-        getMoveDirections(
-            piece
-        );
+        getMoveDirections(piece);
 
 
     for (
@@ -543,62 +489,40 @@ function getSimpleMoves(
                 },
 
                 capture: null
-
             });
-
         }
-
     }
 
 
     return moves;
-
 }
 
 
 /* =========================================================================
-   CAPTURE MOVE GENERATION
+   CAPTURE MOVES
    ========================================================================= */
 
-function getCaptureMoves(
-    row,
-    col,
-    playerOverride = null
-) {
+function getCaptureMoves(row, col) {
 
     const piece =
-        getPiece(
-            row,
-            col
-        );
+        getPiece(row, col);
 
     if (!piece) {
-
         return [];
-
     }
 
-
-    const player =
-        playerOverride ||
-        state.currentPlayer;
-
-
     if (
-        piece.player !== player
+        piece.player !==
+        state.currentPlayer
     ) {
-
         return [];
-
     }
 
 
     const moves = [];
 
     const directions =
-        getMoveDirections(
-            piece
-        );
+        getMoveDirections(piece);
 
 
     for (
@@ -625,9 +549,7 @@ function getCaptureMoves(
                 landingCol
             )
         ) {
-
             continue;
-
         }
 
 
@@ -641,7 +563,9 @@ function getCaptureMoves(
         if (
             jumpedPiece &&
             jumpedPiece.player ===
-                opponentOf(piece.player) &&
+                opponentOf(
+                    piece.player
+                ) &&
             isEmpty(
                 landingRow,
                 landingCol
@@ -664,27 +588,22 @@ function getCaptureMoves(
                     row: middleRow,
                     col: middleCol
                 }
-
             });
-
         }
-
     }
 
 
     return moves;
-
 }
 
 
 /* =========================================================================
-   GLOBAL MOVE CHECKING
+   GLOBAL MOVE SEARCH
    ========================================================================= */
 
 function getAllCaptureMoves(player) {
 
     const captures = [];
-
 
     for (
         let row = 0;
@@ -699,37 +618,42 @@ function getAllCaptureMoves(player) {
         ) {
 
             const piece =
-                getPiece(
-                    row,
-                    col
-                );
+                state.board[row][col];
 
 
             if (
                 !piece ||
                 piece.player !== player
             ) {
-
                 continue;
-
             }
 
+
+            /*
+             * Temporarily use the requested player
+             * for move generation.
+             */
+
+            const originalPlayer =
+                state.currentPlayer;
+
+            state.currentPlayer =
+                player;
 
             captures.push(
                 ...getCaptureMoves(
                     row,
-                    col,
-                    player
+                    col
                 )
             );
 
+            state.currentPlayer =
+                originalPlayer;
         }
-
     }
 
 
     return captures;
-
 }
 
 
@@ -737,7 +661,6 @@ function getAllSimpleMoves(player) {
 
     const moves = [];
 
-
     for (
         let row = 0;
         row < BOARD_SIZE;
@@ -751,37 +674,37 @@ function getAllSimpleMoves(player) {
         ) {
 
             const piece =
-                getPiece(
-                    row,
-                    col
-                );
+                state.board[row][col];
 
 
             if (
                 !piece ||
                 piece.player !== player
             ) {
-
                 continue;
-
             }
 
+
+            const originalPlayer =
+                state.currentPlayer;
+
+            state.currentPlayer =
+                player;
 
             moves.push(
                 ...getSimpleMoves(
                     row,
-                    col,
-                    player
+                    col
                 )
             );
 
+            state.currentPlayer =
+                originalPlayer;
         }
-
     }
 
 
     return moves;
-
 }
 
 
@@ -792,7 +715,6 @@ function playerHasCapture(player) {
             player
         ).length > 0
     );
-
 }
 
 
@@ -806,7 +728,6 @@ function playerHasAnyMove(player) {
             player
         ).length > 0
     );
-
 }
 
 
@@ -817,9 +738,7 @@ function playerHasAnyMove(player) {
 function isMoveLegal(move) {
 
     if (!move) {
-
         return false;
-
     }
 
 
@@ -831,9 +750,7 @@ function isMoveLegal(move) {
 
 
     if (!piece) {
-
         return false;
-
     }
 
 
@@ -841,15 +758,13 @@ function isMoveLegal(move) {
         piece.player !==
         state.currentPlayer
     ) {
-
         return false;
-
     }
 
 
     /*
-       Multi-jump restriction.
-    */
+     * Multi-jump restriction.
+     */
 
     if (state.forcedPiece) {
 
@@ -859,48 +774,43 @@ function isMoveLegal(move) {
             move.from.col !==
                 state.forcedPiece.col
         ) {
-
             return false;
-
         }
-
     }
 
 
-    /*
-       Captures are mandatory.
-    */
-
-    const mandatoryCapture =
+    const captureRequired =
         playerHasCapture(
             state.currentPlayer
         );
 
 
+    /*
+     * Normal move forbidden when a capture exists.
+     */
+
     if (
-        mandatoryCapture &&
+        captureRequired &&
         !move.capture
     ) {
-
         return false;
-
     }
 
 
     /*
-       Capture validation.
-    */
+     * Capture validation.
+     */
 
     if (move.capture) {
 
-        const legalCaptures =
+        const captures =
             getCaptureMoves(
                 move.from.row,
                 move.from.col
             );
 
 
-        return legalCaptures.some(
+        return captures.some(
             candidate =>
 
                 candidate.to.row ===
@@ -916,22 +826,21 @@ function isMoveLegal(move) {
                 candidate.capture.col ===
                     move.capture.col
         );
-
     }
 
 
     /*
-       Normal move validation.
-    */
+     * Normal move validation.
+     */
 
-    const legalMoves =
+    const moves =
         getSimpleMoves(
             move.from.row,
             move.from.col
         );
 
 
-    return legalMoves.some(
+    return moves.some(
         candidate =>
 
             candidate.to.row ===
@@ -940,20 +849,21 @@ function isMoveLegal(move) {
             candidate.to.col ===
                 move.to.col
     );
-
 }
 
 
 /* =========================================================================
-   SNAPSHOT / UNDO
+   HISTORY
    ========================================================================= */
 
 function cloneBoard(board) {
 
     return board.map(
         row =>
+
             row.map(
                 piece =>
+
                     piece
                         ? {
                             ...piece
@@ -961,7 +871,6 @@ function cloneBoard(board) {
                         : null
             )
     );
-
 }
 
 
@@ -1011,9 +920,7 @@ function createSnapshot() {
                     )
                 )
                 : null
-
     };
-
 }
 
 
@@ -1062,11 +969,9 @@ function restoreSnapshot(snapshot) {
             )
             : null;
 
-
     updatePieceCounts();
 
     render();
-
 }
 
 
@@ -1083,9 +988,7 @@ function pushHistory() {
     ) {
 
         state.history.shift();
-
     }
-
 }
 
 
@@ -1098,13 +1001,7 @@ function undo() {
     if (
         state.history.length === 0
     ) {
-
-        setStatus(
-            "There is no move to undo."
-        );
-
         return;
-
     }
 
 
@@ -1120,7 +1017,6 @@ function undo() {
     setStatus(
         "Move undone."
     );
-
 }
 
 
@@ -1133,15 +1029,9 @@ function executeMove(move) {
     if (
         !isMoveLegal(move)
     ) {
-
         return false;
-
     }
 
-
-    /*
-       Save state before changing it.
-    */
 
     pushHistory();
 
@@ -1154,25 +1044,13 @@ function executeMove(move) {
 
 
     if (!movingPiece) {
-
         return false;
-
     }
 
 
     /*
-       Store whether the piece was a man
-       before the move.
-    */
-
-    const wasMan =
-        movingPiece.type ===
-        PIECE_MAN;
-
-
-    /*
-       Remove piece from origin.
-    */
+     * Remove from original square.
+     */
 
     state.board[
         move.from.row
@@ -1182,8 +1060,8 @@ function executeMove(move) {
 
 
     /*
-       Remove captured piece.
-    */
+     * Remove captured piece.
+     */
 
     if (move.capture) {
 
@@ -1192,13 +1070,12 @@ function executeMove(move) {
         ][
             move.capture.col
         ] = EMPTY;
-
     }
 
 
     /*
-       Place moving piece.
-    */
+     * Move piece.
+     */
 
     state.board[
         move.to.row
@@ -1208,14 +1085,13 @@ function executeMove(move) {
 
 
     /*
-       Promotion.
-    */
+     * Promotion.
+     */
 
     let promoted = false;
 
 
     if (
-        wasMan &&
         movingPiece.type ===
             PIECE_MAN
     ) {
@@ -1230,7 +1106,6 @@ function executeMove(move) {
                 PIECE_KING;
 
             promoted = true;
-
         }
 
 
@@ -1245,9 +1120,7 @@ function executeMove(move) {
                 PIECE_KING;
 
             promoted = true;
-
         }
-
     }
 
 
@@ -1271,24 +1144,18 @@ function executeMove(move) {
                 ? {
                     ...move.capture
                 }
-                : null,
-
-        promoted
-
+                : null
     };
 
 
     state.selected = null;
 
 
-    /* ---------------------------------------------------------------------
-       MULTI-JUMP
-       --------------------------------------------------------------------- */
+    /*
+     * Multi-jump.
+     */
 
-    if (
-        move.capture &&
-        !promoted
-    ) {
+    if (move.capture) {
 
         const nextCaptures =
             getCaptureMoves(
@@ -1303,19 +1170,21 @@ function executeMove(move) {
 
             state.forcedPiece = {
 
-                row: move.to.row,
+                row:
+                    move.to.row,
 
-                col: move.to.col
-
+                col:
+                    move.to.col
             };
 
 
             state.selected = {
 
-                row: move.to.row,
+                row:
+                    move.to.row,
 
-                col: move.to.col
-
+                col:
+                    move.to.col
             };
 
 
@@ -1325,28 +1194,23 @@ function executeMove(move) {
 
 
             setStatus(
-                "Continue capturing with the selected piece."
+                promoted
+                    ? "King promoted! Continue capturing."
+                    : "Continue capturing."
             );
 
 
             return true;
-
         }
-
     }
 
-
-    /*
-       No more captures.
-       Clear forced-piece state.
-    */
 
     state.forcedPiece = null;
 
 
     /*
-       Switch player.
-    */
+     * Change player.
+     */
 
     state.currentPlayer =
         opponentOf(
@@ -1358,8 +1222,8 @@ function executeMove(move) {
 
 
     /*
-       Check whether the game has ended.
-    */
+     * Check end game.
+     */
 
     if (
         checkGameOver()
@@ -1368,7 +1232,6 @@ function executeMove(move) {
         render();
 
         return true;
-
     }
 
 
@@ -1384,7 +1247,6 @@ function executeMove(move) {
 
 
     return true;
-
 }
 
 
@@ -1394,24 +1256,18 @@ function executeMove(move) {
 
 function checkGameOver() {
 
-    const redPieces =
+    const red =
         countPieces(
             PLAYER_RED
         );
 
-    const blackPieces =
+    const black =
         countPieces(
             PLAYER_BLACK
         );
 
 
-    /*
-       No red pieces.
-    */
-
-    if (
-        redPieces === 0
-    ) {
+    if (red === 0) {
 
         state.winner =
             PLAYER_BLACK;
@@ -1423,17 +1279,10 @@ function checkGameOver() {
         );
 
         return true;
-
     }
 
 
-    /*
-       No black pieces.
-    */
-
-    if (
-        blackPieces === 0
-    ) {
+    if (black === 0) {
 
         state.winner =
             PLAYER_RED;
@@ -1445,13 +1294,8 @@ function checkGameOver() {
         );
 
         return true;
-
     }
 
-
-    /*
-       Current player has no legal move.
-    */
 
     if (
         !playerHasAnyMove(
@@ -1467,36 +1311,27 @@ function checkGameOver() {
         state.gameOver = true;
 
 
-        if (
+        setStatus(
+
             state.winner ===
                 PLAYER_RED
-        ) {
 
-            setStatus(
-                "Red wins — Black has no legal moves."
-            );
+                ? "Red wins — Black has no legal moves."
 
-        } else {
-
-            setStatus(
-                "Black wins — Red has no legal moves."
-            );
-
-        }
+                : "Black wins — Red has no legal moves."
+        );
 
 
         return true;
-
     }
 
 
     return false;
-
 }
 
 
 /* =========================================================================
-   PIECE COUNTING
+   PIECE COUNT
    ========================================================================= */
 
 function countPieces(player) {
@@ -1526,16 +1361,12 @@ function countPieces(player) {
             ) {
 
                 count++;
-
             }
-
         }
-
     }
 
 
     return count;
-
 }
 
 
@@ -1550,7 +1381,6 @@ function updatePieceCounts() {
         countPieces(
             PLAYER_BLACK
         );
-
 }
 
 
@@ -1560,12 +1390,8 @@ function updatePieceCounts() {
 
 function selectPiece(row, col) {
 
-    if (
-        state.gameOver
-    ) {
-
+    if (state.gameOver) {
         return;
-
     }
 
 
@@ -1577,9 +1403,7 @@ function selectPiece(row, col) {
 
 
     if (!piece) {
-
         return;
-
     }
 
 
@@ -1587,27 +1411,16 @@ function selectPiece(row, col) {
         piece.player !==
         state.currentPlayer
     ) {
-
-        setStatus(
-            state.currentPlayer ===
-                PLAYER_RED
-                ? "It is Red's turn."
-                : "It is Black's turn."
-        );
-
         return;
-
     }
 
 
     /*
-       During a multi-jump only
-       the forced piece is allowed.
-    */
+     * During multi-jump,
+     * only the forced piece may move.
+     */
 
-    if (
-        state.forcedPiece
-    ) {
+    if (state.forcedPiece) {
 
         if (
             row !==
@@ -1615,15 +1428,8 @@ function selectPiece(row, col) {
             col !==
                 state.forcedPiece.col
         ) {
-
-            setStatus(
-                "Continue the capture with the selected piece."
-            );
-
             return;
-
         }
-
     }
 
 
@@ -1634,18 +1440,10 @@ function selectPiece(row, col) {
         );
 
 
-    const globalCaptureRequired =
+    if (
         playerHasCapture(
             state.currentPlayer
-        );
-
-
-    /*
-       Mandatory capture rule.
-    */
-
-    if (
-        globalCaptureRequired &&
+        ) &&
         captures.length === 0
     ) {
 
@@ -1654,38 +1452,27 @@ function selectPiece(row, col) {
         );
 
         return;
-
     }
 
 
     state.selected = {
 
         row,
-
         col
-
     };
 
 
     render();
 
 
-    if (
+    setStatus(
+
         captures.length > 0
-    ) {
 
-        setStatus(
-            "Capture available. Choose a highlighted square."
-        );
+            ? "Capture available — choose a highlighted square."
 
-    } else {
-
-        setStatus(
-            "Choose a highlighted destination."
-        );
-
-    }
-
+            : "Choose a highlighted destination."
+    );
 }
 
 
@@ -1695,13 +1482,8 @@ function selectPiece(row, col) {
 
 function tryMoveTo(row, col) {
 
-    if (
-        !state.selected ||
-        state.gameOver
-    ) {
-
+    if (!state.selected) {
         return;
-
     }
 
 
@@ -1712,13 +1494,8 @@ function tryMoveTo(row, col) {
 
         col:
             state.selected.col
-
     };
 
-
-    /*
-       First check captures.
-    */
 
     const captures =
         getCaptureMoves(
@@ -1730,26 +1507,23 @@ function tryMoveTo(row, col) {
     let move =
         captures.find(
             candidate =>
+
                 candidate.to.row === row &&
                 candidate.to.col === col
         );
 
 
     /*
-       If no capture destination exists,
-       normal movement may be considered.
-    */
+     * If no capture selected,
+     * try a normal move.
+     */
 
     if (!move) {
 
-        const globalCaptureRequired =
+        if (
             playerHasCapture(
                 state.currentPlayer
-            );
-
-
-        if (
-            globalCaptureRequired
+            )
         ) {
 
             setStatus(
@@ -1757,11 +1531,10 @@ function tryMoveTo(row, col) {
             );
 
             return;
-
         }
 
 
-        const simpleMoves =
+        const normalMoves =
             getSimpleMoves(
                 from.row,
                 from.col
@@ -1769,12 +1542,12 @@ function tryMoveTo(row, col) {
 
 
         move =
-            simpleMoves.find(
+            normalMoves.find(
                 candidate =>
+
                     candidate.to.row === row &&
                     candidate.to.col === col
             );
-
     }
 
 
@@ -1785,14 +1558,12 @@ function tryMoveTo(row, col) {
         );
 
         return;
-
     }
 
 
     executeMove(
         move
     );
-
 }
 
 
@@ -1812,9 +1583,7 @@ function handleBoardClick(event) {
         !square ||
         !boardElement.contains(square)
     ) {
-
         return;
-
     }
 
 
@@ -1833,64 +1602,49 @@ function handleBoardClick(event) {
         !Number.isInteger(row) ||
         !Number.isInteger(col)
     ) {
-
         return;
-
     }
 
 
-    if (
-        state.gameOver
-    ) {
-
+    if (state.gameOver) {
         return;
-
     }
 
 
     /*
-       If there is a selected piece:
-       - Own piece = change selection
-       - Destination = attempt move
-       - Same piece = deselect
-    */
+     * A piece is already selected.
+     */
 
-    if (
-        state.selected
-    ) {
+    if (state.selected) {
+
+
+        /*
+         * Clicking selected piece.
+         */
 
         if (
             state.selected.row === row &&
             state.selected.col === col
         ) {
 
-            /*
-               Cannot deselect during
-               a mandatory multi-jump.
-            */
-
             if (
                 !state.forcedPiece
             ) {
 
-                state.selected =
-                    null;
+                state.selected = null;
 
                 render();
 
-                setStatus(
-                    state.currentPlayer ===
-                        PLAYER_RED
-                        ? "Red's turn."
-                        : "Black's turn."
-                );
-
+                setTurnStatus();
             }
 
             return;
-
         }
 
+
+        /*
+         * Clicking another own piece.
+         */
 
         const clickedPiece =
             getPiece(
@@ -1911,9 +1665,12 @@ function handleBoardClick(event) {
             );
 
             return;
-
         }
 
+
+        /*
+         * Otherwise try destination.
+         */
 
         tryMoveTo(
             row,
@@ -1921,24 +1678,22 @@ function handleBoardClick(event) {
         );
 
         return;
-
     }
 
 
     /*
-       No current selection.
-    */
+     * Nothing selected.
+     */
 
     selectPiece(
         row,
         col
     );
-
 }
 
 
 /* =========================================================================
-   KEYBOARD SUPPORT
+   KEYBOARD
    ========================================================================= */
 
 function handleBoardKeydown(event) {
@@ -1950,9 +1705,7 @@ function handleBoardKeydown(event) {
 
 
     if (!square) {
-
         return;
-
     }
 
 
@@ -1967,10 +1720,6 @@ function handleBoardKeydown(event) {
         );
 
 
-    /*
-       Enter / Space
-    */
-
     if (
         event.key === "Enter" ||
         event.key === " "
@@ -1979,9 +1728,7 @@ function handleBoardKeydown(event) {
         event.preventDefault();
 
 
-        if (
-            state.selected
-        ) {
+        if (state.selected) {
 
             tryMoveTo(
                 row,
@@ -1994,12 +1741,10 @@ function handleBoardKeydown(event) {
                 row,
                 col
             );
-
         }
 
 
         return;
-
     }
 
 
@@ -2008,25 +1753,29 @@ function handleBoardKeydown(event) {
 
 
     if (
-        event.key === "ArrowUp"
+        event.key ===
+        "ArrowUp"
     ) {
 
         nextRow--;
 
     } else if (
-        event.key === "ArrowDown"
+        event.key ===
+        "ArrowDown"
     ) {
 
         nextRow++;
 
     } else if (
-        event.key === "ArrowLeft"
+        event.key ===
+        "ArrowLeft"
     ) {
 
         nextCol--;
 
     } else if (
-        event.key === "ArrowRight"
+        event.key ===
+        "ArrowRight"
     ) {
 
         nextCol++;
@@ -2034,7 +1783,6 @@ function handleBoardKeydown(event) {
     } else {
 
         return;
-
     }
 
 
@@ -2050,40 +1798,31 @@ function handleBoardKeydown(event) {
 
         const nextSquare =
             boardElement.querySelector(
-                '.checkers-square[data-row="' +
-                nextRow +
-                '"][data-col="' +
-                nextCol +
-                '"]'
+                `.checkers-square[data-row="${nextRow}"][data-col="${nextCol}"]`
             );
 
 
-        if (
-            nextSquare
-        ) {
+        if (nextSquare) {
 
             nextSquare.focus();
-
         }
-
     }
-
 }
 
 
 /* =========================================================================
-   GLOBAL KEYBOARD SHORTCUTS
+   GLOBAL KEYBOARD
    ========================================================================= */
 
 function handleGlobalKeydown(event) {
 
     /*
-       Ctrl/Cmd + Z
-    */
+     * CTRL/CMD + Z
+     */
 
     if (
         (event.ctrlKey ||
-         event.metaKey) &&
+            event.metaKey) &&
         event.key.toLowerCase() === "z"
     ) {
 
@@ -2092,16 +1831,16 @@ function handleGlobalKeydown(event) {
         undo();
 
         return;
-
     }
 
 
     /*
-       Escape
-    */
+     * ESC
+     */
 
     if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
     ) {
 
         if (
@@ -2109,73 +1848,39 @@ function handleGlobalKeydown(event) {
             !state.forcedPiece
         ) {
 
-            state.selected =
-                null;
+            state.selected = null;
 
             render();
 
-            setStatus(
-                state.currentPlayer ===
-                    PLAYER_RED
-                    ? "Red's turn."
-                    : "Black's turn."
-            );
-
+            setTurnStatus();
         }
 
         return;
-
     }
 
 
     /*
-       N = New Game
-    */
+     * N = New Game
+     */
 
     if (
-        event.key.toLowerCase() === "n"
+        event.key.toLowerCase() ===
+        "n"
     ) {
 
-        /*
-           Don't trigger while typing.
-        */
-
-        const tag =
-            document.activeElement
-                ?.tagName
-                ?.toLowerCase();
-
-
-        if (
-            tag === "input" ||
-            tag === "textarea" ||
-            tag === "select"
-        ) {
-
-            return;
-
-        }
-
-
         newGame();
-
     }
-
 }
 
 
 /* =========================================================================
-   HIGHLIGHTED DESTINATIONS
+   HIGHLIGHTS
    ========================================================================= */
 
 function getHighlightedDestinations() {
 
-    if (
-        !state.selected
-    ) {
-
+    if (!state.selected) {
         return [];
-
     }
 
 
@@ -2185,10 +1890,6 @@ function getHighlightedDestinations() {
     const col =
         state.selected.col;
 
-
-    /*
-       Captures always take priority.
-    */
 
     const captures =
         getCaptureMoves(
@@ -2209,17 +1910,15 @@ function getHighlightedDestinations() {
 
                 col:
                     move.to.col
-
             })
         );
-
     }
 
 
     /*
-       If another piece can capture,
-       normal moves are not allowed.
-    */
+     * If another capture exists elsewhere,
+     * no normal move may be highlighted.
+     */
 
     if (
         playerHasCapture(
@@ -2228,7 +1927,6 @@ function getHighlightedDestinations() {
     ) {
 
         return [];
-
     }
 
 
@@ -2243,29 +1941,21 @@ function getHighlightedDestinations() {
 
             col:
                 move.to.col
-
         })
     );
-
 }
 
 
 /* =========================================================================
-   BOARD RENDERING
+   RENDER BOARD
    ========================================================================= */
 
 function render() {
 
     if (!boardElement) {
-
         return;
-
     }
 
-
-    /*
-       Clear existing board.
-    */
 
     boardElement.innerHTML = "";
 
@@ -2273,10 +1963,6 @@ function render() {
     const highlighted =
         getHighlightedDestinations();
 
-
-    /*
-       Build all 64 squares.
-    */
 
     for (
         let row = 0;
@@ -2290,6 +1976,11 @@ function render() {
             col++
         ) {
 
+
+            /*
+             * Square
+             */
+
             const square =
                 document.createElement(
                     "button"
@@ -2299,10 +1990,6 @@ function render() {
             square.type =
                 "button";
 
-
-            /*
-               Base classes.
-            */
 
             square.className =
                 "checkers-square " +
@@ -2323,32 +2010,74 @@ function render() {
                 String(col);
 
 
-            /*
-               Keyboard accessibility.
-            */
-
-            square.setAttribute(
-                "aria-label",
-                getSquareAriaLabel(
-                    row,
-                    col
-                )
-            );
-
-
             square.setAttribute(
                 "role",
                 "gridcell"
             );
 
 
-            square.tabIndex =
-                0;
+            square.setAttribute(
+                "aria-label",
+                `Checkers row ${row + 1}, column ${col + 1}`
+            );
 
 
             /*
-               Piece.
-            */
+             * GUARANTEED SQUARE RENDERING
+             */
+
+            square.style.position =
+                "relative";
+
+            square.style.display =
+                "flex";
+
+            square.style.alignItems =
+                "center";
+
+            square.style.justifyContent =
+                "center";
+
+            square.style.padding =
+                "0";
+
+            square.style.margin =
+                "0";
+
+            square.style.border =
+                "0";
+
+            square.style.cursor =
+                "pointer";
+
+            square.style.aspectRatio =
+                "1 / 1";
+
+
+            /*
+             * Board square colors.
+             */
+
+            if (
+                isDarkSquare(
+                    row,
+                    col
+                )
+            ) {
+
+                square.style.background =
+                    "linear-gradient(145deg, #174c37, #0b3023)";
+
+            } else {
+
+                square.style.background =
+                    "linear-gradient(145deg, #e5d7bd, #cdbd9e)";
+            }
+
+
+            /*
+             * Piece.
+             */
 
             const piece =
                 state.board[row][col];
@@ -2356,91 +2085,134 @@ function render() {
 
             if (piece) {
 
-                const pieceElement =
+                square.appendChild(
                     createPieceElement(
                         piece
-                    );
-
-
-                square.appendChild(
-                    pieceElement
+                    )
                 );
 
 
-                square.classList.add(
+                if (
                     piece.player ===
-                        PLAYER_RED
-                        ? "red-square-piece"
-                        : "black-square-piece"
-                );
-
-
-                /*
-                   Selected piece.
-                */
-
-                if (
-                    state.selected &&
-                    state.selected.row === row &&
-                    state.selected.col === col
+                    PLAYER_RED
                 ) {
 
                     square.classList.add(
-                        "selected-square"
+                        "red-square-piece"
                     );
 
-                }
-
-
-                /*
-                   Forced multi-jump piece.
-                */
-
-                if (
-                    state.forcedPiece &&
-                    state.forcedPiece.row === row &&
-                    state.forcedPiece.col === col
-                ) {
+                } else {
 
                     square.classList.add(
-                        "forced-square"
+                        "black-square-piece"
                     );
-
                 }
-
             }
 
 
             /*
-               Valid destination.
-            */
+             * Selected square.
+             */
 
             if (
+                state.selected &&
+                state.selected.row === row &&
+                state.selected.col === col
+            ) {
+
+                square.classList.add(
+                    "selected-square"
+                );
+
+                square.style.boxShadow =
+                    "inset 0 0 0 4px rgba(52, 211, 153, 0.95)";
+            }
+
+
+            /*
+             * Forced multi-jump piece.
+             */
+
+            if (
+                state.forcedPiece &&
+                state.forcedPiece.row === row &&
+                state.forcedPiece.col === col
+            ) {
+
+                square.classList.add(
+                    "forced-square"
+                );
+
+                square.style.boxShadow =
+                    "inset 0 0 0 4px rgba(250, 204, 21, 0.95)";
+            }
+
+
+            /*
+             * Valid destination.
+             */
+
+            const isHighlighted =
                 highlighted.some(
                     destination =>
+
                         destination.row === row &&
                         destination.col === col
-                )
-            ) {
+                );
+
+
+            if (isHighlighted) {
 
                 square.classList.add(
                     "valid-destination"
                 );
 
-                square.setAttribute(
-                    "aria-label",
-                    getDestinationAriaLabel(
-                        row,
-                        col
-                    )
-                );
 
+                square.style.boxShadow =
+                    "inset 0 0 0 4px rgba(52, 211, 153, 0.95)";
+
+
+                /*
+                 * Add visible destination dot.
+                 */
+
+                const dot =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                dot.style.position =
+                    "absolute";
+
+                dot.style.width =
+                    "18%";
+
+                dot.style.height =
+                    "18%";
+
+                dot.style.borderRadius =
+                    "50%";
+
+                dot.style.background =
+                    "rgba(52, 211, 153, 0.85)";
+
+                dot.style.boxShadow =
+                    "0 0 12px rgba(52, 211, 153, 0.7)";
+
+                dot.style.pointerEvents =
+                    "none";
+
+
+                square.appendChild(
+                    dot
+                );
             }
 
 
             /*
-               Last move.
-            */
+             * Last move.
+             */
 
             if (
                 state.lastMove &&
@@ -2460,41 +2232,33 @@ function render() {
                     "last-move-square"
                 );
 
+
+                if (
+                    !isHighlighted
+                ) {
+
+                    square.style.boxShadow =
+                        "inset 0 0 0 3px rgba(250, 204, 21, 0.55)";
+                }
             }
 
 
             boardElement.appendChild(
                 square
             );
-
         }
-
     }
 
 
-    /*
-       Update HUD after board rendering.
-    */
-
     updateHUD();
-
 }
 
 
 /* =========================================================================
-   PIECE DOM
+   CREATE PIECE
    ========================================================================= */
 
 function createPieceElement(piece) {
-
-    /*
-       IMPORTANT:
-       This element is intentionally empty for normal pieces.
-
-       The CSS creates the actual circular checker piece.
-
-       King pieces receive a crown symbol.
-    */
 
     const element =
         document.createElement(
@@ -2502,71 +2266,26 @@ function createPieceElement(piece) {
         );
 
 
-    /*
-       Base piece class.
-    */
-
-    element.classList.add(
-        "checkers-piece"
-    );
-
-
-    /*
-       Player class.
-    */
-
-    if (
-        piece.player === PLAYER_RED
-    ) {
-
-        element.classList.add(
-            "piece-red"
+    element.className =
+        "checkers-piece " +
+        (
+            piece.player ===
+            PLAYER_RED
+                ? "piece-red"
+                : "piece-black"
         );
 
-    } else {
-
-        element.classList.add(
-            "piece-black"
-        );
-
-    }
-
-
-    /*
-       King class.
-    */
 
     if (
-        piece.type === PIECE_KING
+        piece.type ===
+        PIECE_KING
     ) {
 
         element.classList.add(
             "piece-king"
         );
-
     }
 
-
-    /*
-       Data attributes.
-
-       These are useful for CSS,
-       debugging and future enhancements.
-    */
-
-    element.dataset.player =
-        piece.player;
-
-    element.dataset.type =
-        piece.type;
-
-
-    /*
-       Accessibility.
-
-       The parent square contains the
-       meaningful accessible label.
-    */
 
     element.setAttribute(
         "aria-hidden",
@@ -2575,110 +2294,111 @@ function createPieceElement(piece) {
 
 
     /*
-       King symbol.
+     * IMPORTANT:
+     * These styles guarantee that the balls are visible even if
+     * style.css does not contain the expected piece CSS.
+     */
 
-       Normal pieces remain empty so
-       CSS can render the circular piece.
-    */
+    element.style.display =
+        "block";
+
+    element.style.width =
+        "72%";
+
+    element.style.height =
+        "72%";
+
+    element.style.aspectRatio =
+        "1 / 1";
+
+    element.style.borderRadius =
+        "50%";
+
+    element.style.position =
+        "relative";
+
+    element.style.zIndex =
+        "5";
+
+    element.style.pointerEvents =
+        "none";
+
+    element.style.boxSizing =
+        "border-box";
+
+
+    /*
+     * RED PIECE
+     */
 
     if (
-        piece.type === PIECE_KING
+        piece.player ===
+        PLAYER_RED
+    ) {
+
+        element.style.background =
+            "radial-gradient(circle at 32% 25%, #ffb4b4 0%, #ef5350 15%, #dc2626 45%, #991b1b 78%, #450a0a 100%)";
+
+        element.style.border =
+            "3px solid rgba(255,255,255,0.25)";
+
+        element.style.boxShadow =
+            "inset -8px -10px 15px rgba(0,0,0,0.38), inset 6px 6px 10px rgba(255,255,255,0.20), 0 7px 12px rgba(0,0,0,0.55)";
+
+    } else {
+
+
+        /*
+         * BLACK PIECE
+         */
+
+        element.style.background =
+            "radial-gradient(circle at 32% 25%, #7b8794 0%, #374151 18%, #111827 48%, #030712 80%, #000000 100%)";
+
+        element.style.border =
+            "3px solid rgba(255,255,255,0.18)";
+
+        element.style.boxShadow =
+            "inset -8px -10px 15px rgba(0,0,0,0.65), inset 6px 6px 10px rgba(255,255,255,0.16), 0 7px 12px rgba(0,0,0,0.65)";
+    }
+
+
+    /*
+     * KING
+     */
+
+    if (
+        piece.type ===
+        PIECE_KING
     ) {
 
         element.textContent =
             "♛";
 
-    } else {
+        element.style.display =
+            "flex";
 
-        element.textContent =
-            "";
+        element.style.alignItems =
+            "center";
 
+        element.style.justifyContent =
+            "center";
+
+        element.style.color =
+            "#ffffff";
+
+        element.style.fontSize =
+            "42%";
+
+        element.style.fontWeight =
+            "900";
+
+        element.style.textShadow =
+            "0 2px 3px rgba(0,0,0,0.85)";
     }
 
 
     return element;
-
-}
-
-
-/* =========================================================================
-   ACCESSIBILITY LABELS
-   ========================================================================= */
-
-function getSquareAriaLabel(row, col) {
-
-    const piece =
-        getPiece(
-            row,
-            col
-        );
-
-
-    const coordinate =
-        getBoardCoordinate(
-            row,
-            col
-        );
-
-
-    if (!piece) {
-
-        return (
-            coordinate +
-            ", empty square"
-        );
-
-    }
-
-
-    const playerName =
-        piece.player ===
-            PLAYER_RED
-            ? "Red"
-            : "Black";
-
-
-    const pieceName =
-        piece.type ===
-            PIECE_KING
-            ? "king"
-            : "piece";
-
-
-    return (
-        coordinate +
-        ", " +
-        playerName +
-        " " +
-        pieceName
-    );
-
-}
-
-
-function getDestinationAriaLabel(row, col) {
-
-    return (
-        getBoardCoordinate(
-            row,
-            col
-        ) +
-        ", valid move destination"
-    );
-
-}
-
-
-function getBoardCoordinate(row, col) {
-
-    const files =
-        "ABCDEFGH";
-
-    return (
-        files[col] +
-        (BOARD_SIZE - row)
-    );
-
 }
 
 
@@ -2692,14 +2412,12 @@ function updateHUD() {
 
 
     /*
-       Turn.
-    */
+     * Turn.
+     */
 
     if (turnElement) {
 
-        if (
-            state.gameOver
-        ) {
+        if (state.gameOver) {
 
             turnElement.textContent =
                 state.winner ===
@@ -2714,15 +2432,13 @@ function updateHUD() {
                     PLAYER_RED
                     ? "Red"
                     : "Black";
-
         }
-
     }
 
 
     /*
-       Moves.
-    */
+     * Moves.
+     */
 
     if (movesElement) {
 
@@ -2730,13 +2446,12 @@ function updateHUD() {
             String(
                 state.moves
             );
-
     }
 
 
     /*
-       Red pieces.
-    */
+     * Red pieces.
+     */
 
     if (redCountElement) {
 
@@ -2744,13 +2459,12 @@ function updateHUD() {
             String(
                 state.redPieces
             );
-
     }
 
 
     /*
-       Black pieces.
-    */
+     * Black pieces.
+     */
 
     if (blackCountElement) {
 
@@ -2758,52 +2472,18 @@ function updateHUD() {
             String(
                 state.blackPieces
             );
-
     }
 
 
     /*
-       Undo button.
-    */
+     * Undo.
+     */
 
     if (undoButton) {
 
         undoButton.disabled =
             state.history.length === 0;
-
     }
-
-
-    /*
-       Default status.
-
-       Don't overwrite explicit game-over messages.
-    */
-
-    if (
-        statusElement &&
-        !state.gameOver
-    ) {
-
-        if (
-            state.forcedPiece
-        ) {
-
-            statusElement.textContent =
-                "Continue capturing.";
-
-        } else {
-
-            statusElement.textContent =
-                state.currentPlayer ===
-                    PLAYER_RED
-                    ? "Red's turn"
-                    : "Black's turn";
-
-        }
-
-    }
-
 }
 
 
@@ -2813,15 +2493,25 @@ function updateHUD() {
 
 function setStatus(message) {
 
-    if (
-        statusElement
-    ) {
+    if (statusElement) {
 
         statusElement.textContent =
             message;
-
     }
+}
 
+
+function setTurnStatus() {
+
+    setStatus(
+
+        state.currentPlayer ===
+            PLAYER_RED
+
+            ? "Red's turn."
+
+            : "Black's turn."
+    );
 }
 
 
@@ -2831,199 +2521,68 @@ function setStatus(message) {
 
 function newGame() {
 
-    /*
-       Reset board.
-    */
-
     state.board =
         createInitialPosition();
 
-
-    /*
-       Red starts.
-    */
 
     state.currentPlayer =
         PLAYER_RED;
 
 
-    /*
-       Clear selection.
-    */
-
     state.selected =
         null;
 
-
-    /*
-       Clear forced capture.
-    */
 
     state.forcedPiece =
         null;
 
 
-    /*
-       Clear winner.
-    */
-
     state.winner =
         null;
 
-
-    /*
-       Game active.
-    */
 
     state.gameOver =
         false;
 
 
-    /*
-       Reset move counter.
-    */
-
     state.moves =
         0;
 
 
-    /*
-       Reset counts.
-    */
-
     state.redPieces =
         12;
+
 
     state.blackPieces =
         12;
 
 
-    /*
-       Clear undo history.
-    */
-
     state.history =
         [];
 
-
-    /*
-       Game has not started.
-    */
 
     state.started =
         false;
 
 
-    /*
-       Clear last move.
-    */
-
     state.lastMove =
         null;
 
 
-    /*
-       Update counts.
-    */
-
     updatePieceCounts();
 
-
-    /*
-       Render initial position.
-    */
 
     render();
 
 
-    /*
-       Status.
-    */
-
     setStatus(
         "Red's turn."
     );
-
-
-    /*
-       Focus the first playable red piece
-       for keyboard users.
-    */
-
-    focusFirstPlayerPiece(
-        PLAYER_RED
-    );
-
 }
 
 
 /* =========================================================================
-   FOCUS FIRST PLAYER PIECE
-   ========================================================================= */
-
-function focusFirstPlayerPiece(player) {
-
-    if (!boardElement) {
-
-        return;
-
-    }
-
-
-    for (
-        let row = 0;
-        row < BOARD_SIZE;
-        row++
-    ) {
-
-        for (
-            let col = 0;
-            col < BOARD_SIZE;
-            col++
-        ) {
-
-            const piece =
-                getPiece(
-                    row,
-                    col
-                );
-
-
-            if (
-                piece &&
-                piece.player === player
-            ) {
-
-                const square =
-                    boardElement.querySelector(
-                        '.checkers-square[data-row="' +
-                        row +
-                        '"][data-col="' +
-                        col +
-                        '"]'
-                    );
-
-
-                if (square) {
-
-                    square.focus();
-
-                }
-
-
-                return;
-
-            }
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================================
-   DEVELOPMENT / DEBUG HELPER
+   DEBUG
    ========================================================================= */
 
 function getGameState() {
@@ -3065,44 +2624,13 @@ function getGameState() {
             state.redPieces,
 
         blackPieces:
-            state.blackPieces,
-
-        started:
-            state.started,
-
-        lastMove:
-            state.lastMove
-                ? JSON.parse(
-                    JSON.stringify(
-                        state.lastMove
-                    )
-                )
-                : null
-
+            state.blackPieces
     };
-
 }
 
 
 /* =========================================================================
-   OPTIONAL DEBUG ACCESS
-   ========================================================================= */
-
-/*
-   Expose a read-only style debugging function.
-
-   Example from browser console:
-
-       getCheckersState()
-
-*/
-
-window.getCheckersState =
-    getGameState;
-
-
-/* =========================================================================
-   START APPLICATION
+   START
    ========================================================================= */
 
 if (
@@ -3118,5 +2646,4 @@ if (
 } else {
 
     init();
-
 }
