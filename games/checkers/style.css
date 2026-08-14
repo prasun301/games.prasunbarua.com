@@ -1,6 +1,6 @@
 /* ==========================================================================
-   PRASUN GAMES - CHECKERS STYLESHEET
-   Professional modern slate/navy aesthetic with glassmorphism & AI controls
+   CHECKERS GAME STYLESHEET - PRASUN GAMES
+   Dedicated styles for Checkers (games/checkers/style.css)
    ========================================================================== */
 
 /* --- CSS Variables & Theme Tokens --- */
@@ -14,7 +14,7 @@
     --accent-emerald-hover: #059669;
     --accent-emerald-glow: rgba(16, 185, 129, 0.4);
 
-    --text-primary: #f8fafc;
+    --text-primary: #ffffff;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
 
@@ -41,7 +41,7 @@
 
     --crown-gold: #f59e0b;
 
-    /* Typography */
+    /* Typography & Radius */
     --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     --radius-sm: 6px;
     --radius-md: 12px;
@@ -88,9 +88,9 @@ body {
     top: 10px;
 }
 
-/* --- Header Navigation --- */
+/* --- SITE HEADER & UNIFIED BRANDING --- */
 .site-header {
-    background: rgba(11, 19, 43, 0.85);
+    background: rgba(11, 19, 43, 0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--panel-border);
     position: sticky;
@@ -101,34 +101,48 @@ body {
 .header-container {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 12px 20px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.brand-logo {
-    text-decoration: none;
+.brand {
     display: flex;
     align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.brand:hover {
+    opacity: 0.88;
+}
+
+.brand-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    display: inline-block;
 }
 
 .brand-title {
-    font-weight: 800;
     font-size: 1.25rem;
-    letter-spacing: 1.5px;
-    color: var(--text-primary);
-    background: linear-gradient(135deg, #ffffff 0%, var(--accent-emerald) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    color: #ffffff !important;
+    text-transform: none !important;
+    letter-spacing: -0.2px;
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
 }
 
-.site-nav {
+.header-nav {
     display: flex;
+    align-items: center;
     gap: 20px;
 }
 
-.nav-link {
+.header-link {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.95rem;
@@ -136,11 +150,11 @@ body {
     transition: color 0.2s ease;
 }
 
-.nav-link:hover {
-    color: var(--accent-emerald);
+.header-link:hover {
+    color: #ffffff;
 }
 
-/* --- Main Layout --- */
+/* --- GAME LAYOUT & CONTROLS --- */
 .game-wrapper {
     flex: 1;
     padding: 24px 16px;
@@ -173,7 +187,7 @@ body {
     font-size: 0.95rem;
 }
 
-/* --- Mode & AI Selector Panel --- */
+/* Mode & AI Selectors */
 .mode-panel {
     background: var(--panel-bg);
     backdrop-filter: blur(12px);
@@ -230,7 +244,7 @@ body {
     box-shadow: 0 0 0 2px var(--accent-emerald-glow);
 }
 
-/* --- HUD Panel --- */
+/* HUD Panel */
 .hud-panel {
     background: var(--panel-bg);
     backdrop-filter: blur(12px);
@@ -296,7 +310,7 @@ body {
     gap: 8px;
 }
 
-/* --- Buttons --- */
+/* Buttons */
 .btn {
     border: none;
     border-radius: var(--radius-sm);
@@ -349,6 +363,8 @@ body {
     text-decoration: underline;
     font-size: 0.85rem;
     padding: 4px 8px;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-text:hover {
@@ -360,7 +376,7 @@ body {
     font-size: 1rem;
 }
 
-/* --- Status Banner --- */
+/* Status Banner */
 .status-banner {
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.25);
@@ -389,7 +405,7 @@ body {
     50% { opacity: 1; }
 }
 
-/* --- Checkers Board --- */
+/* --- CHECKERS BOARD & PIECES --- */
 .board-container {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -439,7 +455,7 @@ body {
     background-color: var(--square-dark-hover);
 }
 
-/* Highlight Overlays */
+/* Square Highlights */
 .square.selected {
     box-shadow: inset 0 0 0 3px var(--highlight-selected);
     background-color: rgba(16, 185, 129, 0.15) !important;
@@ -456,7 +472,7 @@ body {
     z-index: 10;
 }
 
-/* Move Targets Indicators */
+/* Move Indicator Animations */
 .square.legal-move::after {
     content: '';
     width: 28%;
@@ -491,7 +507,7 @@ body {
     50% { transform: scale(1.1); opacity: 1; }
 }
 
-/* --- Checkers Pieces --- */
+/* Piece Renderings */
 .checkers-piece {
     width: 82%;
     height: 82%;
@@ -505,7 +521,6 @@ body {
     cursor: pointer;
 }
 
-/* Red Piece */
 .piece-red {
     background: radial-gradient(circle at 35% 35%, var(--piece-red-top), var(--piece-red-bottom));
     box-shadow: 
@@ -515,7 +530,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Black Piece */
 .piece-black {
     background: radial-gradient(circle at 35% 35%, var(--piece-black-top), var(--piece-black-bottom));
     box-shadow: 
@@ -525,7 +539,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Piece Inner Concentric Ridge Details */
 .checkers-piece::before {
     content: '';
     width: 65%;
@@ -547,7 +560,6 @@ body {
         0 0 16px var(--accent-emerald-glow);
 }
 
-/* King Styling & SVG Crown */
 .crown-icon {
     position: absolute;
     width: 55%;
@@ -563,13 +575,12 @@ body {
     to { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8)); }
 }
 
-/* Footer Helper Button Alignment */
 .board-footer-controls {
     display: flex;
     justify-content: center;
 }
 
-/* --- Modals --- */
+/* --- MODALS --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -708,7 +719,7 @@ kbd {
     justify-content: flex-end;
 }
 
-/* --- SEO Content Section --- */
+/* --- SEO ARTICLE & FAQ --- */
 .seo-section {
     background: #0f172a;
     border-top: 1px solid var(--panel-border);
@@ -761,7 +772,7 @@ kbd {
     margin-bottom: 6px;
 }
 
-/* --- Footer --- */
+/* --- FOOTER --- */
 .site-footer {
     background: #0b132b;
     border-top: 1px solid var(--panel-border);
@@ -800,7 +811,16 @@ kbd {
     font-size: 0.8rem;
 }
 
-/* --- Responsive Adjustments --- */
+.copyright a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.copyright a:hover {
+    color: var(--accent-emerald);
+}
+
+/* --- RESPONSIVE MOBILE ADJUSTMENTS --- */
 @media (max-width: 600px) {
     .mode-panel {
         flex-direction: column;
