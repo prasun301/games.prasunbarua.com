@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Play Free Checkers Online | American Checkers | Prasun Games</title>
+    <title>Play Free Checkers Online | vs Computer & 2 Player | Prasun Games</title>
     
     <!-- Meta Descriptions & SEO -->
-    <meta name="description" content="Play free online Checkers (American Checkers / English Draughts) in your web browser. Features mandatory captures, multi-jumps, king promotion, move undo, keyboard accessibility, and zero downloads.">
-    <meta name="keywords" content="free online checkers, play checkers in browser, classic checkers, American Checkers, English Draughts, no download checkers, browser games, Prasun Games">
+    <meta name="description" content="Play free online Checkers (American Checkers / English Draughts) against a smart AI computer or local 2-player. Features mandatory captures, multi-jumps, king promotion, undo, and mobile touch support.">
+    <meta name="keywords" content="free online checkers, play checkers in browser, play checkers against computer, checkers AI, classic checkers, American Checkers, English Draughts, no download checkers, Prasun Games">
     <meta name="author" content="Prasun Barua">
     <meta name="robots" content="index, follow">
     
@@ -18,14 +18,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://games.prasunbarua.com/games/checkers/">
     <meta property="og:title" content="Play Free Checkers Online | Prasun Games">
-    <meta property="og:description" content="Enjoy classic American Checkers directly in your browser. Mandatory captures, responsive graphics, touch controls, and smart undo options. Free to play without downloads or registration.">
+    <meta property="og:description" content="Enjoy classic American Checkers directly in your browser vs AI or 2 Player. Mandatory captures, responsive graphics, touch controls, and smart undo options.">
     <meta property="og:site_name" content="Prasun Games">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://games.prasunbarua.com/games/checkers/">
     <meta name="twitter:title" content="Play Free Checkers Online | Prasun Games">
-    <meta name="twitter:description" content="Play free American Checkers in your browser. Complete rules, forced jumps, smooth animations, and touch controls. No registration needed.">
+    <meta name="twitter:description" content="Play free American Checkers in your browser against Computer or a friend. Mandatory jumps, smooth graphics, and touch controls.">
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
@@ -55,8 +55,37 @@
             <!-- Game Title Header -->
             <div class="game-header">
                 <h1 class="game-title">CHECKERS</h1>
-                <p class="game-subtitle">Standard American Checkers (English Draughts)</p>
+                <p class="game-subtitle">American Checkers (English Draughts) &bull; Single Player AI &amp; 2 Player</p>
             </div>
+
+            <!-- Game Mode & AI Configuration Panel -->
+            <section class="mode-panel" aria-label="Game Mode Options">
+                <div class="control-group">
+                    <label for="modeSelect" class="control-label">GAME MODE:</label>
+                    <select id="modeSelect" class="select-input">
+                        <option value="pve" selected>vs Computer (AI)</option>
+                        <option value="pvp">2 Players (Local)</option>
+                    </select>
+                </div>
+
+                <div id="aiOptionsGroup" class="ai-options-group">
+                    <div class="control-group">
+                        <label for="aiColorSelect" class="control-label">YOU PLAY:</label>
+                        <select id="aiColorSelect" class="select-input">
+                            <option value="red" selected>Red (First)</option>
+                            <option value="black">Black (Second)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="aiDifficultySelect" class="control-label">DIFFICULTY:</label>
+                        <select id="aiDifficultySelect" class="select-input">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
 
             <!-- Heads-Up Display (HUD) Panel -->
             <section class="hud-panel" aria-label="Game Status and Statistics">
@@ -155,10 +184,10 @@
             <div class="modal-body text-left">
                 <h3>Standard American Rules</h3>
                 <ul>
-                    <li><strong>Pieces &amp; Movement:</strong> Red starts at the bottom and moves upward. Black starts at the top and moves downward. Normal pieces (men) move one square diagonally forward.</li>
-                    <li><strong>Mandatory Captures:</strong> If a jump capture is available anywhere on the board, you <em>must</em> capture. Non-capturing moves are blocked until all captures are resolved.</li>
-                    <li><strong>Multi-Jumps:</strong> If a piece lands on a square where another jump is possible, it must continue jumping in the same turn.</li>
-                    <li><strong>King Promotion:</strong> When a piece reaches the opponent's back row, it becomes a King. Kings can move and capture both forward and backward. If a piece reaches the king row via a capture, its turn ends immediately upon promotion.</li>
+                    <li><strong>Pieces &amp; Movement:</strong> Red moves upward; Black moves downward. Men move 1 square diagonally forward.</li>
+                    <li><strong>Mandatory Captures:</strong> If a jump capture is available, you <em>must</em> capture. Non-capturing moves are blocked until captures are resolved.</li>
+                    <li><strong>Multi-Jumps:</strong> If a piece lands where another jump is possible, it must continue jumping in the same turn.</li>
+                    <li><strong>King Promotion:</strong> Reaching the opponent's back row promotes your piece to a King, granting it bidirectional movement.</li>
                     <li><strong>Winning:</strong> Win by capturing all opposing pieces or leaving your opponent with no legal moves.</li>
                 </ul>
 
@@ -181,28 +210,27 @@
     <section class="seo-section">
         <div class="seo-container">
             <article id="how-to-play" class="seo-article">
-                <h2>Play Free American Checkers Online</h2>
-                <p>Welcome to <strong>Checkers</strong> on <strong>Prasungames.com</strong>, a sleek, accessible browser version of the timeless classic board game. Designed with high-performance CSS and JavaScript, this game runs smoothly across desktop, tablet, and mobile devices with zero downloads or plugins required.</p>
+                <h2>Play Free American Checkers Online vs Computer</h2>
+                <p>Welcome to <strong>Checkers</strong> on <strong>Prasungames.com</strong>. Challenge our intelligent Minimax computer opponent or play locally with a friend in 2-player mode. Designed with high-performance CSS and JavaScript, this game runs smoothly across desktop, tablet, and mobile devices with zero downloads required.</p>
 
                 <h2>Official Checkers Rules</h2>
                 <p>This edition implements standard <strong>American Checkers</strong> rules (also known as <em>English Draughts</em>):</p>
                 <ul>
-                    <li><strong>Board Layout:</strong> The game is played on an 8&times;8 grid containing 64 squares. Gameplay takes place exclusively on the 32 dark squares.</li>
-                    <li><strong>Starting Positions:</strong> Each player starts with 12 pieces placed on the dark squares of the three rows closest to their side. Red moves first.</li>
-                    <li><strong>Jumping &amp; Capturing:</strong> You capture an opposing piece by jumping over it diagonally to an unoccupied square immediately behind it. Captured pieces are removed from the board.</li>
-                    <li><strong>Forced Jumps:</strong> Capturing is mandatory. If one or more jumps are available on your turn, you cannot make a standard diagonal move.</li>
-                    <li><strong>Kingship:</strong> Reaching the farthest row promotes your piece to a King, granting it the power to move and jump both forward and backward.</li>
+                    <li><strong>Board Layout:</strong> Played on an 8&times;8 grid containing 64 squares. Play takes place exclusively on the 32 dark squares.</li>
+                    <li><strong>Starting Positions:</strong> Each player starts with 12 pieces placed on the dark squares of their first three rows. Red moves first.</li>
+                    <li><strong>Jumping &amp; Capturing:</strong> You capture an opposing piece by jumping over it diagonally to an empty square immediately behind it.</li>
+                    <li><strong>Forced Jumps:</strong> Capturing is mandatory. If one or more jumps are available, standard non-jumping moves are blocked.</li>
+                    <li><strong>Kingship:</strong> Reaching the back row promotes your piece to a King, enabling it to move and jump both forward and backward.</li>
                 </ul>
 
                 <h2>History of Checkers &amp; Draughts</h2>
-                <p>Checkers is one of mankind's oldest surviving board games. Historians trace its origins to an ancient game called <em>Alquerque</em>, played thousands of years ago in the Middle East. Around the 12th century in France, Alquerque was adapted to the standard 64-square chessboard, forming the foundation of modern Draughts. By the 18th century, rulebooks standardized English Draughts, which evolved into American Checkers—a game celebrated today for its deceptive simplicity and rich strategic depth.</p>
+                <p>Checkers is one of history's oldest board games. Historians trace its roots to an ancient game called <em>Alquerque</em> played in the Middle East thousands of years ago. By the 12th century, the game was adapted to the 64-square board in Europe. Standardized as English Draughts and American Checkers, it remains one of the world's most popular strategy games.</p>
 
                 <h2>Checkers Strategy Tips</h2>
                 <ol>
-                    <li><strong>Control the Center:</strong> Dominate the middle squares of the board to maximize your movement options and restrict your opponent's mobility.</li>
-                    <li><strong>Protect Your Back Row:</strong> Keep your back row intact for as long as possible to prevent your opponent from easily promoting their pieces to Kings.</li>
-                    <li><strong>Trade Advantageously:</strong> When you hold a piece advantage, trading pieces evenly simplifies the board and accelerates your path to victory.</li>
-                    <li><strong>Set Up Traps:</strong> Force your opponent into mandatory captures that open up multi-jump opportunities for your own pieces.</li>
+                    <li><strong>Control the Center:</strong> Occupying central squares gives your pieces more movement paths and traps opponent pieces.</li>
+                    <li><strong>Protect Your Back Row:</strong> Keep your home row intact to delay your opponent from crowning Kings.</li>
+                    <li><strong>Force Mandatory Jumps:</strong> Set up sacrifices that force the computer or opponent into jumps that set up multi-captures for you.</li>
                 </ol>
             </article>
 
@@ -211,23 +239,23 @@
                 <h2>Frequently Asked Questions (FAQ)</h2>
                 
                 <div class="faq-item">
-                    <h3>Is this Checkers game free to play?</h3>
-                    <p>Yes! Checkers on Prasun Games is completely free to play directly in your web browser with no registration or payment required.</p>
+                    <h3>Can I play Checkers against the computer?</h3>
+                    <p>Yes! Select 'vs Computer' to play against our smart AI with customizable difficulty settings (Easy, Medium, Hard).</p>
                 </div>
 
                 <div class="faq-item">
                     <h3>Are captures mandatory in this game?</h3>
-                    <p>Yes. In standard American Checkers rules, if a jump capture is available on your turn, you must take it.</p>
+                    <p>Yes. Under official American Checkers rules, if a capture is available on your turn, you must take it.</p>
                 </div>
 
                 <div class="faq-item">
                     <h3>Can Kings move backward?</h3>
-                    <p>Yes. Unlike standard men, Kings can move and jump diagonally in both forward and backward directions.</p>
+                    <p>Yes. Kings can move and capture diagonally in both forward and backward directions.</p>
                 </div>
 
                 <div class="faq-item">
-                    <h3>What happens if a player has no legal moves left?</h3>
-                    <p>Under official American Checkers rules, if a player cannot make any legal moves on their turn, they lose the game.</p>
+                    <h3>Is this Checkers game free?</h3>
+                    <p>Yes! Checkers on Prasun Games is completely free to play directly in your web browser with no registration needed.</p>
                 </div>
             </article>
         </div>
