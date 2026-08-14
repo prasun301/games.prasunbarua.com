@@ -1,311 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Play Free Solitaire Online - Classic Klondike | Prasun Games</title>
+<meta name="description" content="Play free Classic Klondike Solitaire online. No download, no signup — just a fast, polished browser card game with drag-and-drop, undo, and daily play on Prasun Games.">
+<link rel="canonical" href="https://games.prasunbarua.com/games/solitaire/">
 
-    <meta name="description" content="Play free Classic Klondike Solitaire online at Prasun Games. Enjoy a fast, responsive Solitaire game with no download or registration required.">
-    <meta name="keywords" content="solitaire, play solitaire, free solitaire, online solitaire, classic solitaire, klondike solitaire">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Prasun Barua">
+<!-- Open Graph -->
+<meta property="og:title" content="Play Free Solitaire Online - Classic Klondike | Prasun Games">
+<meta property="og:description" content="Free Classic Klondike Solitaire in your browser. Drag-and-drop or tap to play, with undo, timer, and stats.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://games.prasunbarua.com/games/solitaire/">
 
-    <meta property="og:title" content="Play Free Solitaire Online - Prasun Games">
-    <meta property="og:description" content="Play Classic Klondike Solitaire online for free. No download or registration required.">
-    <meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 
-    <link rel="canonical" href="https://games.prasunbarua.com/games/solitaire/">
+<link rel="stylesheet" href="style.css">
 
-    <title>Play Free Solitaire Online - Classic Klondike | Prasun Games</title>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-99NC843TT8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-99NC843TT8');
+</script>
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8736637194399168" crossorigin="anonymous"></script>
 
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NC843TT8"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-99NC843TT8');
-    </script>
-
-    <!-- Google AdSense -->
-    <script async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8736637194399168"
-        crossorigin="anonymous"></script>
+<script defer src="script.js"></script>
 </head>
-
 <body>
 
-<header class="site-header">
-    <div class="header-container">
-        <a href="../../" class="brand">🎮 Prasun Games</a>
+<a class="skip-link" href="#gameRoot">Skip to game</a>
 
-        <nav class="header-nav">
-            <a href="../../" class="header-link">Home</a>
-            <a href="../../about.html" class="header-link">About</a>
-            <a href="../../contact.html" class="header-link">Contact</a>
-        </nav>
-    </div>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="../../">
+      <span class="brand-icon" aria-hidden="true">🎮</span>
+      <span class="brand-name">Prasun Games</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="../../">Home</a>
+      <a href="../../about.html">About</a>
+      <a href="../../contact.html">Contact</a>
+    </nav>
+  </div>
 </header>
 
 <main>
+  <section class="page-intro">
+    <div class="page-intro-inner">
+      <h1>Classic Klondike Solitaire</h1>
+      <p>Free, fast, and polished — play the timeless card game right in your browser. No download, no account, no interruptions.</p>
+    </div>
+  </section>
 
-    <section class="game-header">
-        <div class="game-badge">🃏 CLASSIC CARD GAME</div>
+  <section id="gameRoot" class="game-section" aria-label="Solitaire game">
+    <div class="solitaire-app">
 
-        <h1>Play Solitaire Online</h1>
+      <div class="toolbar" role="toolbar" aria-label="Game controls">
+        <div class="toolbar-group toolbar-stats">
+          <div class="stat">
+            <span class="stat-label">Moves</span>
+            <span class="stat-value" id="movesValue">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Time</span>
+            <span class="stat-value" id="timeValue">00:00</span>
+          </div>
+        </div>
+        <div class="toolbar-group toolbar-actions">
+          <button type="button" id="newGameBtn" class="btn btn-primary">New Game</button>
+          <button type="button" id="undoBtn" class="btn" disabled>Undo</button>
+          <button type="button" id="hintBtn" class="btn btn-ghost">Hint</button>
+          <button type="button" id="autoBtn" class="btn btn-ghost" disabled title="Available once every remaining card can safely reach the foundations">Auto Complete</button>
+          <button type="button" id="soundBtn" class="btn btn-ghost" aria-pressed="true">🔊 Sound On</button>
+        </div>
+      </div>
 
-        <p>
-            Enjoy free Classic Klondike Solitaire directly in your browser.
-            No download, registration, or installation required.
-        </p>
-    </section>
-
-
-    <section class="solitaire-wrapper" aria-label="Solitaire game">
-
-        <div class="game-toolbar">
-
-            <div class="game-stats">
-                <div class="stat">
-                    <span class="stat-label">Moves</span>
-                    <strong id="moves">0</strong>
-                </div>
-
-                <div class="stat">
-                    <span class="stat-label">Time</span>
-                    <strong id="timer">00:00</strong>
-                </div>
-            </div>
-
-            <div class="game-actions">
-                <button id="newGameBtn" class="game-button primary">
-                    New Game
-                </button>
-
-                <button id="undoBtn" class="game-button">
-                    Undo
-                </button>
-            </div>
-
+      <div class="board" id="board">
+        <div class="board-top-row">
+          <div class="stock-waste-group">
+            <div class="pile stock" id="stockPile" data-location="stock" role="button" tabindex="0" aria-label="Stock pile, click or press Enter to draw a card"></div>
+            <div class="pile waste" id="wastePile" data-location="waste" aria-label="Waste pile"></div>
+          </div>
+          <div class="foundations" id="foundations">
+            <div class="pile foundation" data-location="foundation" data-suit="0" aria-label="Spades foundation"></div>
+            <div class="pile foundation" data-location="foundation" data-suit="1" aria-label="Hearts foundation"></div>
+            <div class="pile foundation" data-location="foundation" data-suit="2" aria-label="Clubs foundation"></div>
+            <div class="pile foundation" data-location="foundation" data-suit="3" aria-label="Diamonds foundation"></div>
+          </div>
         </div>
 
-
-        <div class="solitaire-board">
-
-            <!-- TOP AREA -->
-            <div class="top-row">
-
-                <!-- STOCK -->
-                <div class="pile-area">
-                    <span class="pile-label">Stock</span>
-                    <div id="stock" class="card-pile stock-pile"></div>
-                </div>
-
-                <!-- WASTE -->
-                <div class="pile-area">
-                    <span class="pile-label">Waste</span>
-                    <div id="waste" class="card-pile waste-pile"></div>
-                </div>
-
-                <div class="top-spacer"></div>
-
-                <!-- FOUNDATIONS -->
-                <div class="foundation-group">
-
-                    <div class="pile-area">
-                        <span class="pile-label">♠</span>
-                        <div id="foundation-0" class="card-pile foundation-pile"
-                             data-foundation="0"></div>
-                    </div>
-
-                    <div class="pile-area">
-                        <span class="pile-label red-label">♥</span>
-                        <div id="foundation-1" class="card-pile foundation-pile"
-                             data-foundation="1"></div>
-                    </div>
-
-                    <div class="pile-area">
-                        <span class="pile-label">♣</span>
-                        <div id="foundation-2" class="card-pile foundation-pile"
-                             data-foundation="2"></div>
-                    </div>
-
-                    <div class="pile-area">
-                        <span class="pile-label red-label">♦</span>
-                        <div id="foundation-3" class="card-pile foundation-pile"
-                             data-foundation="3"></div>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- TABLEAU -->
-            <div id="tableau" class="tableau"></div>
-
+        <div class="tableau" id="tableau">
+          <div class="column" data-location="tableau" data-col="0" aria-label="Tableau column 1"></div>
+          <div class="column" data-location="tableau" data-col="1" aria-label="Tableau column 2"></div>
+          <div class="column" data-location="tableau" data-col="2" aria-label="Tableau column 3"></div>
+          <div class="column" data-location="tableau" data-col="3" aria-label="Tableau column 4"></div>
+          <div class="column" data-location="tableau" data-col="4" aria-label="Tableau column 5"></div>
+          <div class="column" data-location="tableau" data-col="5" aria-label="Tableau column 6"></div>
+          <div class="column" data-location="tableau" data-col="6" aria-label="Tableau column 7"></div>
         </div>
+      </div>
 
+      <div class="below-board">
+        <p class="stats-line" id="statsLine">Games 0 · Wins 0 · Win rate 0%</p>
+        <p class="shortcuts-line">Shortcuts: <kbd>N</kbd> new game · <kbd>Ctrl/Cmd+Z</kbd> undo · <kbd>Esc</kbd> deselect · <kbd>S</kbd> sound · <kbd>H</kbd> hint</p>
+      </div>
+    </div>
 
-        <div class="mobile-controls">
-            <p>
-                <strong>How to play:</strong>
-                Drag cards or click a card and then click its destination.
-            </p>
-        </div>
+    <div id="toast" class="toast" role="status" aria-hidden="true"></div>
+    <div id="liveRegion" class="sr-only" aria-live="polite"></div>
+  </section>
 
-    </section>
+  <div class="win-modal" id="winModal" hidden>
+    <div class="win-modal-card" role="dialog" aria-modal="true" aria-labelledby="winModalTitle">
+      <button type="button" class="win-modal-close" id="closeModalBtn" aria-label="Close">×</button>
+      <div class="win-emoji" aria-hidden="true">🎉</div>
+      <h2 id="winModalTitle">Congratulations!</h2>
+      <p>You won the game of Solitaire.</p>
+      <div class="win-stats">
+        <div><span class="win-stat-label">Moves</span><span class="win-stat-value" id="winMoves">0</span></div>
+        <div><span class="win-stat-label">Time</span><span class="win-stat-value" id="winTime">00:00</span></div>
+      </div>
+      <button type="button" id="playAgainBtn" class="btn btn-primary btn-large">Play Again</button>
+    </div>
+  </div>
 
+  <section class="seo-content">
+    <div class="seo-content-inner">
+      <h2>Classic Solitaire Online</h2>
+      <p>Solitaire — also known as Klondike or Patience — is the single-player card game that's been a desktop staple for decades. This version runs entirely in your browser: shuffle a fresh deck, drag or tap cards into place, and pick up exactly where you left off with reliable undo and a running timer. It's built to feel like a real game, not a demo — smooth on desktop with a mouse, and just as playable on a phone with a fingertip.</p>
 
-    <!-- SEO CONTENT -->
-    <section class="game-info content-box">
+      <h2>How to Play Solitaire</h2>
+      <p>Seven columns are dealt from a shuffled 52-card deck, with only the top card of each column face-up. The goal is to move every card onto one of the four foundations, sorted by suit from Ace up to King. Tap or click a card to select it, then tap or click where you want it to go — or drag it directly, both on desktop and touch devices. Clicking the stock draws a new card into the waste pile; once the stock is empty, clicking it again recycles the waste back into a fresh stock.</p>
 
-        <h2>Classic Solitaire Online</h2>
+      <h2>Solitaire Rules</h2>
+      <ul>
+        <li>Build tableau columns downward in alternating colors — for example, a black 9 onto a red 10.</li>
+        <li>Only a King (or a valid sequence starting with a King) can be placed into an empty column.</li>
+        <li>Foundations build upward by suit, starting with the Ace and ending with the King.</li>
+        <li>Any face-up sequence that's properly ordered can be moved together as a group.</li>
+        <li>When a column's top card is moved away, the next card underneath flips face-up automatically.</li>
+      </ul>
 
-        <p>
-            Solitaire is one of the world's most popular single-player card
-            games. This free online version uses the classic Klondike
-            Solitaire rules and can be played directly in your web browser.
-        </p>
+      <h2>Klondike Solitaire Strategy</h2>
+      <p>Uncover hidden cards early rather than rushing to fill the foundations — a buried Ace or King can stall an otherwise winnable game. Empty columns are valuable: try to clear one to give yourself somewhere to park a King and unlock the sequence beneath it. Work through the stock methodically, and use undo to explore a line of play rather than restarting the whole deal when a move doesn't pan out the way you expected.</p>
 
+      <h2>Play Free Solitaire</h2>
+      <p>No installs, no accounts, no time limits. Just open this page and play — your move count, timer, and win stats are kept locally in your browser so you can track your progress across sessions.</p>
+    </div>
+  </section>
 
-        <h2>How to Play Solitaire</h2>
-
-        <p>
-            The objective of Klondike Solitaire is to move all 52 cards
-            into the four foundation piles. Each foundation is built from
-            Ace through King in the same suit.
-        </p>
-
-        <p>
-            On the main tableau, cards are arranged in descending order
-            while alternating between red and black suits. Face-down cards
-            are turned over when the face-up card covering them is moved.
-        </p>
-
-
-        <h2>Solitaire Rules</h2>
-
-        <ul>
-            <li>Build the four foundation piles from Ace to King.</li>
-            <li>Cards in the tableau are arranged in descending order.</li>
-            <li>Tableau cards must alternate between red and black suits.</li>
-            <li>Only a King can be placed into an empty tableau column.</li>
-            <li>Face-down cards are revealed when uncovered.</li>
-            <li>The stock provides additional cards when you need them.</li>
-        </ul>
-
-
-        <h2>Win at Solitaire</h2>
-
-        <p>
-            Plan your moves carefully and try to reveal face-down cards
-            whenever possible. Moving cards from the tableau to the
-            foundation can be useful, but sometimes keeping a card in
-            the tableau gives you more options.
-        </p>
-
-
-        <h2>Play Free Solitaire</h2>
-
-        <p>
-            Prasun Games provides a lightweight browser-based Solitaire
-            experience with no account, download, or installation required.
-            Start a new game whenever you want and play directly from
-            your desktop or mobile browser.
-        </p>
-
-    </section>
-
-
-    <!-- RELATED GAMES -->
-    <section class="related-games">
-
-        <h2>More Games</h2>
-
-        <div class="related-grid">
-
-            <a href="../chess/" class="related-card">
-                <span>♟️</span>
-                <strong>Chess</strong>
-                <small>Play Chess Online</small>
-            </a>
-
-            <a href="../../" class="related-card">
-                <span>🎮</span>
-                <strong>All Games</strong>
-                <small>Explore Prasun Games</small>
-            </a>
-
-        </div>
-
-    </section>
-
+  <section class="related-games">
+    <div class="related-games-inner">
+      <h2>More Games</h2>
+      <div class="related-games-grid">
+        <a class="related-card" href="../chess/">
+          <span class="related-card-icon" aria-hidden="true">♟️</span>
+          <span class="related-card-name">Chess</span>
+        </a>
+        <a class="related-card" href="../../">
+          <span class="related-card-icon" aria-hidden="true">🎮</span>
+          <span class="related-card-name">All Games</span>
+        </a>
+      </div>
+    </div>
+  </section>
 </main>
 
-
 <footer class="site-footer">
-
-    <div class="footer-container">
-
-        <div class="footer-links">
-            <a href="../../">Home</a>
-            <a href="../../about.html">About Us</a>
-            <a href="../../privacy.html">Privacy Policy</a>
-            <a href="../../terms.html">Terms of Service</a>
-            <a href="../../contact.html">Contact</a>
-        </div>
-
-        <p class="footer-copy">
-            © 2026 Prasun Games by
-            <a href="https://prasunbarua.com"
-               target="_blank"
-               rel="noopener">
-                Prasun Barua
-            </a>.
-            All rights reserved.
-        </p>
-
-    </div>
-
+  <div class="site-footer-inner">
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="../../">Home</a>
+      <a href="../../about.html">About Us</a>
+      <a href="../../privacy.html">Privacy Policy</a>
+      <a href="../../terms.html">Terms of Service</a>
+      <a href="../../contact.html">Contact</a>
+    </nav>
+    <p class="footer-copy">© 2026 Prasun Games by <a href="https://prasunbarua.com" target="_blank" rel="noopener">Prasun Barua</a>. All rights reserved.</p>
+  </div>
 </footer>
-
-
-<div id="winModal" class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="win-icon">🎉</div>
-
-        <h2>Congratulations!</h2>
-
-        <p>You won the game of Solitaire.</p>
-
-        <div class="final-stats">
-            <span>
-                Moves
-                <strong id="finalMoves">0</strong>
-            </span>
-
-            <span>
-                Time
-                <strong id="finalTime">00:00</strong>
-            </span>
-        </div>
-
-        <button id="playAgainBtn" class="game-button primary">
-            Play Again
-        </button>
-
-    </div>
-
-</div>
-
-
-<script src="script.js"></script>
 
 </body>
 </html>
