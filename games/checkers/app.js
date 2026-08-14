@@ -1,6 +1,6 @@
 /**
  * PRASUN GAMES - CHECKERS (AMERICAN CHECKERS / ENGLISH DRAUGHTS)
- * Standard Rules Implementation with Mandatory Captures & Multi-Jumps
+ * Standard Rules + AI Engine (Minimax with Alpha-Beta Pruning)
  * Author: Prasun Barua
  */
 
@@ -27,6 +27,10 @@
     const state = {
         board: [],            // 8x8 matrix holding piece objects or null
         currentPlayer: PLAYER_RED,
+        gameMode: 'pve',      // 'pvp' (2 Players) or 'pve' (vs Computer)
+        aiColor: PLAYER_BLACK,// Color played by computer
+        aiDifficulty: 'medium',// 'easy', 'medium', or 'hard'
+        isAIThinking: false,  // Block input during AI evaluation
         selectedPiece: null,  // { row, col } or null
         validMoves: [],       // Array of valid move objects for selected piece
         allLegalMoves: [],    // Array of all legal moves for current player
@@ -57,6 +61,12 @@
         dom.newGameBtn = document.getElementById('newGameBtn');
         dom.undoBtn = document.getElementById('undoBtn');
 
+        // Mode & AI Controls
+        dom.modeSelect = document.getElementById('modeSelect');
+        dom.aiOptionsGroup = document.getElementById('aiOptionsGroup');
+        dom.aiColorSelect = document.getElementById('aiColorSelect');
+        dom.aiDifficultySelect = document.getElementById('aiDifficultySelect');
+
         // Rules and Game Over Modals
         dom.gameOverModal = document.getElementById('gameOverModal');
         dom.winnerText = document.getElementById('winnerText');
@@ -72,7 +82,7 @@
         dom.gotItRulesBtn = document.getElementById('gotItRulesBtn');
 
         // Verify required DOM elements exist
-        const requiredIDs = ['checkersBoard', 'turnValue', 'gameStatus', 'movesValue', 'redCount', 'blackCount', 'newGameBtn', 'undoBtn'];
+        const requiredIDs = ['checkersBoard', 'turnValue', 'gameStatus', 'movesValue', 'redCount', 'blackCount', 'newGameBtn', 'undoBtn', 'modeSelect'];
         for (const id of requiredIDs) {
             if (!document.getElementById(id)) {
                 console.error(`Checkers Initialization Error: Missing required DOM element #${id}`);
@@ -93,6 +103,13 @@
     }
 
     function resetGame() {
+        // Synchronize state with Mode selectors
+        state.gameMode = dom.modeSelect.value;
+        const userColor = dom.aiColorSelect.value;
+        state.aiColor = userColor === PLAYER_RED ? PLAYER_BLACK : PLAYER_RED;
+        state.aiDifficulty = dom.aiDifficultySelect.value;
+        state.isAIThinking = false;
+
         // Build 8x8 Board Data Structure
         state.board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
 
@@ -129,7 +146,14 @@
         hideModal(dom.gameOverModal);
         renderBoard();
         updateHUD();
-        setStatus("Red's turn. Select a piece to move.");
+
+        // Initial status message
+        if (state.gameMode === 'pve' && state.currentPlayer === state.aiColor) {
+            setStatus("Computer is thinking...");
+            triggerAITurnIfNeeded();
+        } else {
+            setStatus("Red's turn. Select a piece to move.");
+        }
     }
 
     /* ==========================================================================
@@ -172,7 +196,7 @@
                 }
 
                 // Render legal destinations if a piece is selected
-                if (state.selectedPiece) {
+                if (state.selectedPiece && !state.isAIThinking) {
                     const moveOption = state.validMoves.find(m => m.to.row === r && m.to.col === c);
                     if (moveOption) {
                         if (moveOption.isCapture) {
@@ -224,7 +248,7 @@
         const jumps = [];
         const simple = [];
 
-        // Determine movement directions
+        // Movement directions
         let directions = [];
         if (piece.isKing) {
             directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
@@ -235,7 +259,6 @@
         }
 
         for (const [dr, dc] of directions) {
-            // Check standard move (1 square diagonal)
             const targetR = r + dr;
             const targetC = c + dc;
 
@@ -247,7 +270,6 @@
                         isCapture: false
                     });
                 } else if (board[targetR][targetC].player !== player) {
-                    // Check jump move (2 squares diagonal)
                     const jumpR = r + dr * 2;
                     const jumpC = c + dc * 2;
 
@@ -273,7 +295,6 @@
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
                 if (board[r][c] && board[r][c].player === player) {
-                    // If mid-multi-jump, restrict checks strictly to the forced piece
                     if (forcedPiece && (forcedPiece.row !== r || forcedPiece.col !== c)) {
                         continue;
                     }
@@ -285,7 +306,7 @@
             }
         }
 
-        // Mandatory Capture Rule: If jumps are available, simple moves are prohibited!
+        // Mandatory Capture Rule
         return allJumps.length > 0 ? allJumps : allSimple;
     }
 
@@ -297,19 +318,22 @@
        7. SELECTION & MOVE EXECUTION
        ========================================================================== */
     function handleSquareClick(r, c) {
-        if (state.gameOver) return;
+        if (state.gameOver || state.isAIThinking) return;
+
+        // Block human interaction if it is computer's turn
+        if (state.gameMode === 'pve' && state.currentPlayer === state.aiColor) {
+            return;
+        }
 
         const piece = state.board[r][c];
 
         // 1. If user clicks one of their own pieces
         if (piece && piece.player === state.currentPlayer) {
-            // If in mid multi-jump, player cannot select a different piece
             if (state.forcedPiece && (state.forcedPiece.row !== r || state.forcedPiece.col !== c)) {
-                setStatus("Multi-jump required! You must continue capturing with the highlighted piece.");
+                setStatus("Multi-jump required! Continue capturing with the highlighted piece.");
                 return;
             }
 
-            // Find available legal moves for this specific piece
             const pieceMoves = state.allLegalMoves.filter(m => m.from.row === r && m.from.col === c);
 
             if (pieceMoves.length > 0) {
@@ -326,7 +350,7 @@
                 }
             } else {
                 if (state.allLegalMoves.some(m => m.isCapture)) {
-                    setStatus("Mandatory capture rule! You must select a piece that can capture.");
+                    setStatus("Mandatory capture rule! Select a piece that can jump.");
                 } else {
                     setStatus("That piece has no legal moves.");
                 }
@@ -334,14 +358,13 @@
             return;
         }
 
-        // 2. If a piece is already selected and user clicks a destination square
+        // 2. If a piece is selected and user clicks a destination
         if (state.selectedPiece) {
             const chosenMove = state.validMoves.find(m => m.to.row === r && m.to.col === c);
 
             if (chosenMove) {
                 executeMove(chosenMove);
             } else {
-                // Clicked an invalid destination square
                 if (!state.forcedPiece) {
                     state.selectedPiece = null;
                     state.validMoves = [];
@@ -360,7 +383,7 @@
         const { from, to, isCapture, captured } = move;
         const piece = state.board[from.row][from.col];
 
-        // Update board array positions
+        // Update board state
         state.board[to.row][to.col] = piece;
         state.board[from.row][from.col] = null;
         state.lastMove = { from, to };
@@ -386,8 +409,7 @@
             }
         }
 
-        // Multi-Jump Verification:
-        // Under standard rules, if piece promotes upon landing, the turn ends immediately.
+        // Multi-Jump Verification: Turn ends immediately upon promotion
         if (isCapture && !promoted) {
             const { jumps: furtherJumps } = getPieceMoves(to.row, to.col, state.board, state.currentPlayer);
 
@@ -401,7 +423,12 @@
                 renderBoard();
                 updateHUD();
                 setStatus("Multi-jump available! Continue capturing with the same piece.");
-                return; // Do NOT switch turn
+
+                // If AI is taking multi-jump, trigger next jump automatically after delay
+                if (state.gameMode === 'pve' && state.currentPlayer === state.aiColor) {
+                    triggerAITurnIfNeeded();
+                }
+                return;
             }
         }
 
@@ -417,7 +444,7 @@
         // Calculate legal moves for new player
         state.allLegalMoves = calculateLegalMoves(state.currentPlayer, state.board, state.forcedPiece);
 
-        // Check Win/Loss/No-Move Condition
+        // Check Win/Loss Condition
         if (state.allLegalMoves.length === 0) {
             state.gameOver = true;
             state.winner = state.currentPlayer === PLAYER_RED ? PLAYER_BLACK : PLAYER_RED;
@@ -432,14 +459,219 @@
 
         const activeName = state.currentPlayer === PLAYER_RED ? "Red" : "Black";
         if (state.allLegalMoves.some(m => m.isCapture)) {
-            setStatus(`${activeName}'s turn. Capture is mandatory! Select a highlighted piece.`);
+            setStatus(`${activeName}'s turn. Capture is mandatory!`);
         } else {
             setStatus(`${activeName}'s turn.`);
+        }
+
+        // Trigger AI Turn if Single Player Mode
+        triggerAITurnIfNeeded();
+    }
+
+    /* ==========================================================================
+       8. AI ENGINE (MINIMAX WITH ALPHA-BETA PRUNING)
+       ========================================================================== */
+    function triggerAITurnIfNeeded() {
+        if (state.gameOver) return;
+        if (state.gameMode === 'pve' && state.currentPlayer === state.aiColor) {
+            state.isAIThinking = true;
+            setStatus("Computer is thinking...");
+            dom.gameStatus.classList.add('thinking');
+
+            const delay = state.forcedPiece ? 350 : 500; // Natural thinking delay
+            setTimeout(() => {
+                makeAIMove();
+                dom.gameStatus.classList.remove('thinking');
+            }, delay);
+        }
+    }
+
+    function makeAIMove() {
+        if (state.gameOver || state.allLegalMoves.length === 0) {
+            state.isAIThinking = false;
+            return;
+        }
+
+        let bestMove = null;
+
+        if (state.aiDifficulty === 'easy') {
+            // Pick random move with capture priority
+            bestMove = state.allLegalMoves[Math.floor(Math.random() * state.allLegalMoves.length)];
+        } else {
+            // Minimax depth depending on difficulty
+            const depth = state.aiDifficulty === 'hard' ? 5 : 3;
+            const searchResult = minimax(
+                state.board,
+                depth,
+                -Infinity,
+                Infinity,
+                true,
+                state.aiColor,
+                state.forcedPiece
+            );
+            bestMove = searchResult.move || state.allLegalMoves[0];
+        }
+
+        state.isAIThinking = false;
+
+        if (bestMove) {
+            executeMove(bestMove);
+        }
+    }
+
+    function cloneBoard(b) {
+        return b.map(row => row.map(cell => cell ? { player: cell.player, isKing: cell.isKing } : null));
+    }
+
+    function simulateMove(board, move, player) {
+        const nextBoard = cloneBoard(board);
+        const { from, to, isCapture, captured } = move;
+        const piece = { ...nextBoard[from.row][from.col] };
+
+        nextBoard[to.row][to.col] = piece;
+        nextBoard[from.row][from.col] = null;
+
+        let promoted = false;
+        if (!piece.isKing) {
+            if ((player === PLAYER_RED && to.row === 0) || (player === PLAYER_BLACK && to.row === BOARD_SIZE - 1)) {
+                piece.isKing = true;
+                nextBoard[to.row][to.col].isKing = true;
+                promoted = true;
+            }
+        }
+
+        if (isCapture && captured) {
+            nextBoard[captured.row][captured.col] = null;
+        }
+
+        let multiJumpPossible = false;
+        let nextForcedPiece = null;
+
+        if (isCapture && !promoted) {
+            const { jumps } = getPieceMoves(to.row, to.col, nextBoard, player);
+            if (jumps.length > 0) {
+                multiJumpPossible = true;
+                nextForcedPiece = { row: to.row, col: to.col };
+            }
+        }
+
+        return { nextBoard, multiJumpPossible, nextForcedPiece };
+    }
+
+    function evaluateBoard(board, aiPlayer) {
+        let score = 0;
+        const opponent = aiPlayer === PLAYER_RED ? PLAYER_BLACK : PLAYER_RED;
+
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const piece = board[r][c];
+                if (!piece) continue;
+
+                let pieceVal = piece.isKing ? 180 : 100;
+
+                // Positional Heuristics
+                if (!piece.isKing) {
+                    if (piece.player === PLAYER_RED) {
+                        pieceVal += (7 - r) * 5; // Forward movement incentive
+                    } else {
+                        pieceVal += r * 5;
+                    }
+                } else {
+                    // Kings prefer central dominance
+                    const centerDistance = Math.abs(3.5 - r) + Math.abs(3.5 - c);
+                    pieceVal += Math.round((7 - centerDistance) * 3);
+                }
+
+                // Center board control
+                if (c >= 2 && c <= 5 && r >= 2 && r <= 5) {
+                    pieceVal += 8;
+                }
+
+                // Home row protection
+                if (!piece.isKing) {
+                    if (piece.player === PLAYER_RED && r === 7) pieceVal += 12;
+                    if (piece.player === PLAYER_BLACK && r === 0) pieceVal += 12;
+                }
+
+                if (piece.player === aiPlayer) {
+                    score += pieceVal;
+                } else {
+                    score -= pieceVal;
+                }
+            }
+        }
+
+        // Mobility heuristic
+        const aiMoves = calculateLegalMoves(aiPlayer, board, null);
+        const oppMoves = calculateLegalMoves(opponent, board, null);
+        score += (aiMoves.length - oppMoves.length) * 4;
+
+        return score;
+    }
+
+    function minimax(board, depth, alpha, beta, isMaximizing, player, forcedPiece) {
+        const legalMoves = calculateLegalMoves(player, board, forcedPiece);
+        const opponent = player === PLAYER_RED ? PLAYER_BLACK : PLAYER_RED;
+
+        if (depth === 0 || legalMoves.length === 0) {
+            if (legalMoves.length === 0) {
+                return { score: isMaximizing ? -10000 : 10000, move: null };
+            }
+            const aiPlayer = state.aiColor;
+            return { score: evaluateBoard(board, aiPlayer), move: null };
+        }
+
+        let bestMove = null;
+
+        if (isMaximizing) {
+            let maxEval = -Infinity;
+            for (const move of legalMoves) {
+                const { nextBoard, multiJumpPossible, nextForcedPiece } = simulateMove(board, move, player);
+
+                let evalScore;
+                if (multiJumpPossible) {
+                    const res = minimax(nextBoard, depth, alpha, beta, true, player, nextForcedPiece);
+                    evalScore = res.score;
+                } else {
+                    const res = minimax(nextBoard, depth - 1, alpha, beta, false, opponent, null);
+                    evalScore = res.score;
+                }
+
+                if (evalScore > maxEval) {
+                    maxEval = evalScore;
+                    bestMove = move;
+                }
+                alpha = Math.max(alpha, evalScore);
+                if (beta <= alpha) break; // Alpha-Beta Cutoff
+            }
+            return { score: maxEval, move: bestMove };
+        } else {
+            let minEval = Infinity;
+            for (const move of legalMoves) {
+                const { nextBoard, multiJumpPossible, nextForcedPiece } = simulateMove(board, move, player);
+
+                let evalScore;
+                if (multiJumpPossible) {
+                    const res = minimax(nextBoard, depth, alpha, beta, false, player, nextForcedPiece);
+                    evalScore = res.score;
+                } else {
+                    const res = minimax(nextBoard, depth - 1, alpha, beta, true, opponent, null);
+                    evalScore = res.score;
+                }
+
+                if (evalScore < minEval) {
+                    minEval = evalScore;
+                    bestMove = move;
+                }
+                beta = Math.min(beta, evalScore);
+                if (beta <= alpha) break; // Alpha-Beta Cutoff
+            }
+            return { score: minEval, move: bestMove };
         }
     }
 
     /* ==========================================================================
-       8. UNDO SYSTEM
+       9. UNDO SYSTEM
        ========================================================================== */
     function saveHistorySnapshot() {
         const snapshot = {
@@ -460,11 +692,8 @@
         }
     }
 
-    function undoMove() {
-        if (state.history.length === 0) {
-            setStatus("No moves to undo.");
-            return;
-        }
+    function popHistorySnapshot() {
+        if (state.history.length === 0) return false;
 
         const snapshot = state.history.pop();
         state.board = snapshot.board;
@@ -480,6 +709,24 @@
         state.selectedPiece = null;
         state.validMoves = [];
         state.allLegalMoves = calculateLegalMoves(state.currentPlayer, state.board, state.forcedPiece);
+        return true;
+    }
+
+    function undoMove() {
+        if (state.isAIThinking || state.history.length === 0) {
+            setStatus("No moves to undo.");
+            return;
+        }
+
+        if (state.gameMode === 'pve') {
+            // Undo AI move + Human move to return control to human player
+            popHistorySnapshot();
+            if (state.currentPlayer === state.aiColor && state.history.length > 0) {
+                popHistorySnapshot();
+            }
+        } else {
+            popHistorySnapshot();
+        }
 
         hideModal(dom.gameOverModal);
         renderBoard();
@@ -488,7 +735,7 @@
     }
 
     /* ==========================================================================
-       9. HUD & STATUS UPDATES
+       10. HUD & UI UPDATES
        ========================================================================== */
     function updateHUD() {
         dom.movesValue.textContent = state.movesCount;
@@ -499,7 +746,14 @@
         dom.turnText.textContent = isRed ? "Red" : "Black";
         dom.turnValue.className = `hud-value ${isRed ? 'turn-red' : 'turn-black'}`;
 
-        dom.undoBtn.disabled = state.history.length === 0;
+        dom.undoBtn.disabled = state.history.length === 0 || state.isAIThinking;
+
+        // Toggle AI Options Visibility
+        if (state.gameMode === 'pve') {
+            dom.aiOptionsGroup.classList.remove('hidden');
+        } else {
+            dom.aiOptionsGroup.classList.add('hidden');
+        }
     }
 
     function setStatus(msg) {
@@ -507,10 +761,11 @@
     }
 
     /* ==========================================================================
-       10. KEYBOARD NAVIGATION & ACCESSIBILITY
+       11. KEYBOARD NAVIGATION & ACCESSIBILITY
        ========================================================================== */
     function handleKeyDown(e) {
-        // Global Keyboard Shortcuts
+        if (state.isAIThinking) return;
+
         if (e.key === 'n' || e.key === 'N') {
             if (!isModalOpen()) {
                 resetGame();
@@ -539,7 +794,6 @@
 
         if (isModalOpen()) return;
 
-        // Board Navigation via Arrow Keys
         let { row, col } = state.keyboardFocus;
         let moved = false;
 
@@ -575,11 +829,17 @@
     }
 
     /* ==========================================================================
-       11. MODAL MANAGEMENT
+       12. MODAL MANAGEMENT
        ========================================================================== */
     function showGameOverModal() {
-        const winnerName = state.winner === PLAYER_RED ? "Red Wins!" : "Black Wins!";
-        dom.winnerText.textContent = winnerName;
+        let title = "";
+        if (state.gameMode === 'pve') {
+            title = state.winner === state.aiColor ? "Computer Wins!" : "You Win!";
+        } else {
+            title = state.winner === PLAYER_RED ? "Red Wins!" : "Black Wins!";
+        }
+
+        dom.winnerText.textContent = title;
         dom.finalMoves.textContent = state.movesCount;
         dom.finalRed.textContent = state.redCount;
         dom.finalBlack.textContent = state.blackCount;
@@ -600,10 +860,10 @@
     }
 
     /* ==========================================================================
-       12. EVENT LISTENERS ATTACHMENT
+       13. EVENT LISTENERS ATTACHMENT
        ========================================================================== */
     function attachEventListeners() {
-        // Board Square Click Delegation
+        // Board Square Click
         dom.board.addEventListener('click', (e) => {
             const square = e.target.closest('.square');
             if (!square) return;
@@ -616,11 +876,18 @@
             }
         });
 
-        // Top Toolbar Controls
+        // Toolbar Buttons
         dom.newGameBtn.addEventListener('click', resetGame);
         dom.undoBtn.addEventListener('click', undoMove);
 
-        // Modals Controls
+        // Game Mode & AI Selectors
+        dom.modeSelect.addEventListener('change', resetGame);
+        dom.aiColorSelect.addEventListener('change', resetGame);
+        dom.aiDifficultySelect.addEventListener('change', () => {
+            state.aiDifficulty = dom.aiDifficultySelect.value;
+        });
+
+        // Modal Action Buttons
         dom.playAgainBtn.addEventListener('click', () => {
             hideModal(dom.gameOverModal);
             resetGame();
@@ -642,12 +909,12 @@
             hideModal(dom.rulesModal);
         });
 
-        // Global Keyboard Handler
+        // Keyboard Handler
         window.addEventListener('keydown', handleKeyDown);
     }
 
     /* ==========================================================================
-       13. APPLICATION DOM BOOTSTRAP
+       14. APPLICATION INITIALIZATION
        ========================================================================== */
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
