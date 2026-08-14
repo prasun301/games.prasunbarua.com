@@ -913,20 +913,24 @@ input[type="number"]:focus {
     text-align: center;
 }
 
-.footer-nav {
+/* Spacing and layout for your footer navigation links */
+.footer-links {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 24px;
+    align-items: center;
+    gap: 24px; /* Adjust spacing between links here */
 }
 
-.footer-nav a {
+.footer-links a {
     color: var(--muted);
     font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none;
     transition: color var(--transition-fast);
 }
 
-.footer-nav a:hover {
+.footer-links a:hover {
     color: var(--text);
 }
 
@@ -934,7 +938,6 @@ input[type="number"]:focus {
     color: var(--muted-dark);
     font-size: 0.85rem;
 }
-
 
 /* ==========================================================================
    ANIMATIONS
