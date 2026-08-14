@@ -1,59 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-       <!-- =========================================================
+
+    <!-- =========================================================
+         BASIC META
+    ========================================================== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Minesweeper Online - Play Free Classic Minesweeper | Prasun Games</title>
+
+    <meta
+        name="description"
+        content="Play free classic Minesweeper online at Prasun Games. Test your logic and speed across Beginner, Intermediate, and Expert difficulty levels directly in your browser."
+    >
+
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Prasun Barua">
+    <meta name="theme-color" content="#07111f">
+
+    <link
+        rel="canonical"
+        href="https://games.prasunbarua.com/games/minesweeper/"
+    >
+
+    <link rel="icon" href="../favicon.png">
+
+
+    <!-- =========================================================
+         OPEN GRAPH
+    ========================================================== -->
+    <meta property="og:type" content="website">
+
+    <meta
+        property="og:url"
+        content="https://games.prasunbarua.com/games/minesweeper/"
+    >
+
+    <meta
+        property="og:title"
+        content="Minesweeper Online - Play Free Classic Minesweeper | Prasun Games"
+    >
+
+    <meta
+        property="og:description"
+        content="Play classic Minesweeper online for free. Clear the board, avoid hidden mines, and test your logic."
+    >
+
+    <meta
+        property="og:image"
+        content="https://games.prasunbarua.com/games/minesweeper/og-image.jpg"
+    >
+
+    <meta property="og:site_name" content="Prasun Games">
+
+
+    <!-- =========================================================
+         TWITTER / X CARD
+    ========================================================== -->
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta
+        name="twitter:url"
+        content="https://games.prasunbarua.com/games/minesweeper/"
+    >
+
+    <meta
+        name="twitter:title"
+        content="Minesweeper Online - Play Free Classic Minesweeper | Prasun Games"
+    >
+
+    <meta
+        name="twitter:description"
+        content="Play free classic Minesweeper online. Choose your difficulty and start playing instantly."
+    >
+
+    <meta
+        name="twitter:image"
+        content="https://games.prasunbarua.com/games/minesweeper/og-image.jpg"
+    >
+
+
+    <!-- =========================================================
          GOOGLE ANALYTICS
     ========================================================== -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NC843TT8"></script>
+
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
         gtag('config', 'G-99NC843TT8');
     </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Online - Play Free Classic Minesweeper | Prasun Games</title>
-    <meta name="description" content="Play free classic Minesweeper online on Prasun Games. Test your logic and speed across Beginner, Intermediate, and Expert difficulty levels in a clean, modern interface.">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Prasun Barua">
-    <meta name="theme-color" content="#0b132b">
 
-    <link rel="canonical" href="https://games.prasunbarua.com/minesweeper/">
-    <link rel="icon" type="image/png" href="../favicon.png">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://games.prasunbarua.com/minesweeper/">
-    <meta property="og:title" content="Minesweeper Online - Play Free Classic Minesweeper | Prasun Games">
-    <meta property="og:description" content="Challenge your mind with free classic Minesweeper online. Features customizable board sizes, touch-friendly mobile controls, dark mode design, and fast gameplay.">
-    <meta property="og:image" content="https://games.prasunbarua.com/minesweeper/og-image.jpg">
-    <meta property="og:site_name" content="Prasun Games">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://games.prasunbarua.com/minesweeper/">
-    <meta name="twitter:title" content="Minesweeper Online - Play Free Classic Minesweeper | Prasun Games">
-    <meta name="twitter:description" content="Play free classic Minesweeper online. Multiple difficulty levels, modern UI, keyboard support, and instant restart.">
-    <meta name="twitter:image" content="https://games.prasunbarua.com/minesweeper/og-image.jpg">
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99NC843TT8"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-99NC843TT8');
+    <!-- =========================================================
+         GOOGLE ADSENSE
+    ========================================================== -->
+    <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8736637194399168"
+        crossorigin="anonymous">
     </script>
 
-    <!-- Google AdSense -->
-    <script async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8736637194399168"
-            crossorigin="anonymous">
-    </script>
 
-    <!-- Structured Data (JSON-LD) -->
+    <!-- =========================================================
+         STRUCTURED DATA
+    ========================================================== -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -61,7 +119,7 @@
         "name": "Minesweeper Online",
         "operatingSystem": "Any",
         "applicationCategory": "GameApplication",
-        "url": "https://games.prasunbarua.com/minesweeper/",
+        "url": "https://games.prasunbarua.com/games/minesweeper/",
         "description": "Play free classic Minesweeper online on Prasun Games. Test your logic, flag hidden mines, and clear the board across multiple difficulty levels.",
         "author": {
             "@type": "Person",
@@ -76,208 +134,647 @@
     }
     </script>
 
+
+    <!-- =========================================================
+         STYLES
+    ========================================================== -->
     <link rel="stylesheet" href="style.css">
-       <link rel="stylesheet" href="style.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8736637194399168" crossorigin="anonymous"></script>
 
 </head>
+
+
 <body>
 
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
     <header class="site-header">
+
         <div class="header-container">
-            <a href="../" class="brand" aria-label="Prasun Games Home">🎮 Prasun Games</a>
-            <nav class="header-nav" aria-label="Main Navigation">
-                <a href="../">Home</a>
-                <a href="../#games">Games</a>
-                <a href="../#about">About</a>
-                <a href="../#contact">Contact</a>
+
+            <a href="../../" class="brand" aria-label="Prasun Games Home">
+                <span class="brand-icon" aria-hidden="true">🎮</span>
+                <span class="brand-title">Prasun Games</span>
+            </a>
+
+            <nav class="header-nav" aria-label="Main navigation">
+
+                <a href="../../" class="header-link">
+                    Home
+                </a>
+
+                <a href="../../#games" class="header-link">
+                    Games
+                </a>
+
+                <a href="../../about.html" class="header-link">
+                    About
+                </a>
+
+                <a href="../../contact.html" class="header-link">
+                    Contact
+                </a>
+
             </nav>
+
         </div>
+
     </header>
 
+
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
     <main id="mainContent">
 
-        <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+
+        <!-- =====================================================
+             BREADCRUMB
+        ====================================================== -->
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+
             <ol class="breadcrumb-list">
-                <li class="breadcrumb-item"><a href="../">Home</a></li>
-                <li class="breadcrumb-item"><a href="../#games">Games</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Minesweeper</li>
+
+                <li class="breadcrumb-item">
+                    <a href="../../">Home</a>
+                </li>
+
+                <li class="breadcrumb-item">
+                    <a href="../../#games">Games</a>
+                </li>
+
+                <li
+                    class="breadcrumb-item active"
+                    aria-current="page"
+                >
+                    Minesweeper
+                </li>
+
             </ol>
+
         </nav>
 
-        <section class="hero">
-            <h1>Minesweeper</h1>
-            <p class="hero-subtitle">Play free classic Minesweeper online. Clear the board, avoid hidden mines, and test your logic.</p>
+
+        <!-- =====================================================
+             HERO
+        ====================================================== -->
+        <section class="hero" aria-labelledby="game-title">
+
+            <div class="badge">
+                💣 FREE BROWSER GAME
+            </div>
+
+            <h1 id="game-title">
+                Minesweeper
+            </h1>
+
+            <p class="hero-subtitle">
+                Play classic Minesweeper online for free. Clear the board,
+                avoid hidden mines, and test your logic.
+            </p>
+
         </section>
 
-        <section id="minesweeperApp" class="game-panel" aria-label="Minesweeper Game Area">
-            
+
+        <!-- =====================================================
+             GAME AREA
+        ====================================================== -->
+        <section
+            id="minesweeperApp"
+            class="game-panel"
+            aria-label="Minesweeper Game Area"
+        >
+
+
+            <!-- GAME CONTROLS -->
             <div class="game-controls">
+
                 <div class="control-group">
-                    <label for="difficultySelect">Difficulty:</label>
-                    <select id="difficultySelect" class="select-input" aria-label="Select Game Difficulty">
-                        <option value="beginner">Beginner (9×9)</option>
-                        <option value="intermediate">Intermediate (16×16)</option>
-                        <option value="expert">Expert (30×16)</option>
-                        <option value="custom">Custom</option>
+
+                    <label for="difficultySelect">
+                        Difficulty
+                    </label>
+
+                    <select
+                        id="difficultySelect"
+                        class="select-input"
+                        aria-label="Select Game Difficulty"
+                    >
+
+                        <option value="beginner">
+                            Beginner (9×9)
+                        </option>
+
+                        <option value="intermediate">
+                            Intermediate (16×16)
+                        </option>
+
+                        <option value="expert">
+                            Expert (30×16)
+                        </option>
+
+                        <option value="custom">
+                            Custom
+                        </option>
+
                     </select>
+
                 </div>
+
 
                 <div class="action-buttons">
-                    <button id="newGameBtn" class="btn btn-primary">New Game</button>
-                    <button id="restartBtn" class="btn btn-secondary">Restart</button>
+
+                    <button
+                        id="newGameBtn"
+                        class="btn btn-primary"
+                        type="button"
+                    >
+                        New Game
+                    </button>
+
+                    <button
+                        id="restartBtn"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Restart
+                    </button>
+
                 </div>
+
             </div>
 
+
+            <!-- GAME HUD -->
             <div class="game-hud">
+
                 <div class="hud-item">
-                    <span class="hud-label">Mines</span>
-                    <span id="mineCount" class="hud-value" aria-live="polite">010</span>
+
+                    <span class="hud-label">
+                        Mines
+                    </span>
+
+                    <span
+                        id="mineCount"
+                        class="hud-value"
+                        aria-live="polite"
+                    >
+                        010
+                    </span>
+
                 </div>
+
+
                 <div class="hud-item">
-                    <span class="hud-label">Time</span>
-                    <span id="timerValue" class="hud-value" aria-live="polite">000</span>
+
+                    <span class="hud-label">
+                        Time
+                    </span>
+
+                    <span
+                        id="timerValue"
+                        class="hud-value"
+                        aria-live="polite"
+                    >
+                        000
+                    </span>
+
                 </div>
+
+
                 <div class="hud-item">
-                    <span class="hud-label">Status</span>
-                    <span id="gameStatus" class="hud-value" aria-live="polite">Ready</span>
+
+                    <span class="hud-label">
+                        Status
+                    </span>
+
+                    <span
+                        id="gameStatus"
+                        class="hud-value"
+                        aria-live="polite"
+                    >
+                        Ready
+                    </span>
+
                 </div>
+
             </div>
 
+
+            <!-- BOARD -->
             <div class="board-viewport">
-                <div id="minesweeperBoard" 
-                     class="minesweeper-board" 
-                     role="grid" 
-                     aria-label="Minesweeper game board">
-                </div>
+
+                <div
+                    id="minesweeperBoard"
+                    class="minesweeper-board"
+                    role="grid"
+                    aria-label="Minesweeper game board"
+                ></div>
+
             </div>
 
+
+            <!-- MOBILE FLAG MODE -->
             <div class="mobile-controls">
-                <button id="flagModeBtn" class="btn btn-toggle" aria-pressed="false">🚩 Flag Mode: OFF</button>
+
+                <button
+                    id="flagModeBtn"
+                    class="btn btn-toggle"
+                    type="button"
+                    aria-pressed="false"
+                >
+                    🚩 Flag Mode: OFF
+                </button>
+
             </div>
 
         </section>
 
-        <div class="ad-container" aria-label="Advertisement"></div>
 
-        <section class="info-section">
-            <h2>How to Play Minesweeper</h2>
+        <!-- =====================================================
+             ADVERTISEMENT
+        ====================================================== -->
+        <div
+            class="ad-container"
+            aria-label="Advertisement"
+        ></div>
+
+
+        <!-- =====================================================
+             HOW TO PLAY
+        ====================================================== -->
+        <section class="content-box">
+
+            <h2>
+                How to Play Minesweeper
+            </h2>
+
             <div class="info-content">
-                <p>Minesweeper is a puzzle game where your objective is to reveal all safe cells on a grid without detonating any hidden mines.</p>
+
+                <p>
+                    Minesweeper is a puzzle game where your objective is
+                    to reveal all safe cells on a grid without detonating
+                    any hidden mines.
+                </p>
+
                 <ul>
-                    <li><strong>Reveal Cells:</strong> Click or tap on any cell to reveal what lies beneath.</li>
-                    <li><strong>Read Number Clues:</strong> Numbers on revealed cells indicate how many mines exist in the adjacent 8 surrounding tiles.</li>
-                    <li><strong>Flag Suspected Mines:</strong> Right-click or use <em>Flag Mode</em> on touch screens to place a protective flag on tiles you believe contain a mine.</li>
-                    <li><strong>Chain Reveals:</strong> Revealing an empty cell automatically uncovers adjacent safe areas to speed up your game.</li>
-                    <li><strong>Win the Game:</strong> Uncover every non-mine tile on the board to win.</li>
+
+                    <li>
+                        <strong>Reveal Cells:</strong>
+                        Click or tap on any cell to reveal what lies beneath.
+                    </li>
+
+                    <li>
+                        <strong>Read Number Clues:</strong>
+                        Numbers indicate how many mines are present
+                        in the surrounding eight cells.
+                    </li>
+
+                    <li>
+                        <strong>Flag Suspected Mines:</strong>
+                        Right-click or use Flag Mode on touch devices
+                        to mark cells that you believe contain mines.
+                    </li>
+
+                    <li>
+                        <strong>Chain Reveals:</strong>
+                        Empty cells automatically reveal nearby safe areas.
+                    </li>
+
+                    <li>
+                        <strong>Win the Game:</strong>
+                        Reveal every non-mine cell on the board.
+                    </li>
+
                 </ul>
+
             </div>
+
         </section>
 
-        <section class="info-section">
-            <h2>Minesweeper Rules</h2>
+
+        <!-- =====================================================
+             RULES
+        ====================================================== -->
+        <section class="content-box">
+
+            <h2>
+                Minesweeper Rules
+            </h2>
+
             <div class="info-content">
+
                 <ul>
-                    <li>The first click is always safe and will never detonate a mine.</li>
-                    <li>Numbers calculate adjacent mines vertically, horizontally, and diagonally.</li>
-                    <li>If a revealed mine detonates, the game immediately ends in defeat.</li>
-                    <li>Flags are strategic tools to help you track dangerous tiles; placing flags on all mines is not strictly required to trigger victory as long as all safe cells are revealed.</li>
+
+                    <li>
+                        The first click is always safe.
+                    </li>
+
+                    <li>
+                        Numbers represent adjacent mines vertically,
+                        horizontally, and diagonally.
+                    </li>
+
+                    <li>
+                        Revealing a mine ends the game.
+                    </li>
+
+                    <li>
+                        Flags help you track suspected mines but are
+                        not required for victory.
+                    </li>
+
                 </ul>
+
             </div>
+
         </section>
 
-        <section class="info-section">
-            <h2>Difficulty Levels</h2>
+
+        <!-- =====================================================
+             DIFFICULTY LEVELS
+        ====================================================== -->
+        <section class="content-box">
+
+            <h2>
+                Difficulty Levels
+            </h2>
+
             <div class="table-wrapper">
+
                 <table class="difficulty-table">
+
                     <thead>
+
                         <tr>
                             <th scope="col">Difficulty</th>
-                            <th scope="col">Grid Dimensions</th>
-                            <th scope="col">Total Mines</th>
+                            <th scope="col">Grid</th>
+                            <th scope="col">Mines</th>
                             <th scope="col">Best For</th>
                         </tr>
+
                     </thead>
+
                     <tbody>
+
                         <tr>
                             <th scope="row">Beginner</th>
                             <td>9 × 9</td>
                             <td>10</td>
-                            <td>Quick casual play and beginners learning logic patterns.</td>
+                            <td>New players and quick games.</td>
                         </tr>
+
                         <tr>
                             <th scope="row">Intermediate</th>
                             <td>16 × 16</td>
                             <td>40</td>
-                            <td>Standard tactical puzzle challenge with moderate board size.</td>
+                            <td>Players looking for a moderate challenge.</td>
                         </tr>
+
                         <tr>
                             <th scope="row">Expert</th>
                             <td>30 × 16</td>
                             <td>99</td>
-                            <td>Advanced players looking for intense concentration and complex deduction.</td>
+                            <td>Experienced players seeking a serious challenge.</td>
                         </tr>
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </section>
 
+
+        <!-- =====================================================
+             RELATED GAMES
+        ====================================================== -->
         <section class="related-games">
-            <h2>More Free Games</h2>
+
+            <h2>
+                More Free Games
+            </h2>
+
             <div class="games-grid">
-                <article class="game-card">
-                    <h3>Solitaire</h3>
-                    <p>Play classic Klondike Solitaire directly in your web browser.</p>
-                    <a href="../solitaire/" class="card-link">Play Solitaire →</a>
-                </article>
 
                 <article class="game-card">
-                    <h3>Chess</h3>
-                    <p>Test your strategic thinking against a smart chess engine or local opponent.</p>
-                    <a href="../chess/" class="card-link">Play Chess →</a>
+
+                    <div class="game-icon" aria-hidden="true">
+                        🃏
+                    </div>
+
+                    <div class="game-content">
+
+                        <h3>
+                            Solitaire
+                        </h3>
+
+                        <p>
+                            Play classic Klondike Solitaire directly
+                            in your web browser.
+                        </p>
+
+                        <a
+                            href="../solitaire/"
+                            class="play-button"
+                        >
+                            Play Solitaire →
+                        </a>
+
+                    </div>
+
                 </article>
 
+
                 <article class="game-card">
-                    <h3>Checkers</h3>
-                    <p>Enjoy classic 8x8 draughts and jump your way to victory.</p>
-                    <a href="../checkers/" class="card-link">Play Checkers →</a>
+
+                    <div class="game-icon" aria-hidden="true">
+                        ♟️
+                    </div>
+
+                    <div class="game-content">
+
+                        <h3>
+                            Chess
+                        </h3>
+
+                        <p>
+                            Test your strategic thinking with
+                            classic browser chess.
+                        </p>
+
+                        <a
+                            href="../chess/"
+                            class="play-button"
+                        >
+                            Play Chess →
+                        </a>
+
+                    </div>
+
                 </article>
+
+
+                <article class="game-card">
+
+                    <div class="game-icon" aria-hidden="true">
+                        🔴⚫
+                    </div>
+
+                    <div class="game-content">
+
+                        <h3>
+                            Checkers
+                        </h3>
+
+                        <p>
+                            Enjoy classic Checkers and jump your
+                            way to victory.
+                        </p>
+
+                        <a
+                            href="../checkers/"
+                            class="play-button"
+                        >
+                            Play Checkers →
+                        </a>
+
+                    </div>
+
+                </article>
+
             </div>
+
         </section>
 
     </main>
 
-    <div id="gameModal" class="game-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+
+    <!-- =========================================================
+         GAME MODAL
+    ========================================================== -->
+    <div
+        id="gameModal"
+        class="game-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        hidden
+    >
+
         <div class="modal-overlay"></div>
+
         <div class="modal-content">
-            <h2 id="modalTitle">Victory!</h2>
-            <p id="modalMessage">You successfully cleared the board!</p>
+
+            <h2 id="modalTitle">
+                Victory!
+            </h2>
+
+            <p id="modalMessage">
+                You successfully cleared the board!
+            </p>
+
             <div class="modal-details">
-                <p>Time Taken: <strong id="modalTime">000</strong> seconds</p>
-                <p>Mines Flagged: <strong id="modalMines">0</strong></p>
+
+                <p>
+                    Time Taken:
+                    <strong id="modalTime">000</strong>
+                    seconds
+                </p>
+
+                <p>
+                    Mines Flagged:
+                    <strong id="modalMines">0</strong>
+                </p>
+
             </div>
+
             <div class="modal-actions">
-                <button id="modalNewGameBtn" class="btn btn-primary">Play Again</button>
-                <button id="modalCloseBtn" class="btn btn-secondary">Close</button>
+
+                <button
+                    id="modalNewGameBtn"
+                    class="btn btn-primary"
+                    type="button"
+                >
+                    Play Again
+                </button>
+
+                <button
+                    id="modalCloseBtn"
+                    class="btn btn-secondary"
+                    type="button"
+                >
+                    Close
+                </button>
+
             </div>
+
         </div>
+
     </div>
 
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
     <footer class="site-footer">
+
         <div class="footer-container">
-            <nav class="footer-nav" aria-label="Footer Navigation">
-                <a href="../">Home</a>
-                <a href="../#about">About</a>
-                <a href="../privacy/">Privacy Policy</a>
-                <a href="../terms/">Terms of Service</a>
-                <a href="../#contact">Contact</a>
+
+            <nav
+                class="footer-links"
+                aria-label="Footer navigation"
+            >
+
+                <a href="../../">
+                    Home
+                </a>
+
+                <a href="../../about.html">
+                    About Us
+                </a>
+
+                <a href="../../privacy.html">
+                    Privacy Policy
+                </a>
+
+                <a href="../../terms.html">
+                    Terms of Service
+                </a>
+
+                <a href="../../contact.html">
+                    Contact
+                </a>
+
             </nav>
-            <p class="copyright">
-                © 2026 Prasun Games by <a href="https://prasunbarua.com" target="_blank" rel="noopener">Prasun Barua</a>. All rights reserved.
+
+            <p class="footer-copy">
+
+                © 2026 Prasun Games by
+
+                <a
+                    href="https://prasunbarua.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Prasun Barua
+                </a>.
+
+                All rights reserved.
+
             </p>
+
         </div>
+
     </footer>
 
+
+    <!-- =========================================================
+         GAME JAVASCRIPT
+    ========================================================== -->
     <script src="app.js" defer></script>
+
 </body>
+
 </html>
