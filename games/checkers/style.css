@@ -1,6 +1,6 @@
 /* ==========================================================================
    PRASUN GAMES - CHECKERS STYLESHEET
-   Professional modern slate/navy aesthetic with CSS glassmorphism
+   Professional modern slate/navy aesthetic with glassmorphism & AI controls
    ========================================================================== */
 
 /* --- CSS Variables & Theme Tokens --- */
@@ -154,7 +154,7 @@ body {
     max-width: 640px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 .game-header {
@@ -171,6 +171,63 @@ body {
 .game-subtitle {
     color: var(--text-secondary);
     font-size: 0.95rem;
+}
+
+/* --- Mode & AI Selector Panel --- */
+.mode-panel {
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.ai-options-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.ai-options-group.hidden {
+    display: none;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.control-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.select-input {
+    background: #0f172a;
+    color: var(--text-primary);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.select-input:focus {
+    border-color: var(--accent-emerald);
+    box-shadow: 0 0 0 2px var(--accent-emerald-glow);
 }
 
 /* --- HUD Panel --- */
@@ -255,6 +312,11 @@ body {
     user-select: none;
 }
 
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .btn-icon {
     width: 16px;
     height: 16px;
@@ -266,7 +328,7 @@ body {
     box-shadow: 0 2px 8px var(--accent-emerald-glow);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: var(--accent-emerald-hover);
     transform: translateY(-1px);
 }
@@ -277,7 +339,7 @@ body {
     border: 1px solid var(--panel-border);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.15);
 }
 
@@ -312,6 +374,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.status-banner.thinking {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fde68a;
+    animation: thinkingPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes thinkingPulse {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
 }
 
 /* --- Checkers Board --- */
@@ -727,6 +802,15 @@ kbd {
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 600px) {
+    .mode-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ai-options-group {
+        justify-content: space-between;
+    }
+
     .hud-panel {
         grid-template-columns: repeat(4, 1fr);
     }
